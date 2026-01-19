@@ -19,37 +19,81 @@ See [docs/PREREQUISITES.md](docs/PREREQUISITES.md) for detailed requirements.
 ## Step 1: Clone and Configure (2 minutes)
 
 ```bash
-# Clone your fork/copy of this repository
-git clone https://github.com/your-org/poc-gitops.git
+# Clone this repository
+git clone https://github.com/alan-teodoro/poc-gitops.git
 cd poc-gitops
 
-# Update the Argo CD Application with your repository URL
-sed -i 's|https://github.com/your-org/poc-gitops.git|YOUR_REPO_URL|g' argocd/orders-redis-dev-app.yaml
+# If you forked the repo, update the Argo CD Application with your repository URL
+# sed -i 's|https://github.com/alan-teodoro/poc-gitops.git|YOUR_REPO_URL|g' argocd/*.yaml
 
 # Find your storage class
 oc get storageclass
 
-# Update the storage class in the base REC manifest
+# Update the storage class in the base REC manifest if needed
 # Edit orders-redis/base/rec.yaml
-# Change storageClassName to match your cluster
+# Change storageClassName to match your cluster (default: ocs-storagecluster-ceph-rbd)
 ```
 
-## Step 2: Grant Argo CD Permissions (1 minute)
+## Step 2: Connect Repository to Argo CD (2 minutes)
+
+**Option A: Via Argo CD UI** (Recommended)
+
+1. Get Argo CD URL:
+   ```bash
+   oc get route openshift-gitops-server -n openshift-gitops -o jsonpath='{.spec.host}'
+   ```
+
+2. Login to Argo CD UI
+
+3. Go to **Settings** → **Repositories** → **+ Connect Repo**
+   - **Repository URL**: `https://github.com/alan-teodoro/poc-gitops.git`
+   - Click **Connect**
+
+**Option B: Via CLI**
 
 ```bash
-# Allow Argo CD to deploy into the target namespace
+# Login to Argo CD
+argocd login $(oc get route openshift-gitops-server -n openshift-gitops -o jsonpath='{.spec.host}') \
+  --username admin \
+  --insecure
+
+# Add repository
+argocd repo add https://github.com/alan-teodoro/poc-gitops.git
+```
+
+**Option C: Via Manifest** (GitOps Way)
+
+```bash
+cat <<EOF | oc apply -f -
+apiVersion: v1
+kind: Secret
+metadata:
+  name: poc-gitops-repo
+  namespace: openshift-gitops
+  labels:
+    argocd.argoproj.io/secret-type: repository
+stringData:
+  type: git
+  url: https://github.com/alan-teodoro/poc-gitops.git
+EOF
+```
+
+## Step 3: Grant Argo CD Permissions (1 minute)
+
+```bash
+# Cluster namespace (where Redis Enterprise Cluster lives)
+oc adm policy add-role-to-user admin \
+  system:serviceaccount:openshift-gitops:openshift-gitops-argocd-application-controller \
+  -n redis-enterprise
+
+# Application namespaces (where databases live)
 oc adm policy add-role-to-user admin \
   system:serviceaccount:openshift-gitops:openshift-gitops-argocd-application-controller \
   -n orders-redis-dev
-```
 
-## Step 3: Commit and Push (1 minute)
-
-```bash
-# Commit your configuration changes
-git add .
-git commit -m "Configure repository URL and storage class"
-git push origin main
+oc adm policy add-role-to-user admin \
+  system:serviceaccount:openshift-gitops:openshift-gitops-argocd-application-controller \
+  -n orders-redis-prod
 ```
 
 ## Step 4: Deploy with Argo CD (1 minute)
@@ -68,32 +112,37 @@ oc get application orders-redis-dev -n openshift-gitops
 # Watch the Application sync
 oc get application orders-redis-dev -n openshift-gitops -w
 
-# In another terminal, watch the pods come up
+# In another terminal, watch the cluster pods come up
+oc get pods -n redis-enterprise -w
+
+# Watch database pods
 oc get pods -n orders-redis-dev -w
 ```
 
-Expected pods:
+Expected pods in `redis-enterprise` namespace:
 - `orders-redis-cluster-0` (Redis Enterprise node 1)
 - `orders-redis-cluster-1` (Redis Enterprise node 2)
 - `orders-redis-cluster-2` (Redis Enterprise node 3)
 - `orders-redis-cluster-services-rigger-*` (Services controller)
-- `redis-enterprise-operator-*` (Operator)
+- `redis-enterprise-operator-*` (Operator - if installed here)
 
 ## Step 6: Verify Deployment
 
 ```bash
-# Check namespace
+# Check namespaces
+oc get ns redis-enterprise
 oc get ns orders-redis-dev
 
-# Check Redis Enterprise Cluster
-oc get redisenterprisecluster -n orders-redis-dev
+# Check Redis Enterprise Cluster (in redis-enterprise namespace)
+oc get redisenterprisecluster -n redis-enterprise
 
-# Check Redis Enterprise Database
+# Check Redis Enterprise Databases (in orders-redis-dev namespace)
 oc get redisenterprisedatabase -n orders-redis-dev
 
 # Get detailed status
-oc describe redisenterprisecluster orders-redis-cluster -n orders-redis-dev
+oc describe redisenterprisecluster orders-redis-cluster -n redis-enterprise
 oc describe redisenterprisedatabase orders-cache-dev -n orders-redis-dev
+oc describe redisenterprisedatabase session-store-dev -n orders-redis-dev
 ```
 
 Look for:

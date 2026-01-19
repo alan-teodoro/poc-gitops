@@ -128,8 +128,11 @@ See [docs/DEPLOYMENT.md](docs/DEPLOYMENT.md) for detailed deployment instruction
 ## 📚 Documentation
 
 - [Prerequisites](docs/PREREQUISITES.md) - Platform and tooling requirements
+- [Repository Connection](docs/REPOSITORY_CONNECTION.md) - How to connect Git repo to Argo CD
 - [Deployment Guide](docs/DEPLOYMENT.md) - Step-by-step deployment instructions
 - [Operations Guide](docs/OPERATIONS.md) - Day-2 operations and workflows
+- [Architecture](docs/ARCHITECTURE.md) - Detailed architecture overview
+- [OpenShift GitOps Setup](docs/OPENSHIFT_GITOPS_SETUP.md) - Complete GitOps setup guide
 
 ## 🔄 GitOps Workflow Examples
 

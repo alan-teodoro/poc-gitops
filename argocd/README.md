@@ -20,7 +20,130 @@ Each environment includes:
 
 ## Before Deploying
 
-### 1. Repository Configuration
+### 1. Connect Repository to Argo CD
+
+Before deploying applications, you need to connect this Git repository to Argo CD.
+
+#### Option A: Via Argo CD UI (Recommended for Beginners)
+
+1. **Access Argo CD UI**:
+   ```bash
+   oc get route openshift-gitops-server -n openshift-gitops -o jsonpath='{.spec.host}'
+   ```
+
+2. **Login** with admin credentials
+
+3. **Connect Repository**:
+   - Click **Settings** (⚙️) → **Repositories**
+   - Click **+ Connect Repo**
+   - Fill in:
+     - **Method**: `HTTPS`
+     - **Type**: `git`
+     - **Repository URL**: `https://github.com/alan-teodoro/poc-gitops.git`
+     - **Username**: (leave empty for public repo)
+     - **Password**: (leave empty for public repo)
+   - Click **Connect**
+
+4. **Verify**: Repository should show "Successful" status
+
+#### Option B: Via Argo CD CLI
+
+```bash
+# Login to Argo CD
+argocd login $(oc get route openshift-gitops-server -n openshift-gitops -o jsonpath='{.spec.host}') \
+  --username admin \
+  --insecure
+
+# Add repository
+argocd repo add https://github.com/alan-teodoro/poc-gitops.git
+
+# Verify
+argocd repo list
+```
+
+#### Option C: Via Kubernetes Manifest (GitOps Way)
+
+```bash
+cat <<EOF | oc apply -f -
+apiVersion: v1
+kind: Secret
+metadata:
+  name: poc-gitops-repo
+  namespace: openshift-gitops
+  labels:
+    argocd.argoproj.io/secret-type: repository
+stringData:
+  type: git
+  url: https://github.com/alan-teodoro/poc-gitops.git
+EOF
+```
+
+Verify the connection:
+```bash
+oc get secret -n openshift-gitops -l argocd.argoproj.io/secret-type=repository
+```
+
+#### For Private Repositories
+
+If your repository is private, you need authentication:
+
+**Using Personal Access Token**:
+
+1. Create a GitHub Personal Access Token:
+   - GitHub → Settings → Developer settings → Personal access tokens → Tokens (classic)
+   - Generate new token with `repo` scope
+   - Copy the token
+
+2. Add to Argo CD:
+   ```bash
+   cat <<EOF | oc apply -f -
+   apiVersion: v1
+   kind: Secret
+   metadata:
+     name: poc-gitops-repo
+     namespace: openshift-gitops
+     labels:
+       argocd.argoproj.io/secret-type: repository
+   stringData:
+     type: git
+     url: https://github.com/alan-teodoro/poc-gitops.git
+     username: <YOUR_GITHUB_USERNAME>
+     password: <YOUR_GITHUB_TOKEN>
+   EOF
+   ```
+
+**Using SSH Key**:
+
+1. Generate SSH key:
+   ```bash
+   ssh-keygen -t ed25519 -C "argocd@openshift" -f ~/.ssh/argocd_github
+   ```
+
+2. Add public key to GitHub:
+   ```bash
+   cat ~/.ssh/argocd_github.pub
+   # Add to GitHub → Settings → SSH and GPG keys → New SSH key
+   ```
+
+3. Create secret in Argo CD:
+   ```bash
+   cat <<EOF | oc apply -f -
+   apiVersion: v1
+   kind: Secret
+   metadata:
+     name: poc-gitops-repo-ssh
+     namespace: openshift-gitops
+     labels:
+       argocd.argoproj.io/secret-type: repository
+   stringData:
+     type: git
+     url: git@github.com:alan-teodoro/poc-gitops.git
+     sshPrivateKey: |
+   $(cat ~/.ssh/argocd_github | sed 's/^/      /')
+   EOF
+   ```
+
+### 2. Repository Configuration
 
 The Applications are configured to use:
 
@@ -33,9 +156,9 @@ spec:
 
 If you fork this repository, update the `repoURL` in each Application manifest.
 
-### 2. Configure Argo CD Permissions
+### 3. Configure RBAC Permissions
 
-Ensure Argo CD has permissions to deploy into the target namespaces:
+Grant Argo CD permissions to deploy into the target namespaces:
 
 ```bash
 # Grant permissions for cluster namespace
