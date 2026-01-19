@@ -1,6 +1,6 @@
 ---
 # Cache database for development environment
-apiVersion: app.redislabs.com/v1
+apiVersion: app.redislabs.com/v1alpha1
 kind: RedisEnterpriseDatabase
 metadata:
   name: orders-cache-dev
@@ -26,7 +26,7 @@ spec:
   evictionPolicy: volatile-lru
 ---
 # Session store database for development environment
-apiVersion: app.redislabs.com/v1
+apiVersion: app.redislabs.com/v1alpha1
 kind: RedisEnterpriseDatabase
 metadata:
   name: session-store-dev

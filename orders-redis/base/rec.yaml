@@ -9,7 +9,7 @@ metadata:
 spec:
   # Base configuration - can be overridden in overlays
   nodes: 3
-  
+
   redisEnterpriseNodeResources:
     requests:
       cpu: "1"
@@ -17,10 +17,10 @@ spec:
     limits:
       cpu: "2"
       memory: "4Gi"
-  
-  # IMPORTANT: Update this to match your cluster's storage class
-  storageClassName: ocs-storagecluster-ceph-rbd
-  
-  persistentStorage:
-    size: 50Gi
+
+  # Persistent storage configuration
+  persistentSpec:
+    enabled: true
+    storageClassName: ocs-storagecluster-ceph-rbd
+    volumeSize: 50Gi
 

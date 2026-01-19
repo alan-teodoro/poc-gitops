@@ -17,6 +17,7 @@ spec:
       cpu: "4"
       memory: "8Gi"
 
-  persistentStorage:
-    size: 100Gi  # Larger storage for production
+  persistentSpec:
+    enabled: true
+    volumeSize: 100Gi  # Larger storage for production
 

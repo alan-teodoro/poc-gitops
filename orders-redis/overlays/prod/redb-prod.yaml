@@ -1,6 +1,6 @@
 ---
 # Cache database for production environment
-apiVersion: app.redislabs.com/v1
+apiVersion: app.redislabs.com/v1alpha1
 kind: RedisEnterpriseDatabase
 metadata:
   name: orders-cache-prod
@@ -36,7 +36,7 @@ spec:
   #     subdir: orders-cache
 ---
 # Session store database for production environment
-apiVersion: app.redislabs.com/v1
+apiVersion: app.redislabs.com/v1alpha1
 kind: RedisEnterpriseDatabase
 metadata:
   name: session-store-prod
