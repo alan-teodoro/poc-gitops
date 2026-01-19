@@ -1,0 +1,33 @@
+---
+# Route for orders-cache-dev database
+apiVersion: route.openshift.io/v1
+kind: Route
+metadata:
+  name: orders-cache-dev
+  namespace: redis-enterprise
+spec:
+  to:
+    kind: Service
+    name: orders-cache-dev
+  port:
+    targetPort: 12000
+  tls:
+    termination: passthrough
+    insecureEdgeTerminationPolicy: Redirect
+---
+# Route for session-store-dev database
+apiVersion: route.openshift.io/v1
+kind: Route
+metadata:
+  name: session-store-dev
+  namespace: redis-enterprise
+spec:
+  to:
+    kind: Service
+    name: session-store-dev
+  port:
+    targetPort: 12001
+  tls:
+    termination: passthrough
+    insecureEdgeTerminationPolicy: Redirect
+

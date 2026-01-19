@@ -5,7 +5,8 @@ kind: Kustomization
 resources:
   - ../../base
   - namespace-patch.yaml  # Application namespace
-  - redb-dev.yaml         # Databases in application namespace
+  - redb-dev.yaml         # Databases in redis-enterprise namespace
+  - db-routes.yaml        # Routes for databases
 
 # Environment-specific labels
 labels:

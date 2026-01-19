@@ -6,6 +6,7 @@ kind: Kustomization
 resources:
   - namespace.yaml
   - rec.yaml
+  - routes.yaml
 
 # Common labels applied to all resources
 labels:

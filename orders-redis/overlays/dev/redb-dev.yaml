@@ -4,7 +4,7 @@ apiVersion: app.redislabs.com/v1alpha1
 kind: RedisEnterpriseDatabase
 metadata:
   name: orders-cache-dev
-  namespace: orders-redis-dev
+  namespace: redis-enterprise
   labels:
     app.kubernetes.io/name: redis-database
     app.kubernetes.io/instance: orders-cache-dev
@@ -30,7 +30,7 @@ apiVersion: app.redislabs.com/v1alpha1
 kind: RedisEnterpriseDatabase
 metadata:
   name: session-store-dev
-  namespace: orders-redis-dev
+  namespace: redis-enterprise
   labels:
     app.kubernetes.io/name: redis-database
     app.kubernetes.io/instance: session-store-dev

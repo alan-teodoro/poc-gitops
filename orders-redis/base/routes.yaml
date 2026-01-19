@@ -1,0 +1,17 @@
+---
+# Route for Redis Enterprise UI
+apiVersion: route.openshift.io/v1
+kind: Route
+metadata:
+  name: redis-enterprise-ui
+  namespace: redis-enterprise
+spec:
+  to:
+    kind: Service
+    name: orders-redis-cluster-ui
+  port:
+    targetPort: 8443
+  tls:
+    termination: passthrough
+    insecureEdgeTerminationPolicy: Redirect
+
