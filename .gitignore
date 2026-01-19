@@ -1,0 +1,42 @@
+# Redis Enterprise GitOps - Git Ignore
+
+# Temporary files
+*.tmp
+*.swp
+*.swo
+*~
+.DS_Store
+
+# IDE and editor files
+.vscode/
+.idea/
+*.iml
+.project
+.classpath
+.settings/
+
+# Kustomize build output
+kustomization-output/
+rendered/
+
+# Secrets (never commit secrets!)
+*-secret.yaml
+secrets/
+*.key
+*.crt
+*.pem
+
+# Local testing
+test-output/
+.test/
+
+# CI/CD artifacts
+.gitlab-ci-local/
+
+# Backup files
+*.bak
+*.backup
+
+# OS files
+Thumbs.db
+

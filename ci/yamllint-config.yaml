@@ -1,0 +1,43 @@
+---
+# yamllint configuration for Redis Enterprise GitOps
+
+extends: default
+
+rules:
+  # Line length - allow longer lines for URLs and base64
+  line-length:
+    max: 120
+    level: warning
+  
+  # Indentation - 2 spaces
+  indentation:
+    spaces: 2
+    indent-sequences: true
+  
+  # Comments
+  comments:
+    min-spaces-from-content: 1
+  
+  # Document start - not required
+  document-start: disable
+  
+  # Truthy values - allow yes/no
+  truthy:
+    allowed-values: ['true', 'false', 'yes', 'no']
+  
+  # Empty lines
+  empty-lines:
+    max: 2
+  
+  # Trailing spaces
+  trailing-spaces: enable
+  
+  # New line at end of file
+  new-line-at-end-of-file: enable
+
+# Ignore patterns
+ignore: |
+  .git/
+  .github/
+  node_modules/
+

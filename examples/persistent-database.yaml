@@ -1,0 +1,90 @@
+# Example: Persistent Database with AOF
+#
+# Use Case: Durable data storage that survives restarts
+#
+# Features:
+# - AOF (Append-Only File) persistence with fsync every second
+# - Data survives pod restarts and failures
+# - Replication for high availability
+# - Balanced performance and durability
+#
+# Best For:
+# - User data storage
+# - Application state
+# - Important caches that should survive restarts
+# - Transactional data
+
+apiVersion: app.redislabs.com/v1
+kind: RedisEnterpriseDatabase
+metadata:
+  name: persistent-data
+  namespace: orders-redis-dev
+  labels:
+    app.kubernetes.io/name: redis-database
+    app.kubernetes.io/component: datastore
+    use-case: persistent
+spec:
+  # Memory allocation
+  memorySize: 4GB
+  
+  # Enable replication for high availability
+  replication: true
+  
+  # AOF persistence with fsync every second
+  # Provides good balance between performance and durability
+  # Options:
+  #   - disabled: No persistence (fastest)
+  #   - aofEverySecond: AOF with fsync every second (recommended)
+  #   - snapshotEvery1Hour: RDB snapshot every hour
+  #   - snapshotEvery6Hours: RDB snapshot every 6 hours
+  #   - snapshotEvery12Hours: RDB snapshot every 12 hours
+  persistence: aofEverySecond
+  
+  # Database port
+  databasePort: 12100
+  
+  # TLS disabled for development
+  # Enable for production
+  tlsMode: disabled
+  
+  # Database type
+  type: redis
+  
+  # Eviction policy: Don't evict - return error when memory is full
+  # This ensures data is not lost due to memory pressure
+  # Use this when all data is important
+  evictionPolicy: noeviction
+  
+  # Optional: Enable backup for additional data protection
+  # backup:
+  #   interval: 24h
+  #   s3:
+  #     bucketName: redis-backups
+  #     subdir: persistent-data
+
+# Usage Example:
+# ---------------
+# After deployment, connect and use for persistent data:
+#
+# redis-cli -h persistent-data -p 12100
+#
+# # Store user data
+# HSET user:1001 name "John Doe" email "john@example.com" created "2024-01-01"
+#
+# # Store application state
+# SET app:config:feature_flags '{"new_ui":true,"beta_features":false}'
+#
+# # Store ordered data
+# ZADD leaderboard 1000 "player1" 950 "player2" 900 "player3"
+#
+# # Data will survive pod restarts
+# # Verify by restarting the pod and checking data is still present
+
+# Performance Considerations:
+# ---------------------------
+# - AOF provides better durability than RDB snapshots
+# - fsync every second is a good balance (max 1 second of data loss)
+# - For critical data, consider enabling backups
+# - Monitor disk I/O as AOF writes to disk continuously
+# - Consider RDB snapshots for faster restarts with large datasets
+

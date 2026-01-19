@@ -1,0 +1,53 @@
+---
+# Cache database for development environment
+apiVersion: app.redislabs.com/v1
+kind: RedisEnterpriseDatabase
+metadata:
+  name: orders-cache-dev
+  namespace: orders-redis-dev
+  labels:
+    app.kubernetes.io/name: redis-database
+    app.kubernetes.io/instance: orders-cache-dev
+    app.kubernetes.io/part-of: orders-platform
+    app.kubernetes.io/component: cache
+    env: dev
+spec:
+  # Reference to cluster in redis-enterprise namespace
+  redisEnterpriseCluster:
+    name: orders-redis-cluster
+
+  # Development environment settings
+  memorySize: 1GB
+  replication: true
+  persistence: disabled  # No persistence needed in dev
+  databasePort: 12000
+  tlsMode: disabled  # TLS disabled for easier development
+  type: redis
+  evictionPolicy: volatile-lru
+---
+# Session store database for development environment
+apiVersion: app.redislabs.com/v1
+kind: RedisEnterpriseDatabase
+metadata:
+  name: session-store-dev
+  namespace: orders-redis-dev
+  labels:
+    app.kubernetes.io/name: redis-database
+    app.kubernetes.io/instance: session-store-dev
+    app.kubernetes.io/part-of: orders-platform
+    app.kubernetes.io/component: session
+    env: dev
+spec:
+  # Reference to cluster in redis-enterprise namespace
+  redisEnterpriseCluster:
+    name: orders-redis-cluster
+
+  # Session store for development
+  memorySize: 512MB
+  replication: true
+  persistence: disabled
+  databasePort: 12001
+  tlsMode: disabled
+  type: redis
+  evictionPolicy: volatile-ttl
+

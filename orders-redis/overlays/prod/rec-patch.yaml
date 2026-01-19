@@ -1,0 +1,22 @@
+---
+# Production cluster configuration - larger and more resilient
+apiVersion: app.redislabs.com/v1
+kind: RedisEnterpriseCluster
+metadata:
+  name: orders-redis-cluster
+  namespace: redis-enterprise
+spec:
+  # Production cluster configuration - larger and more resilient
+  nodes: 5  # More nodes for production
+
+  redisEnterpriseNodeResources:
+    requests:
+      cpu: "2"
+      memory: "4Gi"
+    limits:
+      cpu: "4"
+      memory: "8Gi"
+
+  persistentStorage:
+    size: 100Gi  # Larger storage for production
+

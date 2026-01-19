@@ -1,0 +1,11 @@
+---
+# Namespace for dev application databases
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: orders-redis-dev
+  labels:
+    app.kubernetes.io/part-of: orders-platform
+    app.kubernetes.io/managed-by: argocd
+    env: dev
+

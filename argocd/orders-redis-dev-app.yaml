@@ -1,0 +1,41 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: orders-redis-dev
+  namespace: openshift-gitops
+  labels:
+    app.kubernetes.io/name: orders-redis-dev
+    app.kubernetes.io/part-of: orders-platform
+    env: dev
+  finalizers:
+    - resources-finalizer.argocd.argoproj.io
+spec:
+  project: default
+  
+  source:
+    repoURL: https://github.com/alan-teodoro/poc-gitops.git
+    targetRevision: main
+    path: orders-redis/overlays/dev
+  
+  destination:
+    server: https://kubernetes.default.svc
+    # Note: Kustomize will create both redis-enterprise and orders-redis-dev namespaces
+  
+  syncPolicy:
+    automated:
+      selfHeal: true
+      prune: true
+      allowEmpty: false
+    
+    syncOptions:
+      - CreateNamespace=true
+      - Validate=true
+      - ServerSideApply=true
+      - RespectIgnoreDifferences=true
+    
+    retry:
+      limit: 5
+      backoff:
+        duration: 5s
+        factor: 2
+        maxDuration: 3m

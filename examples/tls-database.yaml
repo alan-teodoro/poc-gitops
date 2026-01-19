@@ -1,0 +1,158 @@
+# Example: TLS-Enabled Database for Production
+#
+# Use Case: Secure production database with encrypted connections
+#
+# Features:
+# - TLS encryption for all connections
+# - Certificate-based authentication (optional)
+# - Production-ready security
+# - Compliance-friendly
+#
+# Best For:
+# - Production environments
+# - Sensitive data
+# - Compliance requirements (PCI-DSS, HIPAA, etc.)
+# - Multi-tenant environments
+
+apiVersion: app.redislabs.com/v1
+kind: RedisEnterpriseDatabase
+metadata:
+  name: secure-data
+  namespace: orders-redis-prod
+  labels:
+    app.kubernetes.io/name: redis-database
+    app.kubernetes.io/component: datastore
+    use-case: secure
+    env: prod
+spec:
+  # Memory allocation
+  memorySize: 4GB
+  
+  # Enable replication for HA
+  replication: true
+  
+  # Persistence for production
+  persistence: aofEverySecond
+  
+  # Database port
+  databasePort: 12300
+  
+  # Enable TLS encryption
+  # This encrypts all client-to-database connections
+  tlsMode: enabled
+  
+  # Optional: Specify custom TLS certificate
+  # If not specified, Redis Enterprise generates a self-signed certificate
+  # tlsSecret: my-tls-secret
+  
+  # Optional: Require client certificates (mutual TLS)
+  # clientAuthenticationCertificates:
+  #   - my-client-cert-secret
+  
+  # Database type
+  type: redis
+  
+  # Eviction policy
+  evictionPolicy: volatile-lru
+  
+  # Optional: Enable password authentication
+  # databaseSecretName: secure-data-password
+
+# TLS Certificate Setup:
+# ----------------------
+# Option 1: Use auto-generated certificate (simplest)
+#   - Redis Enterprise automatically generates a self-signed certificate
+#   - Suitable for internal applications
+#   - Clients must trust the CA or skip verification (not recommended)
+#
+# Option 2: Provide your own certificate
+#   1. Create a secret with your certificate:
+#      oc create secret tls my-tls-secret \
+#        --cert=path/to/tls.crt \
+#        --key=path/to/tls.key \
+#        -n orders-redis-prod
+#
+#   2. Reference it in the database spec:
+#      tlsSecret: my-tls-secret
+#
+# Option 3: Use cert-manager (recommended for production)
+#   - Automates certificate lifecycle
+#   - Handles renewal
+#   - Integrates with Let's Encrypt or internal CA
+
+# Client Connection Examples:
+# ---------------------------
+# 
+# Using redis-cli with TLS:
+# -------------------------
+# # Get the CA certificate
+# oc get secret <cluster-name>-cert -n orders-redis-prod -o jsonpath='{.data.ca\.crt}' | base64 -d > ca.crt
+#
+# # Connect with TLS
+# redis-cli -h secure-data -p 12300 --tls --cacert ca.crt
+#
+# # Or skip verification (not recommended for production)
+# redis-cli -h secure-data -p 12300 --tls --insecure
+#
+# Using Python redis-py:
+# ----------------------
+# import redis
+# import ssl
+#
+# r = redis.Redis(
+#     host='secure-data',
+#     port=12300,
+#     ssl=True,
+#     ssl_ca_certs='/path/to/ca.crt',
+#     ssl_cert_reqs=ssl.CERT_REQUIRED
+# )
+#
+# Using Node.js ioredis:
+# ----------------------
+# const Redis = require('ioredis');
+# const fs = require('fs');
+#
+# const redis = new Redis({
+#   host: 'secure-data',
+#   port: 12300,
+#   tls: {
+#     ca: fs.readFileSync('/path/to/ca.crt')
+#   }
+# });
+#
+# Using Java Jedis:
+# -----------------
+# import redis.clients.jedis.Jedis;
+# import javax.net.ssl.SSLSocketFactory;
+#
+# SSLSocketFactory sslSocketFactory = (SSLSocketFactory) SSLSocketFactory.getDefault();
+# Jedis jedis = new Jedis("secure-data", 12300, true);
+
+# Password Authentication:
+# ------------------------
+# For additional security, combine TLS with password authentication:
+#
+# 1. Create a secret with password:
+#    oc create secret generic secure-data-password \
+#      --from-literal=password='your-strong-password' \
+#      -n orders-redis-prod
+#
+# 2. Reference in database spec:
+#    databaseSecretName: secure-data-password
+#
+# 3. Connect with password:
+#    redis-cli -h secure-data -p 12300 --tls --cacert ca.crt -a 'your-strong-password'
+
+# Best Practices:
+# ---------------
+# 1. Always use TLS in production
+# 2. Use certificates from trusted CA (not self-signed)
+# 3. Enable password authentication
+# 4. Rotate certificates regularly
+# 5. Use mutual TLS for highly sensitive data
+# 6. Monitor certificate expiration
+# 7. Use cert-manager for automated certificate management
+# 8. Store certificates in secrets, never in Git
+# 9. Use network policies to restrict access
+# 10. Enable audit logging for compliance
+

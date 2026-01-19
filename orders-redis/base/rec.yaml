@@ -1,0 +1,26 @@
+apiVersion: app.redislabs.com/v1
+kind: RedisEnterpriseCluster
+metadata:
+  name: orders-redis-cluster
+  labels:
+    app.kubernetes.io/name: redis-enterprise
+    app.kubernetes.io/instance: orders-redis-cluster
+    app.kubernetes.io/part-of: orders-platform
+spec:
+  # Base configuration - can be overridden in overlays
+  nodes: 3
+  
+  redisEnterpriseNodeResources:
+    requests:
+      cpu: "1"
+      memory: "2Gi"
+    limits:
+      cpu: "2"
+      memory: "4Gi"
+  
+  # IMPORTANT: Update this to match your cluster's storage class
+  storageClassName: ocs-storagecluster-ceph-rbd
+  
+  persistentStorage:
+    size: 50Gi
+

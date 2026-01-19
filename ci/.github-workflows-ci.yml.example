@@ -1,0 +1,98 @@
+# Example GitHub Actions Workflow for Redis Enterprise GitOps
+#
+# This workflow validates configuration changes on pull requests
+# Copy this file to .github/workflows/ci.yml to use it
+
+name: Validate Redis Enterprise GitOps
+
+on:
+  pull_request:
+    branches:
+      - main
+      - develop
+  push:
+    branches:
+      - main
+
+jobs:
+  validate:
+    name: Validate Configuration
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+      
+      - name: Setup Kustomize
+        uses: imranismail/setup-kustomize@v2
+        with:
+          kustomize-version: "5.0.0"
+      
+      - name: Install yamllint
+        run: |
+          pip install yamllint
+      
+      - name: Make validation script executable
+        run: chmod +x ci/validate.sh
+      
+      - name: Run validation
+        run: ./ci/validate.sh
+  
+  yaml-lint:
+    name: YAML Linting
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+      
+      - name: Install yamllint
+        run: pip install yamllint
+      
+      - name: Run yamllint
+        run: yamllint -c ci/yamllint-config.yaml .
+  
+  security-scan:
+    name: Security Scanning
+    runs-on: ubuntu-latest
+    continue-on-error: true
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+      
+      - name: Setup Kustomize
+        uses: imranismail/setup-kustomize@v2
+      
+      - name: Install kubesec
+        run: |
+          wget https://github.com/controlplaneio/kubesec/releases/download/v2.13.0/kubesec_linux_amd64.tar.gz
+          tar -xzf kubesec_linux_amd64.tar.gz
+          sudo mv kubesec /usr/local/bin/
+      
+      - name: Scan manifests
+        run: |
+          kustomize build orders-redis-dev | kubesec scan -
+          kustomize build orders-redis/overlays/dev | kubesec scan -
+          kustomize build orders-redis/overlays/nonprod | kubesec scan -
+          kustomize build orders-redis/overlays/prod | kubesec scan -
+  
+  # Optional: Policy validation with OPA/Conftest
+  # policy-check:
+  #   name: Policy Validation
+  #   runs-on: ubuntu-latest
+  #   
+  #   steps:
+  #     - name: Checkout code
+  #       uses: actions/checkout@v4
+  #     
+  #     - name: Setup Conftest
+  #       uses: YubicoLabs/action-conftest@1.0.0
+  #     
+  #     - name: Run policy checks
+  #       run: |
+  #         conftest test orders-redis-dev/*.yaml
+  #         conftest test orders-redis/overlays/dev/*.yaml
+  #         conftest test orders-redis/overlays/nonprod/*.yaml
+  #         conftest test orders-redis/overlays/prod/*.yaml
+

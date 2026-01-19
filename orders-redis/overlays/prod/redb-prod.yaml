@@ -1,0 +1,64 @@
+---
+# Cache database for production environment
+apiVersion: app.redislabs.com/v1
+kind: RedisEnterpriseDatabase
+metadata:
+  name: orders-cache-prod
+  namespace: orders-redis-prod
+  labels:
+    app.kubernetes.io/name: redis-database
+    app.kubernetes.io/instance: orders-cache-prod
+    app.kubernetes.io/part-of: orders-platform
+    app.kubernetes.io/component: cache
+    env: prod
+spec:
+  # Reference to cluster in redis-enterprise namespace
+  redisEnterpriseCluster:
+    name: orders-redis-cluster
+
+  # Production environment settings - optimized for performance and reliability
+  memorySize: 4GB  # Production-sized memory
+  replication: true  # High availability
+  persistence: aofEverySecond  # Durability with AOF
+  databasePort: 12000
+  tlsMode: enabled  # TLS enabled for security
+  type: redis
+  evictionPolicy: volatile-lru
+
+  # Production-specific settings
+  shardCount: 2  # Sharding for better performance
+
+  # Backup configuration (example - adjust to your needs)
+  # backup:
+  #   interval: 24h
+  #   s3:
+  #     bucketName: redis-backups-prod
+  #     subdir: orders-cache
+---
+# Session store database for production environment
+apiVersion: app.redislabs.com/v1
+kind: RedisEnterpriseDatabase
+metadata:
+  name: session-store-prod
+  namespace: orders-redis-prod
+  labels:
+    app.kubernetes.io/name: redis-database
+    app.kubernetes.io/instance: session-store-prod
+    app.kubernetes.io/part-of: orders-platform
+    app.kubernetes.io/component: session
+    env: prod
+spec:
+  # Reference to cluster in redis-enterprise namespace
+  redisEnterpriseCluster:
+    name: orders-redis-cluster
+
+  # Session store for production
+  memorySize: 2GB
+  replication: true
+  persistence: aofEverySecond
+  databasePort: 12001
+  tlsMode: enabled
+  type: redis
+  evictionPolicy: volatile-ttl
+  shardCount: 1
+
