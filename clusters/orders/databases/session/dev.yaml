@@ -14,7 +14,7 @@ namespace: redis-orders-dev
 
 redis:
   clusterName: orders-redis-cluster
-  memorySize: 768MB
+  memorySize: 512MB
   replication: false
   persistence: disabled
   databasePort: 12001
