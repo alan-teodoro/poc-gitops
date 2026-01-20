@@ -1,0 +1,28 @@
+{{- if .Values.routes.ui.enabled }}
+apiVersion: route.openshift.io/v1
+kind: Route
+metadata:
+  name: redis-enterprise-ui
+  namespace: {{ .Values.namespace }}
+  labels:
+    cluster: {{ .Values.cluster.name }}
+    team: {{ .Values.cluster.team }}
+    component: ui
+    {{- range $key, $value := .Values.labels }}
+    {{ $key }}: {{ $value | quote }}
+    {{- end }}
+  {{- with .Values.annotations }}
+  annotations:
+    {{- toYaml . | nindent 4 }}
+  {{- end }}
+spec:
+  to:
+    kind: Service
+    name: {{ .Values.redis.clusterName }}-ui
+  port:
+    targetPort: 8443
+  tls:
+    termination: {{ .Values.routes.ui.tlsTermination }}
+    insecureEdgeTerminationPolicy: Redirect
+{{- end }}
+

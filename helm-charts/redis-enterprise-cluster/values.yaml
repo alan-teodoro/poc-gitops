@@ -1,0 +1,55 @@
+# Default values for redis-enterprise-cluster
+# This is a YAML-formatted file.
+
+# Cluster identification
+cluster:
+  name: orders
+  team: orders-team
+  datacenter: dc1
+
+# Namespace where cluster will be deployed
+# Format: redis-{cluster.name}-enterprise
+namespace: redis-orders-enterprise
+
+# Redis Enterprise Cluster configuration
+redis:
+  # Cluster name (will be: {cluster.name}-redis-cluster)
+  clusterName: orders-redis-cluster
+  
+  # Number of nodes in the cluster
+  nodes: 3
+  
+  # Redis Enterprise version
+  version: "8.0.6-54"
+  
+  # Node resources
+  resources:
+    requests:
+      cpu: "1"
+      memory: "2Gi"
+    limits:
+      cpu: "2"
+      memory: "4Gi"
+  
+  # Persistent storage configuration
+  persistence:
+    enabled: true
+    storageClassName: ocs-external-storagecluster-ceph-rbd
+    volumeSize: 50Gi
+
+# Routes configuration
+routes:
+  # Enable route for Redis Enterprise UI
+  ui:
+    enabled: true
+    # TLS termination (passthrough or edge)
+    tlsTermination: passthrough
+
+# Labels applied to all resources
+labels:
+  app.kubernetes.io/managed-by: argocd
+  gitops: argocd
+
+# Annotations applied to all resources
+annotations: {}
+

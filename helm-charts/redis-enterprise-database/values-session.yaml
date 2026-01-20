@@ -1,0 +1,14 @@
+# Preset for Session Store databases
+# Optimized for: Session data, TTL-based eviction, volatile data
+
+redis:
+  memorySize: 512MB
+  replication: true
+  persistence: disabled
+  tlsMode: disabled
+  evictionPolicy: volatile-ttl
+  shardCount: 1
+  
+  # Session-specific settings
+  type: redis
+

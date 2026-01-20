@@ -1,0 +1,43 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: redb-orders-cache-dev
+  namespace: openshift-gitops
+  labels:
+    cluster: orders
+    database: orders-cache
+    env: dev
+    type: redis-database
+  finalizers:
+    - resources-finalizer.argocd.argoproj.io
+spec:
+  project: default
+  
+  source:
+    repoURL: https://github.com/alan-teodoro/poc-gitops.git
+    targetRevision: main
+    path: helm-charts/redis-enterprise-database
+    helm:
+      valueFiles:
+        - values-cache.yaml
+        - ../../environments/databases/orders/dev/cache.yaml
+  
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: redis-orders-enterprise
+  
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+    syncOptions:
+      - CreateNamespace=true
+      - ServerSideApply=true
+      - RespectIgnoreDifferences=true
+    retry:
+      limit: 5
+      backoff:
+        duration: 5s
+        factor: 2
+        maxDuration: 3m
+

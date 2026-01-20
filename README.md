@@ -21,34 +21,63 @@ This demo shows how to:
 │   ├── DEPLOYMENT.md                   # Deployment guide
 │   ├── OPERATIONS.md                   # Operational workflows
 │   ├── ARCHITECTURE.md                 # Architecture overview
-│   └── OPENSHIFT_GITOPS_SETUP.md       # OpenShift GitOps setup guide
-├── orders-redis/                       # Kustomize base + overlays pattern
-│   ├── base/                           # Base configuration (shared)
-│   │   ├── namespace.yaml              # redis-enterprise namespace
-│   │   ├── rec.yaml                    # Redis Enterprise Cluster
-│   │   └── kustomization.yaml          # Base kustomization
-│   └── overlays/                       # Environment-specific overlays
-│       ├── dev/                        # Development environment
-│       │   ├── namespace-patch.yaml    # orders-redis-dev namespace
-│       │   ├── redb-dev.yaml           # Dev databases
-│       │   └── kustomization.yaml
-│       └── prod/                       # Production environment
-│           ├── namespace-patch.yaml    # orders-redis-prod namespace
-│           ├── rec-patch.yaml          # Prod cluster overrides
-│           ├── redb-prod.yaml          # Prod databases
-│           └── kustomization.yaml
+│   ├── OPENSHIFT_GITOPS_SETUP.md       # OpenShift GitOps setup guide
+│   ├── HELM_ARCHITECTURE.md            # Helm-based architecture (NEW)
+│   └── ONBOARDING_GUIDE.md             # Guide for adding clusters/databases (NEW)
+│
+├── helm-charts/                        # Helm charts (NEW - Scalable approach)
+│   ├── redis-enterprise-cluster/       # Chart for Redis Enterprise Cluster
+│   │   ├── Chart.yaml
+│   │   ├── values.yaml
+│   │   └── templates/
+│   │       ├── namespace.yaml
+│   │       ├── rec.yaml
+│   │       └── route-ui.yaml
+│   └── redis-enterprise-database/      # Chart for Redis Enterprise Database
+│       ├── Chart.yaml
+│       ├── values.yaml
+│       ├── values-cache.yaml           # Preset for cache databases
+│       ├── values-session.yaml         # Preset for session databases
+│       ├── values-persistent.yaml      # Preset for persistent databases
+│       └── templates/
+│           ├── redb.yaml
+│           └── route.yaml
+│
+├── environments/                       # Environment configurations (NEW)
+│   ├── clusters/                       # Cluster-specific configs
+│   │   └── orders/
+│   │       └── values.yaml
+│   └── databases/                      # Database-specific configs
+│       └── orders/
+│           ├── dev/
+│           │   ├── cache.yaml
+│           │   └── session.yaml
+│           └── prod/
+│               ├── cache.yaml
+│               └── session.yaml
+│
 ├── argocd/                             # Argo CD Application definitions
-│   ├── orders-redis-dev-app.yaml       # Dev environment app
-│   └── orders-redis-prod-app.yaml      # Prod environment app
+│   ├── infrastructure/                 # Cluster Applications (NEW)
+│   │   └── redis-cluster-orders.yaml
+│   ├── databases/                      # Database Applications (NEW)
+│   │   ├── orders-cache-dev.yaml
+│   │   └── session-store-dev.yaml
+│   ├── orders-redis-dev-app.yaml       # Legacy - Dev environment app
+│   └── orders-redis-prod-app.yaml      # Legacy - Prod environment app
+│
+├── orders-redis/                       # Legacy Kustomize approach (kept for reference)
+│   ├── base/
+│   └── overlays/
+│
 ├── examples/                           # Configuration examples
 │   ├── cache-database.yaml
 │   ├── persistent-database.yaml
 │   ├── sharded-database.yaml
 │   └── tls-database.yaml
 └── ci/                                 # CI validation
-    ├── validate.sh                     # Validation script
+    ├── validate.sh
     ├── yamllint-config.yaml
-    └── .gitlab-ci.yml.example          # Example CI pipeline
+    └── .gitlab-ci.yml.example
 ```
 
 ## 🚀 Quick Start
@@ -127,12 +156,19 @@ See [docs/DEPLOYMENT.md](docs/DEPLOYMENT.md) for detailed deployment instruction
 
 ## 📚 Documentation
 
+### Getting Started
 - [Prerequisites](docs/PREREQUISITES.md) - Platform and tooling requirements
 - [Repository Connection](docs/REPOSITORY_CONNECTION.md) - How to connect Git repo to Argo CD
+- [OpenShift GitOps Setup](docs/OPENSHIFT_GITOPS_SETUP.md) - Complete GitOps setup guide
+
+### Architecture & Design
+- [Helm Architecture](docs/HELM_ARCHITECTURE.md) - **NEW** Helm-based scalable architecture
+- [Architecture Overview](docs/ARCHITECTURE.md) - Original Kustomize-based architecture
+- [Onboarding Guide](docs/ONBOARDING_GUIDE.md) - **NEW** How to add clusters and databases
+
+### Operations
 - [Deployment Guide](docs/DEPLOYMENT.md) - Step-by-step deployment instructions
 - [Operations Guide](docs/OPERATIONS.md) - Day-2 operations and workflows
-- [Architecture](docs/ARCHITECTURE.md) - Detailed architecture overview
-- [OpenShift GitOps Setup](docs/OPENSHIFT_GITOPS_SETUP.md) - Complete GitOps setup guide
 
 ## 🔄 GitOps Workflow Examples
 
@@ -153,38 +189,62 @@ See [docs/OPERATIONS.md](docs/OPERATIONS.md) for detailed workflows.
 
 ## 🎯 What This Demonstrates
 
-This repository demonstrates the **Kustomize base + overlays pattern** for managing multiple environments:
+This repository demonstrates **two approaches** for managing Redis Enterprise at scale:
 
-### Architecture
+### 🆕 Helm-based Architecture (Recommended for Scale)
 
-- **Cluster**: Deployed in `redis-enterprise` namespace (shared across environments)
-- **Databases**: Deployed in environment-specific namespaces
-  - `orders-redis-dev`: Development databases
-  - `orders-redis-prod`: Production databases
+**Design for enterprise scale**: Dozens of clusters, hundreds of databases, multiple datacenters
 
-### Environment Configuration
+**Key Features**:
+- ✅ **One operator per cluster**: Each cluster has dedicated operator in its own namespace
+- ✅ **Separate Applications**: 1 Application for cluster, 1 per database (blast radius control)
+- ✅ **Helm + Values**: Templating with environment-specific configurations
+- ✅ **Presets**: Common patterns (cache, session, persistent)
+- ✅ **Self-service ready**: Easy to add new clusters/databases via Git
 
-- **Base** (`orders-redis/base/`): Redis Enterprise Cluster in `redis-enterprise` namespace
-  - 3 nodes, 2Gi memory per node, 50Gi storage
+**Structure**:
+- **Namespace**: `redis-{cluster-name}-enterprise` (e.g., `redis-orders-enterprise`)
+- **Operator**: Installed via OperatorHub per cluster
+- **Cluster**: Deployed via Helm chart with values file
+- **Databases**: Each deployed as separate Application with preset + custom values
 
-- **Dev overlay** (`orders-redis/overlays/dev/`):
-  - Namespace: `orders-redis-dev`
-  - 2 databases: cache (1GB) + session (512MB)
-  - No TLS, no persistence (fast iteration)
+**Example**:
+```bash
+# Deploy cluster
+oc apply -f argocd/infrastructure/redis-cluster-orders.yaml
 
-- **Prod overlay** (`orders-redis/overlays/prod/`):
-  - Namespace: `orders-redis-prod`
-  - Cluster override: 5 nodes, 4Gi memory, 100Gi storage
-  - 2 databases: cache (4GB, sharded) + session (2GB)
-  - TLS enabled, AOF persistence (production-ready)
+# Deploy databases independently
+oc apply -f argocd/databases/orders-cache-dev.yaml
+oc apply -f argocd/databases/session-store-dev.yaml
+```
 
-### GitOps Benefits
+See [docs/HELM_ARCHITECTURE.md](docs/HELM_ARCHITECTURE.md) for details.
 
-- ✅ **DRY principle**: Cluster defined once, databases reference it
-- ✅ **Namespace isolation**: Each environment has its own namespace
-- ✅ **Shared cluster**: One cluster serves multiple environments
-- ✅ **GitOps workflow**: All changes via Git commits
-- ✅ **Progressive complexity**: Dev is simple, prod has all features
+### 📦 Kustomize-based Architecture (Legacy)
+
+**Original approach**: Single Application managing cluster + databases
+
+**Structure**:
+- **Base** (`orders-redis/base/`): Shared cluster configuration
+- **Overlays** (`orders-redis/overlays/`): Environment-specific databases
+- **Single Application**: Manages all resources together
+
+**Limitations**:
+- Changes to one database trigger sync of all resources
+- Not suitable for hundreds of databases
+- Harder to delegate to multiple teams
+
+See [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) for details.
+
+---
+
+### GitOps Benefits (Both Approaches)
+
+- ✅ **Git as source of truth**: All configuration in version control
+- ✅ **Automated reconciliation**: Argo CD keeps cluster in sync with Git
+- ✅ **Audit trail**: All changes tracked via Git commits
+- ✅ **Rollback capability**: Git revert to undo changes
+- ✅ **Multi-environment**: Dev, prod, and beyond
 
 ## 🔗 References
 

@@ -1,0 +1,14 @@
+# Preset for Persistent databases
+# Optimized for: Durable data, AOF persistence, no eviction
+
+redis:
+  memorySize: 2GB
+  replication: true
+  persistence: aofEverySecond
+  tlsMode: enabled
+  evictionPolicy: noeviction
+  shardCount: 2
+  
+  # Persistent-specific settings
+  type: redis
+

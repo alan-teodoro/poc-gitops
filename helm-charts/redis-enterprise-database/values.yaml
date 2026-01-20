@@ -1,0 +1,46 @@
+# Default values for redis-enterprise-database
+# This is a YAML-formatted file.
+
+# Database identification
+database:
+  name: cache
+  env: dev
+  type: cache  # cache, session, persistent
+
+# Cluster reference
+cluster:
+  name: orders
+  team: orders-team
+  datacenter: dc1
+
+# Namespace where database will be deployed
+# Must be same as cluster namespace: redis-{cluster.name}-enterprise
+namespace: redis-orders-enterprise
+
+# Redis Enterprise Cluster reference
+redis:
+  # Cluster name to connect to
+  clusterName: orders-redis-cluster
+  
+  # Database configuration
+  memorySize: 1GB
+  replication: true
+  persistence: disabled
+  databasePort: 12000
+  tlsMode: disabled
+  evictionPolicy: volatile-lru
+  shardCount: 1
+
+# Route configuration
+route:
+  enabled: true
+  tlsTermination: passthrough
+
+# Labels applied to all resources
+labels:
+  app.kubernetes.io/managed-by: argocd
+  gitops: argocd
+
+# Annotations applied to all resources
+annotations: {}
+

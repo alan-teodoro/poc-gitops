@@ -1,0 +1,14 @@
+apiVersion: v2
+name: redis-enterprise-database
+description: Helm chart for Redis Enterprise Database (REDB)
+type: application
+version: 1.0.0
+appVersion: "8.2.1"
+keywords:
+  - redis
+  - redis-enterprise
+  - database
+  - cache
+maintainers:
+  - name: Platform Team
+

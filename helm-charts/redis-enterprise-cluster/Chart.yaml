@@ -1,0 +1,14 @@
+apiVersion: v2
+name: redis-enterprise-cluster
+description: Helm chart for Redis Enterprise Cluster (REC)
+type: application
+version: 1.0.0
+appVersion: "8.0.6-54"
+keywords:
+  - redis
+  - redis-enterprise
+  - database
+  - cache
+maintainers:
+  - name: Platform Team
+

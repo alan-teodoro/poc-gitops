@@ -1,0 +1,38 @@
+# Session Store Database - Development Environment
+
+database:
+  name: session-store
+  env: dev
+  type: session
+
+cluster:
+  name: orders
+  team: orders-team
+  datacenter: dc1
+
+namespace: redis-orders-enterprise
+
+redis:
+  clusterName: orders-redis-cluster
+  memorySize: 512MB
+  replication: true
+  persistence: disabled
+  databasePort: 12001
+  tlsMode: disabled
+  evictionPolicy: volatile-ttl
+  shardCount: 1
+  type: redis
+
+route:
+  enabled: true
+  tlsTermination: passthrough
+
+labels:
+  app.kubernetes.io/managed-by: argocd
+  gitops: argocd
+  app: orders
+  component: session
+
+annotations:
+  description: "Session store database for Orders application - Development"
+

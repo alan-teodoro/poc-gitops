@@ -1,0 +1,14 @@
+# Preset for Cache databases
+# Optimized for: High throughput, volatile data, LRU eviction
+
+redis:
+  memorySize: 1GB
+  replication: true
+  persistence: disabled
+  tlsMode: disabled
+  evictionPolicy: volatile-lru
+  shardCount: 1
+  
+  # Cache-specific settings
+  type: redis
+

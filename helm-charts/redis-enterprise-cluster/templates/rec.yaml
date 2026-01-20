@@ -1,0 +1,39 @@
+apiVersion: app.redislabs.com/v1
+kind: RedisEnterpriseCluster
+metadata:
+  name: {{ .Values.redis.clusterName }}
+  namespace: {{ .Values.namespace }}
+  labels:
+    cluster: {{ .Values.cluster.name }}
+    team: {{ .Values.cluster.team }}
+    datacenter: {{ .Values.cluster.datacenter }}
+    {{- range $key, $value := .Values.labels }}
+    {{ $key }}: {{ $value | quote }}
+    {{- end }}
+  {{- with .Values.annotations }}
+  annotations:
+    {{- toYaml . | nindent 4 }}
+  {{- end }}
+spec:
+  nodes: {{ .Values.redis.nodes }}
+  
+  redisEnterpriseNodeResources:
+    requests:
+      cpu: {{ .Values.redis.resources.requests.cpu | quote }}
+      memory: {{ .Values.redis.resources.requests.memory | quote }}
+    limits:
+      cpu: {{ .Values.redis.resources.limits.cpu | quote }}
+      memory: {{ .Values.redis.resources.limits.memory | quote }}
+  
+  {{- if .Values.redis.persistence.enabled }}
+  # Persistent storage configuration
+  persistentSpec:
+    enabled: true
+    storageClassName: {{ .Values.redis.persistence.storageClassName }}
+    volumeSize: {{ .Values.redis.persistence.volumeSize }}
+  {{- end }}
+  
+  redisEnterpriseImageSpec:
+    imagePullPolicy: IfNotPresent
+    versionTag: {{ .Values.redis.version | quote }}
+
