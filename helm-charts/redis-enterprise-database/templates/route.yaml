@@ -3,7 +3,7 @@ apiVersion: route.openshift.io/v1
 kind: Route
 metadata:
   name: {{ .Values.database.name }}-{{ .Values.database.env }}
-  namespace: {{ .Values.namespace }}
+  namespace: {{ .Values.cluster.namespace | default (printf "redis-%s" .Values.cluster.name) }}
   labels:
     cluster: {{ .Values.cluster.name }}
     team: {{ .Values.cluster.team }}
@@ -20,7 +20,7 @@ metadata:
 spec:
   to:
     kind: Service
-    name: {{ .Values.database.name }}-{{ .Values.database.env }}
+    name: redis-{{ .Values.redis.databasePort }}
   port:
     targetPort: {{ .Values.redis.databasePort }}
   tls:
