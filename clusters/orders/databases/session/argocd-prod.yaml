@@ -1,12 +1,12 @@
 apiVersion: argoproj.io/v1alpha1
 kind: Application
 metadata:
-  name: redb-orders-cache-dev
+  name: redb-session-store-prod
   namespace: openshift-gitops
   labels:
     cluster: orders
-    database: orders-cache
-    env: dev
+    database: session-store
+    env: prod
     type: redis-database
   finalizers:
     - resources-finalizer.argocd.argoproj.io
@@ -19,8 +19,8 @@ spec:
     path: helm-charts/redis-enterprise-database
     helm:
       valueFiles:
-        - values-cache.yaml
-        - ../../environments/databases/orders/dev/cache.yaml
+        - values-persistent.yaml
+        - ../../../../clusters/orders/databases/session/prod.yaml
   
   destination:
     server: https://kubernetes.default.svc

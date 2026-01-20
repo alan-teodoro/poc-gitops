@@ -1,9 +1,0 @@
-apiVersion: v1
-kind: Namespace
-metadata:
-  name: redis-enterprise
-  labels:
-    app.kubernetes.io/name: redis-enterprise
-    app.kubernetes.io/part-of: orders-platform
-    app.kubernetes.io/managed-by: argocd
-

@@ -1,268 +1,267 @@
-# Redis Enterprise GitOps Demo on OpenShift
+# Redis Enterprise GitOps on OpenShift
 
-This repository demonstrates how to manage Redis Enterprise on Red Hat OpenShift Container Platform (OCP) using GitOps principles with Argo CD.
+GitOps-based management of Redis Enterprise on Red Hat OpenShift using Argo CD and Helm.
 
 ## 📋 Overview
 
-This demo shows how to:
+This repository demonstrates enterprise-scale Redis deployment using:
 
-- Define Redis Enterprise clusters and databases as Kubernetes custom resources
-- Use Git as the source of truth for Redis configuration
-- Use Argo CD to reconcile Git-based configuration into OpenShift
-- Apply a repeatable workflow that can be extended to production environments
+- **Helm charts** for templating and reusability
+- **Cluster-centric organization** for managing hundreds of databases
+- **GitOps** with Argo CD for automated deployment
+- **One operator per cluster** for isolation and scalability
 
 ## 🏗️ Repository Structure
 
 ```
 .
 ├── README.md                           # This file
-├── docs/                               # Documentation
-│   ├── PREREQUISITES.md                # Prerequisites and assumptions
-│   ├── DEPLOYMENT.md                   # Deployment guide
-│   ├── OPERATIONS.md                   # Operational workflows
-│   ├── ARCHITECTURE.md                 # Architecture overview
-│   ├── OPENSHIFT_GITOPS_SETUP.md       # OpenShift GitOps setup guide
-│   ├── HELM_ARCHITECTURE.md            # Helm-based architecture (NEW)
-│   └── ONBOARDING_GUIDE.md             # Guide for adding clusters/databases (NEW)
 │
-├── helm-charts/                        # Helm charts (NEW - Scalable approach)
+├── docs/                               # Documentation
+│   ├── HELM_ARCHITECTURE.md            # Architecture overview
+│   └── QUICK_START.md                  # Quick start guide
+│
+├── helm-charts/                        # Reusable Helm charts
 │   ├── redis-enterprise-cluster/       # Chart for Redis Enterprise Cluster
 │   │   ├── Chart.yaml
-│   │   ├── values.yaml
+│   │   ├── values.yaml                 # Default values
 │   │   └── templates/
 │   │       ├── namespace.yaml
 │   │       ├── rec.yaml
 │   │       └── route-ui.yaml
+│   │
 │   └── redis-enterprise-database/      # Chart for Redis Enterprise Database
 │       ├── Chart.yaml
-│       ├── values.yaml
-│       ├── values-cache.yaml           # Preset for cache databases
-│       ├── values-session.yaml         # Preset for session databases
-│       ├── values-persistent.yaml      # Preset for persistent databases
+│       ├── values.yaml                 # Default values
+│       ├── values-cache.yaml           # Preset: cache (volatile-lru)
+│       ├── values-session.yaml         # Preset: session (volatile-ttl)
+│       ├── values-persistent.yaml      # Preset: persistent (AOF, TLS)
 │       └── templates/
 │           ├── redb.yaml
 │           └── route.yaml
 │
-├── clusters/                           # Cluster-centric organization (NEW)
-│   ├── README.md                       # Clusters overview
-│   ├── orders/                         # Everything for Orders cluster
-│   │   ├── README.md                   # Cluster documentation
-│   │   ├── cluster.yaml                # Cluster configuration
-│   │   ├── argocd-cluster.yaml        # Argo CD App for cluster
-│   │   └── databases/                  # All databases for this cluster
-│   │       ├── dev/
-│   │       │   ├── cache.yaml         # Database config
-│   │       │   ├── session.yaml
-│   │       │   ├── argocd-cache.yaml  # Argo CD App for DB
-│   │       │   └── argocd-session.yaml
-│   │       └── prod/
-│   │           ├── cache.yaml
-│   │           └── session.yaml
-│   ├── payments/                       # Everything for Payments cluster
-│   └── inventory/                      # Everything for Inventory cluster
-│
-├── argocd/                             # Argo CD Application definitions (Legacy)
-│   ├── orders-redis-dev-app.yaml       # Legacy - Dev environment app
-│   └── orders-redis-prod-app.yaml      # Legacy - Prod environment app
-│
-├── orders-redis/                       # Legacy Kustomize approach (kept for reference)
-│   ├── base/
-│   └── overlays/
-│
-├── examples/                           # Configuration examples
-│   ├── cache-database.yaml
-│   ├── persistent-database.yaml
-│   ├── sharded-database.yaml
-│   └── tls-database.yaml
-└── ci/                                 # CI validation
-    ├── validate.sh
-    ├── yamllint-config.yaml
-    └── .gitlab-ci.yml.example
+└── clusters/                           # Cluster-centric organization
+    ├── README.md                       # Clusters overview
+    └── orders/                         # Everything for Orders cluster
+        ├── README.md                   # Cluster documentation
+        ├── cluster.yaml                # Cluster configuration
+        ├── argocd-cluster.yaml         # Argo CD Application
+        └── databases/                  # Organized by database
+            ├── cache/                  # Cache database (all environments)
+            │   ├── dev.yaml           # Dev config
+            │   ├── prod.yaml          # Prod config
+            │   ├── argocd-dev.yaml    # Argo CD App for dev
+            │   └── argocd-prod.yaml   # Argo CD App for prod
+            └── session/                # Session database (all environments)
+                ├── dev.yaml
+                ├── prod.yaml
+                ├── argocd-dev.yaml
+                └── argocd-prod.yaml
 ```
+
+## 🎯 Key Design Principles
+
+### 1. Cluster-Centric Organization
+Everything related to a cluster lives in one directory:
+- Cluster configuration
+- All databases (dev, prod)
+- Argo CD Applications
+- Documentation
+
+**Benefits**: Easy to find resources, clear ownership, scales to 500+ databases.
+
+### 2. Helm for Templating
+Reusable charts with environment-specific values:
+- `helm-charts/` = Generic templates
+- `clusters/{name}/` = Specific values
+
+**Benefits**: DRY principle, consistent deployments, easy to scale.
+
+### 3. One Operator Per Cluster
+Each cluster has its own operator in its own namespace:
+- Namespace: `redis-{cluster-name}-enterprise`
+- Operator watches only its namespace
+- Complete isolation between clusters
+
+**Benefits**: Blast radius control, independent upgrades, multi-team support.
 
 ## 🚀 Quick Start
 
 ### Prerequisites
 
-Before using this demo, ensure you have:
+1. **OpenShift 4.x cluster** with storage class
+2. **OpenShift GitOps (Argo CD)** installed
+3. **Redis Enterprise Operator** installed via OperatorHub in namespace `redis-orders-enterprise`
+4. **CLI tools**: `oc`, `git`, `helm` (optional)
 
-1. **OpenShift 4.x cluster** with:
-   - Working DNS and default CNI
-   - Storage class for persistent volumes
-   
-2. **Redis Enterprise Operator** installed via OperatorHub
+### Deploy Orders Cluster
 
-3. **OpenShift GitOps (Argo CD)** installed and running
+1. **Fork/clone this repository**
 
-4. **CLI tools**:
-   - `oc` CLI configured for your cluster
-   - `git` client
-   - `kustomize` (optional, for local validation)
-
-See [docs/PREREQUISITES.md](docs/PREREQUISITES.md) for detailed requirements.
-
-### Deploy the Demo
-
-1. **Fork or clone this repository**
-
-2. **Update the Argo CD Application manifest** with your Git repository URL:
+2. **Update Git repository URL** in Argo CD Applications:
    ```bash
-   # Edit argocd/orders-redis-dev-app.yaml
-   # Update spec.source.repoURL to your repository
+   # Update all argocd-*.yaml files
+   find clusters/orders -name "argocd-*.yaml" -exec sed -i '' \
+     's|https://github.com/alan-teodoro/poc-gitops.git|YOUR_REPO_URL|g' {} \;
    ```
 
-3. **Update storage class** in the base REC manifest:
+3. **Grant Argo CD permissions**:
    ```bash
-   # Edit orders-redis/base/rec.yaml
-   # Update spec.storageClassName to match your cluster
+   oc adm policy add-role-to-user admin \
+     system:serviceaccount:openshift-gitops:openshift-gitops-argocd-application-controller \
+     -n redis-orders-enterprise
    ```
 
-4. **Grant Argo CD permissions**:
+4. **Deploy cluster**:
    ```bash
-   # Cluster namespace
-   oc adm policy add-role-to-user admin \
-     system:serviceaccount:openshift-gitops:openshift-gitops-argocd-application-controller \
-     -n redis-enterprise
-
-   # Application namespaces
-   oc adm policy add-role-to-user admin \
-     system:serviceaccount:openshift-gitops:openshift-gitops-argocd-application-controller \
-     -n orders-redis-dev
-
-   oc adm policy add-role-to-user admin \
-     system:serviceaccount:openshift-gitops:openshift-gitops-argocd-application-controller \
-     -n orders-redis-prod
+   oc apply -f clusters/orders/argocd-cluster.yaml
    ```
 
-5. **Apply the Argo CD Application**:
+5. **Deploy databases**:
    ```bash
-   oc apply -f argocd/orders-redis-dev-app.yaml
+   # Dev databases
+   oc apply -f clusters/orders/databases/cache/argocd-dev.yaml
+   oc apply -f clusters/orders/databases/session/argocd-dev.yaml
+
+   # Prod databases (optional)
+   oc apply -f clusters/orders/databases/cache/argocd-prod.yaml
+   oc apply -f clusters/orders/databases/session/argocd-prod.yaml
    ```
 
 6. **Verify deployment**:
    ```bash
+   # Check Applications
+   oc get applications -n openshift-gitops | grep redis
+
    # Check cluster
-   oc get redisenterprisecluster -n redis-enterprise
+   oc get redisenterprisecluster -n redis-orders-enterprise
 
    # Check databases
-   oc get redisenterprisedatabase -n orders-redis-dev
+   oc get redisenterprisedatabase -n redis-orders-enterprise
 
-   # Check pods
-   oc get pods -n redis-enterprise
-   oc get pods -n orders-redis-dev
+   # Check routes
+   oc get routes -n redis-orders-enterprise
    ```
 
-See [docs/DEPLOYMENT.md](docs/DEPLOYMENT.md) for detailed deployment instructions.
+See [docs/QUICK_START.md](docs/QUICK_START.md) for detailed instructions.
 
 ## 📚 Documentation
 
-### Getting Started
-- [Prerequisites](docs/PREREQUISITES.md) - Platform and tooling requirements
-- [Repository Connection](docs/REPOSITORY_CONNECTION.md) - How to connect Git repo to Argo CD
-- [OpenShift GitOps Setup](docs/OPENSHIFT_GITOPS_SETUP.md) - Complete GitOps setup guide
+- **[Quick Start Guide](docs/QUICK_START.md)** - Add clusters and databases step-by-step
+- **[Helm Architecture](docs/HELM_ARCHITECTURE.md)** - Architecture overview and design decisions
+- **[Clusters README](clusters/README.md)** - Cluster organization and structure
 
-### Architecture & Design
-- [Helm Architecture](docs/HELM_ARCHITECTURE.md) - **NEW** Helm-based scalable architecture
-- [Architecture Overview](docs/ARCHITECTURE.md) - Original Kustomize-based architecture
-- [Onboarding Guide](docs/ONBOARDING_GUIDE.md) - **NEW** How to add clusters and databases
+## 🔄 Common Operations
 
-### Operations
-- [Deployment Guide](docs/DEPLOYMENT.md) - Step-by-step deployment instructions
-- [Operations Guide](docs/OPERATIONS.md) - Day-2 operations and workflows
+### Add a New Cluster
 
-## 🔄 GitOps Workflow Examples
-
-### Adding a New Database
-
-1. Create a new REDB manifest (e.g., `redb-session-store-dev.yaml`)
-2. Add it to `kustomization.yaml`
-3. Commit and push to Git
-4. Argo CD automatically reconciles the change
-
-### Modifying Database Configuration
-
-1. Edit the REDB manifest (e.g., change `memorySize`)
-2. Commit and push to Git
-3. Argo CD detects and applies the change
-
-See [docs/OPERATIONS.md](docs/OPERATIONS.md) for detailed workflows.
-
-## 🎯 What This Demonstrates
-
-This repository demonstrates **two approaches** for managing Redis Enterprise at scale:
-
-### 🆕 Helm-based Architecture (Recommended for Scale)
-
-**Design for enterprise scale**: Dozens of clusters, hundreds of databases, multiple datacenters
-
-**Key Features**:
-- ✅ **One operator per cluster**: Each cluster has dedicated operator in its own namespace
-- ✅ **Separate Applications**: 1 Application for cluster, 1 per database (blast radius control)
-- ✅ **Helm + Values**: Templating with environment-specific configurations
-- ✅ **Presets**: Common patterns (cache, session, persistent)
-- ✅ **Self-service ready**: Easy to add new clusters/databases via Git
-
-**Structure**:
-- **Namespace**: `redis-{cluster-name}-enterprise` (e.g., `redis-orders-enterprise`)
-- **Operator**: Installed via OperatorHub per cluster
-- **Cluster**: Deployed via Helm chart with values file
-- **Databases**: Each deployed as separate Application with preset + custom values
-
-**Example**:
 ```bash
-# Deploy cluster
-oc apply -f argocd/infrastructure/redis-cluster-orders.yaml
+# 1. Create directory structure
+mkdir -p clusters/payments/databases/{dev,prod}
 
-# Deploy databases independently
-oc apply -f argocd/databases/orders-cache-dev.yaml
-oc apply -f argocd/databases/session-store-dev.yaml
+# 2. Copy and edit cluster config
+cp clusters/orders/cluster.yaml clusters/payments/cluster.yaml
+# Edit: cluster name, namespace, team, resources
+
+# 3. Copy and edit Argo CD Application
+cp clusters/orders/argocd-cluster.yaml clusters/payments/argocd-cluster.yaml
+# Edit: name, labels, valueFiles path
+
+# 4. Install operator via OperatorHub in namespace: redis-payments-enterprise
+
+# 5. Deploy
+oc apply -f clusters/payments/argocd-cluster.yaml
 ```
 
-See [docs/HELM_ARCHITECTURE.md](docs/HELM_ARCHITECTURE.md) for details.
+### Add a New Database
 
-### 📦 Kustomize-based Architecture (Legacy)
+```bash
+# 1. Navigate to cluster databases directory
+cd clusters/orders/databases/
 
-**Original approach**: Single Application managing cluster + databases
+# 2. Create database directory
+mkdir analytics
 
-**Structure**:
-- **Base** (`orders-redis/base/`): Shared cluster configuration
-- **Overlays** (`orders-redis/overlays/`): Environment-specific databases
-- **Single Application**: Manages all resources together
+# 3. Create dev config
+cp cache/dev.yaml analytics/dev.yaml
+# Edit: name, port, memory, type
 
-**Limitations**:
-- Changes to one database trigger sync of all resources
-- Not suitable for hundreds of databases
-- Harder to delegate to multiple teams
+# 4. Create prod config
+cp cache/prod.yaml analytics/prod.yaml
+# Edit: name, port, memory, type
 
-See [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) for details.
+# 5. Create Argo CD Applications
+cp cache/argocd-dev.yaml analytics/argocd-dev.yaml
+cp cache/argocd-prod.yaml analytics/argocd-prod.yaml
+# Edit: metadata.name, valueFiles paths
 
----
+# 6. Deploy
+oc apply -f analytics/argocd-dev.yaml
+oc apply -f analytics/argocd-prod.yaml
+```
 
-### GitOps Benefits (Both Approaches)
+See [docs/QUICK_START.md](docs/QUICK_START.md) for detailed examples.
 
-- ✅ **Git as source of truth**: All configuration in version control
-- ✅ **Automated reconciliation**: Argo CD keeps cluster in sync with Git
-- ✅ **Audit trail**: All changes tracked via Git commits
-- ✅ **Rollback capability**: Git revert to undo changes
-- ✅ **Multi-environment**: Dev, prod, and beyond
+## 🎯 Architecture Highlights
+
+### Cluster-Centric Organization
+```
+clusters/orders/          # Everything for Orders cluster
+├── cluster.yaml         # Cluster config (3 nodes, 4GB RAM)
+├── argocd-cluster.yaml  # Argo CD Application
+└── databases/           # Organized by database
+    ├── cache/           # Cache database (all environments)
+    │   ├── dev.yaml            # 1GB, port 12000
+    │   ├── prod.yaml           # 4GB, port 12000, AOF, TLS
+    │   ├── argocd-dev.yaml     # Argo CD App for dev
+    │   └── argocd-prod.yaml    # Argo CD App for prod
+    └── session/         # Session database (all environments)
+        ├── dev.yaml
+        ├── prod.yaml
+        ├── argocd-dev.yaml
+        └── argocd-prod.yaml
+```
+
+**Benefits**:
+- ✅ Easy to find all environments of a database
+- ✅ Easy to compare dev vs prod configurations
+- ✅ Only 4 files per database (not 100 files in one directory)
+- ✅ Clear team ownership (one cluster directory per team)
+
+### Helm + Values Pattern
+```
+helm-charts/redis-enterprise-database/  # Generic template
+    + values-cache.yaml                 # Preset (volatile-lru)
+    + clusters/orders/databases/dev/cache.yaml  # Specific values
+    = Final Kubernetes manifest
+```
+
+**Benefits**:
+- ✅ DRY: One template for all databases
+- ✅ Consistency: Presets ensure best practices
+- ✅ Flexibility: Override any value per database
+
+### One Operator Per Cluster
+```
+redis-orders-enterprise/     # Namespace
+├── operator                 # Dedicated operator
+├── orders-redis-cluster     # REC
+└── databases                # All REDBs
+```
+
+**Benefits**:
+- ✅ Isolation: Operator failure doesn't affect other clusters
+- ✅ Independent upgrades: Upgrade operators separately
+- ✅ Multi-team: Each team manages their own cluster
 
 ## 🔗 References
 
-### Internal Documentation
-- [OpenShift GitOps Setup Guide](docs/OPENSHIFT_GITOPS_SETUP.md) - Complete guide to installing and configuring OpenShift GitOps
-- [Architecture Overview](docs/ARCHITECTURE.md) - Detailed architecture diagrams and explanations
-- [Prerequisites](docs/PREREQUISITES.md) - Platform and tooling requirements
-- [Deployment Guide](docs/DEPLOYMENT.md) - Step-by-step deployment instructions
-- [Operations Guide](docs/OPERATIONS.md) - Day-2 operations and workflows
-
-### External Resources
-- [Redis Enterprise for Kubernetes - Architecture](https://redis.io/docs/latest/operate/kubernetes/architecture/)
-- [Deploy Redis Enterprise with OpenShift](https://redis.io/docs/latest/operate/kubernetes/deployment/openshift/)
-- [OpenShift GitOps Documentation](https://docs.redhat.com/en/documentation/red_hat_openshift_gitops)
-- [Argo CD Documentation](https://argo-cd.readthedocs.io/)
-- [Kustomize Documentation](https://kustomize.io/)
+- [Redis Enterprise for Kubernetes](https://redis.io/docs/latest/operate/kubernetes/)
+- [OpenShift GitOps](https://docs.redhat.com/en/documentation/red_hat_openshift_gitops)
+- [Argo CD](https://argo-cd.readthedocs.io/)
+- [Helm](https://helm.sh/docs/)
 
 ## 📝 License
 
-This is a demonstration project for educational purposes.
+Educational demonstration project.
 

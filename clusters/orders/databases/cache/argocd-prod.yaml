@@ -1,12 +1,13 @@
 apiVersion: argoproj.io/v1alpha1
 kind: Application
 metadata:
-  name: redis-cluster-orders
+  name: redb-orders-cache-prod
   namespace: openshift-gitops
   labels:
     cluster: orders
-    component: infrastructure
-    type: redis-cluster
+    database: orders-cache
+    env: prod
+    type: redis-database
   finalizers:
     - resources-finalizer.argocd.argoproj.io
 spec:
@@ -15,10 +16,11 @@ spec:
   source:
     repoURL: https://github.com/alan-teodoro/poc-gitops.git
     targetRevision: main
-    path: helm-charts/redis-enterprise-cluster
+    path: helm-charts/redis-enterprise-database
     helm:
       valueFiles:
-        - ../../environments/clusters/orders/values.yaml
+        - values-persistent.yaml
+        - ../../../../clusters/orders/databases/cache/prod.yaml
   
   destination:
     server: https://kubernetes.default.svc
@@ -38,10 +40,4 @@ spec:
         duration: 5s
         factor: 2
         maxDuration: 3m
-  
-  ignoreDifferences:
-    - group: apps
-      kind: StatefulSet
-      jsonPointers:
-        - /spec/volumeClaimTemplates
 

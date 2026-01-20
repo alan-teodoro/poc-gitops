@@ -9,16 +9,24 @@ orders/
 ├── README.md                    # This file
 ├── cluster.yaml                 # Cluster configuration (REC)
 ├── argocd-cluster.yaml         # Argo CD Application for cluster
-└── databases/
-    ├── dev/
-    │   ├── cache.yaml          # Cache database config
-    │   ├── session.yaml        # Session database config
-    │   ├── argocd-cache.yaml   # Argo CD App for cache
-    │   └── argocd-session.yaml # Argo CD App for session
-    └── prod/
-        ├── cache.yaml          # Cache database config (prod)
-        └── session.yaml        # Session database config (prod)
+└── databases/                   # Organized by database
+    ├── cache/                   # Cache database (all environments)
+    │   ├── dev.yaml            # Dev configuration
+    │   ├── prod.yaml           # Prod configuration
+    │   ├── argocd-dev.yaml     # Argo CD App for dev
+    │   └── argocd-prod.yaml    # Argo CD App for prod
+    └── session/                 # Session database (all environments)
+        ├── dev.yaml
+        ├── prod.yaml
+        ├── argocd-dev.yaml
+        └── argocd-prod.yaml
 ```
+
+**Why organized by database?**
+- ✅ Easy to see all environments of a database in one place
+- ✅ Easy to compare dev vs prod configurations
+- ✅ Only 4 files per database (not 100 files in one directory)
+- ✅ Logical: "I want to see cache database" → `databases/cache/`
 
 ## 🎯 Cluster Information
 
@@ -60,8 +68,12 @@ oc get redisenterprisecluster -n redis-orders-enterprise -w
 
 ```bash
 # Deploy dev databases
-oc apply -f databases/dev/argocd-cache.yaml
-oc apply -f databases/dev/argocd-session.yaml
+oc apply -f databases/cache/argocd-dev.yaml
+oc apply -f databases/session/argocd-dev.yaml
+
+# Deploy prod databases
+oc apply -f databases/cache/argocd-prod.yaml
+oc apply -f databases/session/argocd-prod.yaml
 
 # Monitor deployment
 oc get redisenterprisedatabase -n redis-orders-enterprise -w
@@ -69,23 +81,37 @@ oc get redisenterprisedatabase -n redis-orders-enterprise -w
 
 ## 📝 Adding a New Database
 
-1. **Create database config**:
+1. **Create database directory**:
    ```bash
-   # Create: databases/{env}/{db-name}.yaml
-   cp databases/dev/cache.yaml databases/dev/new-db.yaml
-   # Edit with your configuration
+   mkdir databases/analytics
    ```
 
-2. **Create Argo CD Application**:
+2. **Create database configs**:
    ```bash
-   # Create: databases/{env}/argocd-{db-name}.yaml
-   cp databases/dev/argocd-cache.yaml databases/dev/argocd-new-db.yaml
-   # Update paths and names
+   # Dev config
+   cp databases/cache/dev.yaml databases/analytics/dev.yaml
+   # Edit: name, port, memory, type
+
+   # Prod config
+   cp databases/cache/prod.yaml databases/analytics/prod.yaml
+   # Edit: name, port, memory, type
    ```
 
-3. **Apply**:
+3. **Create Argo CD Applications**:
    ```bash
-   oc apply -f databases/dev/argocd-new-db.yaml
+   # Dev Application
+   cp databases/cache/argocd-dev.yaml databases/analytics/argocd-dev.yaml
+   # Edit: metadata.name, valueFiles path
+
+   # Prod Application
+   cp databases/cache/argocd-prod.yaml databases/analytics/argocd-prod.yaml
+   # Edit: metadata.name, valueFiles path
+   ```
+
+4. **Deploy**:
+   ```bash
+   oc apply -f databases/analytics/argocd-dev.yaml
+   oc apply -f databases/analytics/argocd-prod.yaml
    ```
 
 ## 🔗 Routes

@@ -11,22 +11,30 @@ clusters/
 ├── orders/                      # Orders cluster
 │   ├── cluster.yaml            # Cluster configuration
 │   ├── argocd-cluster.yaml     # Argo CD Application
-│   └── databases/              # All databases for this cluster
-│       ├── dev/
-│       │   ├── cache.yaml
-│       │   └── argocd-cache.yaml
-│       └── prod/
-│           └── cache.yaml
+│   └── databases/              # Organized by database
+│       ├── cache/              # Cache database (all environments)
+│       │   ├── dev.yaml
+│       │   ├── prod.yaml
+│       │   ├── argocd-dev.yaml
+│       │   └── argocd-prod.yaml
+│       └── session/            # Session database (all environments)
+│           ├── dev.yaml
+│           ├── prod.yaml
+│           ├── argocd-dev.yaml
+│           └── argocd-prod.yaml
 │
 ├── payments/                    # Payments cluster
 │   ├── cluster.yaml
 │   ├── argocd-cluster.yaml
 │   └── databases/
-│       └── dev/
+│       └── cache/
+│           ├── dev.yaml
+│           └── prod.yaml
 │
 └── inventory/                   # Inventory cluster
     ├── cluster.yaml
     └── databases/
+        └── cache/
 ```
 
 ## 🎯 Design Principles
@@ -110,32 +118,47 @@ oc get application redis-cluster-{cluster-name} -n openshift-gitops -w
 ## 📝 Adding a Database to Existing Cluster
 
 ```bash
-# Navigate to cluster directory
-cd clusters/{cluster-name}/databases/{env}/
+# Navigate to cluster databases directory
+cd clusters/{cluster-name}/databases/
 
-# Create database config
-cp cache.yaml new-db.yaml
-# Edit configuration
+# Create database directory
+mkdir analytics
 
-# Create Argo CD Application
-cp argocd-cache.yaml argocd-new-db.yaml
-# Edit Application
+# Create dev config
+cp cache/dev.yaml analytics/dev.yaml
+# Edit: name, port, memory
 
-# Apply
-oc apply -f argocd-new-db.yaml
+# Create prod config
+cp cache/prod.yaml analytics/prod.yaml
+# Edit: name, port, memory
+
+# Create Argo CD Applications
+cp cache/argocd-dev.yaml analytics/argocd-dev.yaml
+cp cache/argocd-prod.yaml analytics/argocd-prod.yaml
+# Edit: metadata.name, valueFiles paths
+
+# Deploy
+oc apply -f analytics/argocd-dev.yaml
+oc apply -f analytics/argocd-prod.yaml
 ```
 
 ## 🔍 Finding Resources
 
 ### Find all databases for a cluster
 ```bash
-ls clusters/orders/databases/dev/
-ls clusters/orders/databases/prod/
+ls clusters/orders/databases/
+# Output: cache/ session/ analytics/
 ```
 
-### Find all dev databases across clusters
+### Find all environments for a database
 ```bash
-find clusters -path "*/databases/dev/*.yaml" -not -name "argocd-*"
+ls clusters/orders/databases/cache/
+# Output: dev.yaml prod.yaml argocd-dev.yaml argocd-prod.yaml
+```
+
+### Find all dev configs across clusters
+```bash
+find clusters -name "dev.yaml" -path "*/databases/*"
 ```
 
 ### Find all Argo CD Applications

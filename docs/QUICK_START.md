@@ -10,8 +10,7 @@ This guide shows you how to quickly add new clusters and databases using the clu
 # Replace {cluster-name} with your cluster name (e.g., payments, inventory)
 CLUSTER_NAME="payments"
 
-mkdir -p clusters/${CLUSTER_NAME}/databases/dev
-mkdir -p clusters/${CLUSTER_NAME}/databases/prod
+mkdir -p clusters/${CLUSTER_NAME}/databases
 ```
 
 ### Step 2: Create Cluster Configuration
@@ -75,54 +74,88 @@ cp clusters/orders/README.md clusters/${CLUSTER_NAME}/README.md
 
 ## 📊 Add a New Database to Existing Cluster
 
-### Step 1: Create Database Configuration
+### Step 1: Create Database Directory
 
 ```bash
 CLUSTER_NAME="orders"
-ENV="dev"
 DB_NAME="analytics"
 DB_TYPE="persistent"  # cache, session, or persistent
 
 # Navigate to cluster databases directory
-cd clusters/${CLUSTER_NAME}/databases/${ENV}/
+cd clusters/${CLUSTER_NAME}/databases/
 
-# Copy appropriate template based on type
-cp cache.yaml ${DB_NAME}.yaml
-
-# Edit the file and update:
-# - database.name: orders-analytics
-# - database.type: persistent
-# - redis.memorySize: 4GB
-# - redis.databasePort: 12002 (increment from last port)
-# - redis.persistence: aofEverySecond (for persistent)
-# - redis.tlsMode: enabled (for persistent)
+# Create database directory
+mkdir ${DB_NAME}
 ```
 
-### Step 2: Create Argo CD Application
+### Step 2: Create Database Configurations
 
 ```bash
-# Copy template
-cp argocd-cache.yaml argocd-${DB_NAME}.yaml
+# Create dev config
+cp cache/dev.yaml ${DB_NAME}/dev.yaml
 
-# Edit the file and update:
+# Edit dev.yaml and update:
+# - database.name: orders-analytics
+# - database.env: dev
+# - database.type: persistent
+# - redis.memorySize: 2GB
+# - redis.databasePort: 12002 (increment from last port)
+# - redis.persistence: aofEverySecond (for persistent)
+# - redis.tlsMode: disabled (dev)
+
+# Create prod config
+cp cache/prod.yaml ${DB_NAME}/prod.yaml
+
+# Edit prod.yaml and update:
+# - database.name: orders-analytics
+# - database.env: prod
+# - database.type: persistent
+# - redis.memorySize: 8GB
+# - redis.databasePort: 12002
+# - redis.persistence: aofEverySecond
+# - redis.tlsMode: enabled (prod)
+# - redis.shardCount: 2
+```
+
+### Step 3: Create Argo CD Applications
+
+```bash
+# Create dev Application
+cp cache/argocd-dev.yaml ${DB_NAME}/argocd-dev.yaml
+
+# Edit argocd-dev.yaml and update:
 # - metadata.name: redb-orders-analytics-dev
 # - metadata.labels.database: orders-analytics
 # - spec.source.helm.valueFiles:
 #   - values-persistent.yaml (change from values-cache.yaml)
-#   - ../../../../clusters/orders/databases/dev/analytics.yaml
+#   - ../../../../clusters/orders/databases/analytics/dev.yaml
+
+# Create prod Application
+cp cache/argocd-prod.yaml ${DB_NAME}/argocd-prod.yaml
+
+# Edit argocd-prod.yaml and update:
+# - metadata.name: redb-orders-analytics-prod
+# - metadata.labels.database: orders-analytics
+# - metadata.labels.env: prod
+# - spec.source.helm.valueFiles:
+#   - values-persistent.yaml
+#   - ../../../../clusters/orders/databases/analytics/prod.yaml
 ```
 
-### Step 3: Deploy Database
+### Step 4: Deploy Database
 
 ```bash
-# Apply the Argo CD Application
-oc apply -f argocd-${DB_NAME}.yaml
+# Deploy dev
+oc apply -f ${DB_NAME}/argocd-dev.yaml
+
+# Deploy prod
+oc apply -f ${DB_NAME}/argocd-prod.yaml
 
 # Monitor deployment
-oc get application redb-orders-${DB_NAME}-${ENV} -n openshift-gitops -w
+oc get application -n openshift-gitops | grep analytics
 
 # Check database status
-oc get redisenterprisedatabase -n redis-${CLUSTER_NAME}-enterprise -w
+oc get redisenterprisedatabase -n redis-${CLUSTER_NAME}-enterprise
 ```
 
 ---

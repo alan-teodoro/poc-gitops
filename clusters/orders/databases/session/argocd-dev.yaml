@@ -1,12 +1,13 @@
 apiVersion: argoproj.io/v1alpha1
 kind: Application
 metadata:
-  name: orders-redis-dev
+  name: redb-session-store-dev
   namespace: openshift-gitops
   labels:
-    app.kubernetes.io/name: orders-redis-dev
-    app.kubernetes.io/part-of: orders-platform
+    cluster: orders
+    database: session-store
     env: dev
+    type: redis-database
   finalizers:
     - resources-finalizer.argocd.argoproj.io
 spec:
@@ -15,27 +16,28 @@ spec:
   source:
     repoURL: https://github.com/alan-teodoro/poc-gitops.git
     targetRevision: main
-    path: orders-redis/overlays/dev
+    path: helm-charts/redis-enterprise-database
+    helm:
+      valueFiles:
+        - values-session.yaml
+        - ../../../../clusters/orders/databases/session/dev.yaml
   
   destination:
     server: https://kubernetes.default.svc
-    # Note: Kustomize will create both redis-enterprise and orders-redis-dev namespaces
+    namespace: redis-orders-enterprise
   
   syncPolicy:
     automated:
-      selfHeal: true
       prune: true
-      allowEmpty: false
-    
+      selfHeal: true
     syncOptions:
       - CreateNamespace=true
-      - Validate=true
       - ServerSideApply=true
       - RespectIgnoreDifferences=true
-    
     retry:
       limit: 5
       backoff:
         duration: 5s
         factor: 2
         maxDuration: 3m
+
