@@ -1,0 +1,24 @@
+{{- range .Values.databaseNamespaces }}
+---
+kind: RoleBinding
+apiVersion: rbac.authorization.k8s.io/v1
+metadata:
+  name: redb-role
+  namespace: {{ .name }}
+  labels:
+    app: redis-enterprise
+    cluster: {{ $.Values.cluster.name }}
+subjects:
+  - kind: ServiceAccount
+    name: {{ $.Values.operator.serviceAccount }}
+    namespace: {{ $.Values.cluster.operatorNamespace }}
+
+  - kind: ServiceAccount
+    name: {{ $.Values.cluster.clusterName }}
+    namespace: {{ $.Values.cluster.operatorNamespace }}
+roleRef:
+  kind: Role
+  name: redb-role
+  apiGroup: rbac.authorization.k8s.io
+{{- end }}
+

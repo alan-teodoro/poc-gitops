@@ -1,0 +1,39 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: redis-rbac-orders
+  namespace: openshift-gitops
+  labels:
+    cluster: orders
+    type: redis-rbac
+  finalizers:
+    - resources-finalizer.argocd.argoproj.io
+spec:
+  project: default
+  
+  source:
+    repoURL: https://github.com/alan-teodoro/poc-gitops.git
+    targetRevision: main
+    path: helm-charts/redis-multi-namespace-rbac
+    helm:
+      valueFiles:
+        - ../../clusters/orders/rbac.yaml
+  
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: redis-orders
+  
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+    syncOptions:
+      - CreateNamespace=true
+      - RespectIgnoreDifferences=true
+    retry:
+      limit: 5
+      backoff:
+        duration: 5s
+        factor: 2
+        maxDuration: 3m
+

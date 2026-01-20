@@ -1,0 +1,12 @@
+{{- range .Values.databaseNamespaces }}
+---
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: {{ .name }}
+  labels:
+    {{ $.Values.namespaceLabel.key }}: {{ $.Values.namespaceLabel.value }}
+    cluster: {{ $.Values.cluster.name }}
+    env: {{ .env }}
+{{- end }}
+

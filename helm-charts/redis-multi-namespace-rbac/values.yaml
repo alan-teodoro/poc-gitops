@@ -1,0 +1,23 @@
+# Cluster configuration
+cluster:
+  name: ""
+  operatorNamespace: ""
+  clusterName: ""
+
+# Database namespaces to watch
+databaseNamespaces:
+  - name: ""
+    env: dev
+  - name: ""
+    env: prod
+
+# Label selector for namespace watching
+namespaceLabel:
+  key: redis-db-namespace
+  value: enabled
+
+# Operator configuration
+operator:
+  serviceAccount: redis-enterprise-operator
+  configMapName: operator-environment-config
+

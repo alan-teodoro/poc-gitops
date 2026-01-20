@@ -1,0 +1,12 @@
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ .Values.operator.configMapName }}
+  namespace: {{ .Values.cluster.operatorNamespace }}
+  labels:
+    app: redis-enterprise
+    cluster: {{ .Values.cluster.name }}
+data:
+  REDB_NAMESPACES_LABEL: {{ .Values.namespaceLabel.key }}
+

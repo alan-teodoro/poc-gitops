@@ -1,0 +1,13 @@
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: {{ .Values.cluster.name }}-operator-consumer-ns
+  labels:
+    app: redis-enterprise
+    cluster: {{ .Values.cluster.name }}
+rules:
+  - apiGroups: [""]
+    resources: ["namespaces"]
+    verbs: ["list", "watch"]
+

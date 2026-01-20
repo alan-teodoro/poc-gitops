@@ -1,0 +1,23 @@
+# RBAC configuration for Orders cluster multi-namespace support
+cluster:
+  name: orders
+  operatorNamespace: redis-orders
+  clusterName: orders-redis-cluster
+
+# Database namespaces to watch
+databaseNamespaces:
+  - name: redis-orders-dev
+    env: dev
+  - name: redis-orders-prod
+    env: prod
+
+# Label selector for namespace watching
+namespaceLabel:
+  key: redis-db-namespace
+  value: enabled
+
+# Operator configuration
+operator:
+  serviceAccount: redis-enterprise-operator
+  configMapName: operator-environment-config
+

@@ -1,0 +1,7 @@
+apiVersion: v2
+name: redis-multi-namespace-rbac
+description: RBAC configuration for Redis Enterprise multi-namespace support
+type: application
+version: 1.0.0
+appVersion: "1.0"
+
