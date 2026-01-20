@@ -30,7 +30,7 @@ This document describes the new Helm-based architecture for deploying Redis Ente
 
 ```
 poc-gitops/
-├── helm-charts/                          # Helm charts
+├── helm-charts/                          # Helm charts (reusable)
 │   ├── redis-enterprise-cluster/         # Chart for REC
 │   │   ├── Chart.yaml
 │   │   ├── values.yaml                   # Default values
@@ -49,28 +49,56 @@ poc-gitops/
 │           ├── redb.yaml
 │           └── route.yaml
 │
-├── environments/                         # Environment configs
-│   ├── clusters/                         # Cluster configurations
-│   │   └── orders/
-│   │       └── values.yaml               # Orders cluster config
-│   │
-│   └── databases/                        # Database configurations
-│       └── orders/
-│           ├── dev/
-│           │   ├── cache.yaml
-│           │   └── session.yaml
-│           └── prod/
-│               ├── cache.yaml
-│               └── session.yaml
-│
-└── argocd/                               # Argo CD Applications
-    ├── infrastructure/                   # Cluster Applications
-    │   └── redis-cluster-orders.yaml
+└── clusters/                             # Cluster-centric organization
+    ├── orders/                           # Everything for Orders cluster
+    │   ├── README.md                     # Cluster documentation
+    │   ├── cluster.yaml                  # Cluster configuration
+    │   ├── argocd-cluster.yaml          # Argo CD App for cluster
+    │   └── databases/                    # All databases for this cluster
+    │       ├── dev/
+    │       │   ├── cache.yaml           # Database config
+    │       │   ├── session.yaml
+    │       │   ├── argocd-cache.yaml    # Argo CD App for DB
+    │       │   └── argocd-session.yaml
+    │       └── prod/
+    │           ├── cache.yaml
+    │           └── session.yaml
     │
-    └── databases/                        # Database Applications
-        ├── orders-cache-dev.yaml
-        └── session-store-dev.yaml
+    ├── payments/                         # Everything for Payments cluster
+    │   ├── cluster.yaml
+    │   ├── argocd-cluster.yaml
+    │   └── databases/
+    │       └── dev/
+    │
+    └── inventory/                        # Everything for Inventory cluster
+        ├── cluster.yaml
+        └── databases/
 ```
+
+### Why Cluster-Centric?
+
+**Problem with separated structure** (500 databases):
+```
+databases/
+├── cluster1-db1.yaml
+├── cluster1-db2.yaml
+...
+└── cluster50-db500.yaml  # 😱 Hard to find anything!
+```
+
+**Solution with cluster-centric** (500 databases):
+```
+clusters/
+├── cluster1/databases/  # 10 databases
+├── cluster2/databases/  # 10 databases
+...
+└── cluster50/databases/ # 10 databases
+```
+
+✅ **Easy navigation**: Find cluster → find database
+✅ **Team ownership**: Each team owns their cluster directory
+✅ **Scalable**: ~10 files per directory instead of 500
+✅ **Self-contained**: Everything related in one place
 
 ## Components
 
@@ -125,33 +153,56 @@ Optimized for durable data:
 
 ### Deploy a New Cluster
 
-1. **Install Operator** (via OperatorHub):
+1. **Create cluster directory**:
 ```bash
-# Install Redis Enterprise Operator in namespace: redis-{cluster-name}-enterprise
+mkdir -p clusters/{cluster-name}/databases/dev
+mkdir -p clusters/{cluster-name}/databases/prod
 ```
 
 2. **Create cluster configuration**:
 ```bash
-# Create: environments/clusters/{cluster-name}/values.yaml
+# Create: clusters/{cluster-name}/cluster.yaml
+cp clusters/orders/cluster.yaml clusters/{cluster-name}/cluster.yaml
+# Edit configuration
 ```
 
 3. **Create Argo CD Application**:
 ```bash
-# Create: argocd/infrastructure/redis-cluster-{cluster-name}.yaml
-oc apply -f argocd/infrastructure/redis-cluster-{cluster-name}.yaml
+# Create: clusters/{cluster-name}/argocd-cluster.yaml
+cp clusters/orders/argocd-cluster.yaml clusters/{cluster-name}/argocd-cluster.yaml
+# Edit Application
+```
+
+4. **Install Operator** (via OperatorHub):
+```bash
+# Install Redis Enterprise Operator in namespace: redis-{cluster-name}-enterprise
+```
+
+5. **Deploy**:
+```bash
+oc apply -f clusters/{cluster-name}/argocd-cluster.yaml
 ```
 
 ### Deploy a New Database
 
 1. **Create database configuration**:
 ```bash
-# Create: environments/databases/{cluster-name}/{env}/{db-name}.yaml
+# Create: clusters/{cluster-name}/databases/{env}/{db-name}.yaml
+cd clusters/{cluster-name}/databases/{env}/
+cp cache.yaml {db-name}.yaml
+# Edit configuration
 ```
 
 2. **Create Argo CD Application**:
 ```bash
-# Create: argocd/databases/{db-name}-{env}.yaml
-oc apply -f argocd/databases/{db-name}-{env}.yaml
+# Create: clusters/{cluster-name}/databases/{env}/argocd-{db-name}.yaml
+cp argocd-cache.yaml argocd-{db-name}.yaml
+# Edit Application
+```
+
+3. **Deploy**:
+```bash
+oc apply -f clusters/{cluster-name}/databases/{env}/argocd-{db-name}.yaml
 ```
 
 ## Scaling Strategy

@@ -43,25 +43,25 @@ This demo shows how to:
 │           ├── redb.yaml
 │           └── route.yaml
 │
-├── environments/                       # Environment configurations (NEW)
-│   ├── clusters/                       # Cluster-specific configs
-│   │   └── orders/
-│   │       └── values.yaml
-│   └── databases/                      # Database-specific configs
-│       └── orders/
-│           ├── dev/
-│           │   ├── cache.yaml
-│           │   └── session.yaml
-│           └── prod/
-│               ├── cache.yaml
-│               └── session.yaml
+├── clusters/                           # Cluster-centric organization (NEW)
+│   ├── README.md                       # Clusters overview
+│   ├── orders/                         # Everything for Orders cluster
+│   │   ├── README.md                   # Cluster documentation
+│   │   ├── cluster.yaml                # Cluster configuration
+│   │   ├── argocd-cluster.yaml        # Argo CD App for cluster
+│   │   └── databases/                  # All databases for this cluster
+│   │       ├── dev/
+│   │       │   ├── cache.yaml         # Database config
+│   │       │   ├── session.yaml
+│   │       │   ├── argocd-cache.yaml  # Argo CD App for DB
+│   │       │   └── argocd-session.yaml
+│   │       └── prod/
+│   │           ├── cache.yaml
+│   │           └── session.yaml
+│   ├── payments/                       # Everything for Payments cluster
+│   └── inventory/                      # Everything for Inventory cluster
 │
-├── argocd/                             # Argo CD Application definitions
-│   ├── infrastructure/                 # Cluster Applications (NEW)
-│   │   └── redis-cluster-orders.yaml
-│   ├── databases/                      # Database Applications (NEW)
-│   │   ├── orders-cache-dev.yaml
-│   │   └── session-store-dev.yaml
+├── argocd/                             # Argo CD Application definitions (Legacy)
 │   ├── orders-redis-dev-app.yaml       # Legacy - Dev environment app
 │   └── orders-redis-prod-app.yaml      # Legacy - Prod environment app
 │
