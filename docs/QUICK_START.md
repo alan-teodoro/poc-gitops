@@ -235,19 +235,21 @@ oc get application -n openshift-gitops | grep redis
 ### Check Cluster Status
 
 ```bash
-oc get redisenterprisecluster -n redis-orders-enterprise
+oc get rec -n redis-orders
 ```
 
 ### Check Database Status
 
 ```bash
-oc get redisenterprisedatabase -n redis-orders-enterprise
+oc get redb -A | grep redis-orders
 ```
 
 ### Check Routes
 
 ```bash
-oc get routes -n redis-orders-enterprise
+oc get routes -n redis-orders
+oc get routes -n redis-orders-dev
+oc get routes -n redis-orders-prod
 ```
 
 ---

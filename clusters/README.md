@@ -59,9 +59,9 @@ clusters/
 
 | Cluster | Namespace | Team | Nodes | Databases | Status |
 |---------|-----------|------|-------|-----------|--------|
-| orders | redis-orders-enterprise | orders-team | 3 | 2 dev, 2 prod | ✅ Active |
-| payments | redis-payments-enterprise | payments-team | - | - | 📝 Planned |
-| inventory | redis-inventory-enterprise | inventory-team | - | - | 📝 Planned |
+| orders | redis-orders | orders-team | 3 | 4 (2 dev, 2 prod) | ✅ Active |
+| payments | redis-payments | payments-team | - | - | 📝 Planned |
+| inventory | redis-inventory | inventory-team | - | - | 📝 Planned |
 
 ## 🚀 Adding a New Cluster
 
@@ -102,7 +102,7 @@ cp clusters/orders/argocd-cluster.yaml clusters/{cluster-name}/argocd-cluster.ya
 
 ```bash
 # Install Redis Enterprise Operator via OperatorHub
-# Namespace: redis-{cluster-name}-enterprise
+# Namespace: redis-{cluster-name}
 ```
 
 ### Step 5: Deploy

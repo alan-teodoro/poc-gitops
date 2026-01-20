@@ -14,8 +14,9 @@ cluster:
   datacenter: dc1
 
 # Namespace where database will be deployed
-# Must be same as cluster namespace: redis-{cluster.name}-enterprise
-namespace: redis-orders-enterprise
+# Can be different from cluster namespace for multi-namespace support
+# Example: redis-{cluster.name}-dev or redis-{cluster.name}-prod
+namespace: redis-orders-dev
 
 # Redis Enterprise Cluster reference
 redis:

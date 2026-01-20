@@ -31,7 +31,9 @@ orders/
 ## 🎯 Cluster Information
 
 - **Cluster Name**: `orders-redis-cluster`
-- **Namespace**: `redis-orders-enterprise`
+- **Cluster Namespace**: `redis-orders`
+- **Dev Databases Namespace**: `redis-orders-dev`
+- **Prod Databases Namespace**: `redis-orders-prod`
 - **Team**: orders-team
 - **Datacenter**: dc1
 - **Nodes**: 3
@@ -42,26 +44,29 @@ orders/
 ### Development
 | Database | Type | Memory | Port | Persistence | TLS |
 |----------|------|--------|------|-------------|-----|
-| orders-cache-dev | Cache | 1GB | 12000 | No | No |
+| orders-cache-dev | Cache | 512MB | 12000 | No | No |
 | session-store-dev | Session | 512MB | 12001 | No | No |
 
 ### Production
 | Database | Type | Memory | Port | Persistence | TLS | Shards |
 |----------|------|--------|------|-------------|-----|--------|
-| orders-cache-prod | Cache | 4GB | 12000 | AOF | Yes | 2 |
-| session-store-prod | Session | 2GB | 12001 | AOF | Yes | 2 |
+| orders-cache-prod | Cache | 512MB | 12002 | AOF | Yes | 2 |
+| session-store-prod | Session | 512MB | 12003 | AOF | Yes | 2 |
 
 ## 🚀 Deployment
 
 ### Deploy Cluster
 
 ```bash
-# Apply cluster Application
+# 1. Deploy RBAC first
+oc apply -f argocd-rbac.yaml
+
+# 2. Deploy cluster
 oc apply -f argocd-cluster.yaml
 
 # Monitor deployment
 oc get application redis-cluster-orders -n openshift-gitops -w
-oc get redisenterprisecluster -n redis-orders-enterprise -w
+oc get rec -n redis-orders -w
 ```
 
 ### Deploy Databases
@@ -76,7 +81,8 @@ oc apply -f databases/cache/argocd-prod.yaml
 oc apply -f databases/session/argocd-prod.yaml
 
 # Monitor deployment
-oc get redisenterprisedatabase -n redis-orders-enterprise -w
+oc get application -n openshift-gitops | grep redb
+oc get redb -A | grep redis-orders
 ```
 
 ## 📝 Adding a New Database
@@ -116,15 +122,18 @@ oc get redisenterprisedatabase -n redis-orders-enterprise -w
 
 ## 🔗 Routes
 
-- **UI**: `https://redis-enterprise-ui-redis-orders-enterprise.apps.cluster-smjw5.dynamic.redhatworkshops.io`
-- **Cache Dev**: `orders-cache-dev-redis-orders-enterprise.apps.cluster-smjw5.dynamic.redhatworkshops.io:12000`
-- **Session Dev**: `session-store-dev-redis-orders-enterprise.apps.cluster-smjw5.dynamic.redhatworkshops.io:12001`
+Get routes with:
+```bash
+oc get routes -n redis-orders
+oc get routes -n redis-orders-dev
+oc get routes -n redis-orders-prod
+```
 
 ## 📚 Documentation
 
 - [Helm Architecture](../../docs/HELM_ARCHITECTURE.md)
-- [Onboarding Guide](../../docs/ONBOARDING_GUIDE.md)
-- [Migration Guide](../../docs/MIGRATION_GUIDE.md)
+- [Multi-Namespace Support](../../docs/MULTI_NAMESPACE.md)
+- [Quick Start Guide](../../docs/QUICK_START.md)
 
 ## 👥 Team
 

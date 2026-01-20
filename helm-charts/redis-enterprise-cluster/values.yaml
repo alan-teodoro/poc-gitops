@@ -9,7 +9,7 @@ cluster:
 
 # Namespace where cluster will be deployed
 # Format: redis-{cluster.name}-enterprise
-namespace: redis-orders-enterprise
+namespace: redis-orders
 
 # Redis Enterprise Cluster configuration
 redis:

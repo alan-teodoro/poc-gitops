@@ -91,7 +91,7 @@ Each cluster has its own operator in its own namespace:
 
 1. **OpenShift 4.x cluster** with storage class
 2. **OpenShift GitOps (Argo CD)** installed
-3. **Redis Enterprise Operator** installed via OperatorHub in namespace `redis-orders-enterprise`
+3. **Redis Enterprise Operator** installed via OperatorHub in namespace `redis-orders`
 4. **CLI tools**: `oc`, `git`, `helm` (optional)
 
 ### Deploy Orders Cluster
@@ -109,7 +109,7 @@ Each cluster has its own operator in its own namespace:
    ```bash
    oc adm policy add-role-to-user admin \
      system:serviceaccount:openshift-gitops:openshift-gitops-argocd-application-controller \
-     -n redis-orders-enterprise
+     -n redis-orders
    ```
 
 4. **Deploy cluster**:
@@ -134,13 +134,13 @@ Each cluster has its own operator in its own namespace:
    oc get applications -n openshift-gitops | grep redis
 
    # Check cluster
-   oc get redisenterprisecluster -n redis-orders-enterprise
+   oc get rec -n redis-orders
 
    # Check databases
-   oc get redisenterprisedatabase -n redis-orders-enterprise
+   oc get redb -A | grep redis-orders
 
    # Check routes
-   oc get routes -n redis-orders-enterprise
+   oc get routes -n redis-orders
    ```
 
 See [docs/QUICK_START.md](docs/QUICK_START.md) for detailed instructions.
@@ -167,7 +167,7 @@ cp clusters/orders/cluster.yaml clusters/payments/cluster.yaml
 cp clusters/orders/argocd-cluster.yaml clusters/payments/argocd-cluster.yaml
 # Edit: name, labels, valueFiles path
 
-# 4. Install operator via OperatorHub in namespace: redis-payments-enterprise
+# 4. Install operator via OperatorHub in namespace: redis-payments
 
 # 5. Deploy
 oc apply -f clusters/payments/argocd-cluster.yaml
@@ -243,10 +243,16 @@ helm-charts/redis-enterprise-database/  # Generic template
 
 ### One Operator Per Cluster
 ```
-redis-orders-enterprise/     # Namespace
+redis-orders/                # Namespace
 ├── operator                 # Dedicated operator
 ├── orders-redis-cluster     # REC
-└── databases                # All REDBs
+└── RBAC configuration       # Multi-namespace support
+
+redis-orders-dev/            # Dev databases namespace
+└── databases (REDBs)
+
+redis-orders-prod/           # Prod databases namespace
+└── databases (REDBs)
 ```
 
 **Benefits**:
