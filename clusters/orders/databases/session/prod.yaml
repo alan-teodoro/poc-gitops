@@ -15,12 +15,12 @@ namespace: redis-orders-prod
 redis:
   clusterName: orders-redis-cluster
   memorySize: 2GB
-  replication: true
+  replication: false
   persistence: aofEverySecond
   databasePort: 12001
   tlsMode: enabled
   evictionPolicy: volatile-ttl
-  shardCount: 2
+  shardCount: 1
   type: redis
 
 route:
