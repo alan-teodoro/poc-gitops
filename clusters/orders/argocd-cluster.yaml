@@ -22,7 +22,7 @@ spec:
   
   destination:
     server: https://kubernetes.default.svc
-    namespace: redis-orders-enterprise
+    namespace: redis-enterprise
   
   syncPolicy:
     automated:

@@ -10,7 +10,7 @@ cluster:
   team: orders-team
   datacenter: dc1
 
-namespace: redis-orders-enterprise
+namespace: redis-enterprise
 
 redis:
   clusterName: orders-redis-cluster
