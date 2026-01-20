@@ -20,7 +20,7 @@ spec:
     helm:
       valueFiles:
         - values-persistent.yaml
-        - ../../../../clusters/orders/databases/session/prod.yaml
+        - ../../clusters/orders/databases/session/prod.yaml
   
   destination:
     server: https://kubernetes.default.svc

@@ -20,7 +20,7 @@ spec:
     helm:
       valueFiles:
         - values-cache.yaml
-        - ../../../../clusters/orders/databases/cache/dev.yaml
+        - ../../clusters/orders/databases/cache/dev.yaml
   
   destination:
     server: https://kubernetes.default.svc
