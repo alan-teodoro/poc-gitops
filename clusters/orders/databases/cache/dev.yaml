@@ -18,7 +18,7 @@ redis:
   replication: false
   persistence: disabled
   databasePort: 12000
-  tlsMode: disabled
+  tlsMode: enabled
   evictionPolicy: volatile-lru
   shardCount: 1
   type: redis
