@@ -11,7 +11,7 @@ namespace: redis
 redis:
   clusterName: orders-redis-cluster
   nodes: 3
-  version: "8.0.6-54"
+  version: "8.0.10-64"
   
   resources:
     requests:
