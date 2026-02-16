@@ -11,7 +11,7 @@ metadata:
   finalizers:
     - resources-finalizer.argocd.argoproj.io
 spec:
-  project: default
+  project: team-orders
   
   source:
     repoURL: https://github.com/alan-teodoro/poc-gitops.git

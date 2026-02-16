@@ -1,0 +1,54 @@
+---
+# Argo CD RBAC Configuration
+# Purpose: Map OpenShift users/groups to Argo CD AppProject roles
+# Managed by: Platform Team
+
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: argocd-rbac-cm
+  namespace: openshift-gitops
+  labels:
+    app.kubernetes.io/name: argocd-rbac-cm
+    app.kubernetes.io/part-of: argocd
+data:
+  # Policy CSV - Maps groups to AppProject roles
+  policy.csv: |
+    # ========================================
+    # Platform Team (Full Access)
+    # ========================================
+    # Platform admins have full access to everything
+    g, system:cluster-admins, role:admin
+    g, platform-admins, role:admin
+    
+    # ========================================
+    # Orders Team - Admin Role
+    # ========================================
+    # Members of orders-team-admins group get admin role in team-orders project
+    g, orders-team-admins, proj:team-orders:admin
+    
+    # ========================================
+    # Orders Team - Developer Role
+    # ========================================
+    # Members of orders-team-developers group get developer role in team-orders project
+    g, orders-team-developers, proj:team-orders:developer
+    
+    # ========================================
+    # Orders Team - Read-Only Role
+    # ========================================
+    # Members of orders-team-viewers group get readonly role in team-orders project
+    g, orders-team-viewers, proj:team-orders:readonly
+    
+    # ========================================
+    # Example: Payments Team (Future)
+    # ========================================
+    # g, payments-team-admins, proj:team-payments:admin
+    # g, payments-team-developers, proj:team-payments:developer
+    # g, payments-team-viewers, proj:team-payments:readonly
+  
+  # Default policy for authenticated users
+  policy.default: role:readonly
+  
+  # Scopes - what user attributes to use for RBAC
+  scopes: '[groups, email]'
+
