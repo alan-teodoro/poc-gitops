@@ -45,6 +45,15 @@ routes:
     # TLS termination (passthrough or edge)
     tlsTermination: passthrough
 
+# Monitoring configuration
+monitoring:
+  # Enable Prometheus monitoring
+  enabled: false
+  # Scrape interval for Prometheus
+  scrapeInterval: 30s
+  # Scrape timeout
+  scrapeTimeout: 10s
+
 # Labels applied to all resources
 labels:
   app.kubernetes.io/managed-by: argocd

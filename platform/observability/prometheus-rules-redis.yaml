@@ -1,0 +1,463 @@
+---
+# PrometheusRule for Redis Enterprise Alerts
+# Purpose: Production-grade alerting rules for Redis Enterprise clusters
+# Based on: Official Redis Enterprise Observability best practices
+# Source: https://github.com/redis-field-engineering/redis-enterprise-observability
+# Managed by: Platform Team
+
+apiVersion: monitoring.coreos.com/v1
+kind: PrometheusRule
+metadata:
+  name: redis-enterprise-alerts
+  namespace: openshift-monitoring
+  labels:
+    prometheus: k8s
+    role: alert-rules
+spec:
+  groups:
+    # ========================================
+    # LATENCY ALERTS
+    # ========================================
+    - name: redis-latency
+      interval: 30s
+      rules:
+        - alert: RedisAverageLatencyWarning
+          expr: |
+            (sum by (db)(irate(endpoint_read_requests_latency_histogram_sum[1m]) + irate(endpoint_write_requests_latency_histogram_sum[1m]) + irate(endpoint_other_requests_latency_histogram_sum[1m])))/(sum by (db)(irate(endpoint_read_requests[1m]) + irate(endpoint_write_requests[1m]) + irate(endpoint_other_requests[1m])))/1000 > 2
+          for: 30s
+          labels:
+            severity: warning
+            component: redis-database
+            type: latency
+          annotations:
+            summary: "Redis database {{ $labels.db }} high average latency"
+            description: "High Latency - DB: {{ $labels.db }} Latency: {{ $value }} ms"
+            runbook: "https://redis.io/docs/latest/integrate/prometheus-with-redis-enterprise/observability/#read-latency"
+
+        - alert: RedisAverageLatencyCritical
+          expr: |
+            (sum by (db)(irate(endpoint_read_requests_latency_histogram_sum[1m]) + irate(endpoint_write_requests_latency_histogram_sum[1m]) + irate(endpoint_other_requests_latency_histogram_sum[1m])))/(sum by (db)(irate(endpoint_read_requests[1m]) + irate(endpoint_write_requests[1m]) + irate(endpoint_other_requests[1m])))/1000 > 5
+          for: 30s
+          labels:
+            severity: critical
+            component: redis-database
+            type: latency
+          annotations:
+            summary: "Redis database {{ $labels.db }} critical average latency"
+            description: "Critical Latency - DB: {{ $labels.db }} Latency: {{ $value }} ms"
+            runbook: "https://redis.io/docs/latest/integrate/prometheus-with-redis-enterprise/observability/#read-latency"
+
+    # ========================================
+    # CONNECTION ALERTS
+    # ========================================
+    - name: redis-connections
+      interval: 30s
+      rules:
+        - alert: RedisNoConnections
+          expr: endpoint_client_connections < 1
+          for: 30s
+          labels:
+            severity: warning
+            component: redis-database
+            type: connection
+          annotations:
+            summary: "Redis database {{ $labels.db }} has no connections"
+            description: "No Connections - Cluster: {{ $labels.cluster }} DB: {{ $labels.db }} Connections: {{ $value }}"
+            runbook: "https://redis.io/docs/latest/integrate/prometheus-with-redis-enterprise/observability/#connections"
+
+        - alert: RedisExcessiveConnections
+          expr: endpoint_client_connections - endpoint_client_disconnections > 64000
+          for: 30s
+          labels:
+            severity: critical
+            component: redis-database
+            type: connection
+          annotations:
+            summary: "Redis database {{ $labels.db }} has too many connections"
+            description: "Too Many Connections - Cluster: {{ $labels.cluster }} DB: {{ $labels.db }} Connections: {{ $value }}"
+            runbook: "https://redis.io/docs/latest/integrate/prometheus-with-redis-enterprise/observability/#connections"
+
+    # ========================================
+    # THROUGHPUT ALERTS
+    # ========================================
+    - name: redis-throughput
+      interval: 30s
+      rules:
+        - alert: RedisNoRequests
+          expr: increase(endpoint_read_requests[1m]) < 1 and increase(endpoint_write_requests[1m]) < 1
+          for: 30s
+          labels:
+            severity: critical
+            component: redis-database
+            type: throughput
+          annotations:
+            summary: "Redis database {{ $labels.db }} has no requests"
+            description: "Too few Redis operations - Cluster: {{ $labels.cluster }} DB: {{ $labels.db }} {{ $value }} (ops/sec)"
+            runbook: "https://redis.io/docs/latest/integrate/prometheus-with-redis-enterprise/observability/#connections"
+
+        - alert: RedisExcessiveRequests
+          expr: (irate(endpoint_read_requests[1m]) + irate(endpoint_write_requests[1m]))/2 > 100000
+          for: 30s
+          labels:
+            severity: critical
+            component: redis-database
+            type: throughput
+          annotations:
+            summary: "Redis database {{ $labels.db }} has excessive requests"
+            description: "Too Many Redis Operations - Cluster: {{ $labels.cluster }} DB: {{ $labels.db }} {{ $value }} (ops/sec)"
+            runbook: "https://redis.io/docs/latest/integrate/prometheus-with-redis-enterprise/observability/#connections"
+
+    # ========================================
+    # CAPACITY ALERTS
+    # ========================================
+    - name: redis-capacity
+      interval: 30s
+      rules:
+        - alert: RedisDatabaseFull
+          expr: ((redis_server_used_memory/redis_server_maxmemory) * 100) > 95
+          for: 30s
+          labels:
+            severity: critical
+            component: redis-database
+            type: capacity
+          annotations:
+            summary: "Redis database {{ $labels.db }} is full"
+            description: "DB Usage - Cluster: {{ $labels.cluster }} DB: {{ $labels.db }} Usage: {{ $value }}% full"
+            runbook: "https://redis.io/docs/latest/integrate/prometheus-with-redis-enterprise/observability/#memory"
+
+        - alert: RedisDatabaseFullIn2Hours
+          expr: round((redis_server_used_memory/redis_server_maxmemory) * 100) < 95 and (predict_linear(redis_server_used_memory[15m], 2 * 3600) / redis_server_maxmemory) > 0.3 and round(predict_linear(redis_server_used_memory[15m], 2 * 3600)/redis_server_maxmemory) > 0.95
+          for: 30s
+          labels:
+            severity: warning
+            component: redis-database
+            type: capacity
+          annotations:
+            summary: "Redis database {{ $labels.db }} will be full in 2 hours"
+            description: "DB Usage - Cluster: {{ $labels.cluster }} DB: {{ $labels.db }} Usage: {{ $value }}% in 2 hours"
+            runbook: "https://redis.io/docs/latest/integrate/prometheus-with-redis-enterprise/observability/#memory"
+
+    # ========================================
+    # UTILIZATION ALERTS
+    # ========================================
+    - name: redis-utilization
+      interval: 30s
+      rules:
+        - alert: RedisLowHitRatio
+          expr: (irate(redis_server_keyspace_read_hits{role="master"}[1m])/irate(redis_server_keyspace_read_misses{role="master"}[1m])) < 1
+          for: 30s
+          labels:
+            severity: warning
+            component: redis-database
+            type: utilization
+          annotations:
+            summary: "Redis database {{ $labels.db }} has low hit ratio"
+            description: "Low Hit Ratio: {{ $labels.cluster }} DB: {{ $labels.db }} Hit Ratio: {{ $value }}%"
+            runbook: "https://redis.io/docs/latest/integrate/prometheus-with-redis-enterprise/observability/#cache-hit-ratio-and-eviction"
+
+        - alert: RedisUnexpectedEviction
+          expr: redis_server_evicted_keys{role="master"} > 1
+          for: 3m
+          labels:
+            severity: critical
+            component: redis-database
+            type: utilization
+          annotations:
+            summary: "Redis database {{ $labels.db }} experiencing unexpected evictions"
+            description: "Evictions Occurring: {{ $labels.cluster }} DB: {{ $labels.db }} EvictionsPerSecond: {{ $value }}"
+            runbook: "https://redis.io/docs/latest/integrate/prometheus-with-redis-enterprise/observability/#cache-hit-ratio-and-eviction"
+
+    # ========================================
+    # SYNCHRONIZATION ALERTS
+    # ========================================
+    - name: redis-synchronization
+      interval: 30s
+      rules:
+        - alert: RedisReplicaSyncStatus
+          expr: database_syncer_current_status{syncer_type="replicaof"} > 0
+          for: 5m
+          labels:
+            severity: warning
+            component: redis-database
+            type: synchronization
+          annotations:
+            summary: "Redis replication not synchronized"
+            description: "Replication on {{ $labels.cluster }} not synchronized in 5 minutes"
+            runbook: "https://redis.io/docs/latest/integrate/prometheus-with-redis-enterprise/observability/#synchronization"
+
+        - alert: RedisCRDTSyncStatus
+          expr: database_syncer_current_status{syncer_type="crdt"} > 0
+          for: 5m
+          labels:
+            severity: warning
+            component: redis-database
+            type: synchronization
+          annotations:
+            summary: "Redis CRDT replication not synchronized"
+            description: "CRDT Replication on {{ $labels.cluster }} not synchronized for 5 minutes"
+            runbook: "https://redis.io/docs/latest/integrate/prometheus-with-redis-enterprise/observability/#synchronization"
+
+        - alert: RedisReplicaLagStatus
+          expr: database_syncer_lag_ms{syncer_type="replicaof"} > 500
+          for: 5m
+          labels:
+            severity: warning
+            component: redis-database
+            type: synchronization
+          annotations:
+            summary: "Redis replication high latency"
+            description: "Replication Latency {{ $labels.cluster }} exceeded 500ms for 5 minutes"
+            runbook: "https://redis.io/docs/latest/integrate/prometheus-with-redis-enterprise/observability/#synchronization"
+
+        - alert: RedisCRDTLagStatus
+          expr: database_syncer_lag_ms{syncer_type="crdt"} > 500
+          for: 5m
+          labels:
+            severity: warning
+            component: redis-database
+            type: synchronization
+          annotations:
+            summary: "Redis CRDT replication high latency"
+            description: "CRDT Replication Latency on {{ $labels.cluster }} exceeded 500ms for 5 minutes"
+            runbook: "https://redis.io/docs/latest/integrate/prometheus-with-redis-enterprise/observability/#synchronization"
+
+    # ========================================
+    # NODE ALERTS
+    # ========================================
+    - name: redis-nodes
+      interval: 30s
+      rules:
+        - alert: RedisNodeNotResponding
+          expr: node_metrics_up == 0
+          for: 5m
+          labels:
+            severity: critical
+            component: redis-enterprise
+            type: node
+          annotations:
+            summary: "Redis Enterprise node {{ $labels.node }} not responding"
+            description: "Node Down - Cluster: {{ $labels.cluster }} Node: {{ $labels.node }}"
+
+        - alert: RedisNodePersistentStorageLow
+          expr: round((node_persistent_storage_free_bytes/node_persistent_storage_avail_bytes) * 100) <= 5
+          for: 2m
+          labels:
+            severity: critical
+            component: redis-enterprise
+            type: node
+          annotations:
+            summary: "Redis Enterprise node {{ $labels.node }} low persistent storage"
+            description: "Low on Persistent Storage - Cluster: {{ $labels.cluster }} Node: {{ $labels.node }} Space Free: {{ $value }}%"
+
+        - alert: RedisNodeEphemeralStorageLow
+          expr: node_ephemeral_storage_free_bytes < 5000000000
+          for: 2m
+          labels:
+            severity: critical
+            component: redis-enterprise
+            type: node
+          annotations:
+            summary: "Redis Enterprise node {{ $labels.node }} low ephemeral storage"
+            description: "Low on Ephemeral Storage - Cluster: {{ $labels.cluster }} Node: {{ $labels.node }} Space Free: {{ $value }} bytes"
+
+        - alert: RedisNodeFreeMemoryLow
+          expr: node_available_memory_bytes < 5000000000
+          for: 2m
+          labels:
+            severity: critical
+            component: redis-enterprise
+            type: node
+          annotations:
+            summary: "Redis Enterprise node {{ $labels.node }} low free memory"
+            description: "Low on Memory - Cluster: {{ $labels.cluster }} Node: {{ $labels.node }} Memory Free: {{ $value }} bytes"
+            runbook: "https://redis.io/docs/latest/integrate/prometheus-with-redis-enterprise/observability/#memory"
+
+        - alert: RedisNodeHighCPUUsage
+          expr: rate(namedprocess_namegroup_cpu_seconds_total[5m]) > 0.8
+          for: 5m
+          labels:
+            severity: critical
+            component: redis-enterprise
+            type: node
+          annotations:
+            summary: "Redis Enterprise node {{ $labels.node }} high CPU usage"
+            description: "High CPU Usage - Cluster: {{ $labels.cluster }} Node: {{ $labels.node }} Usage: {{ $value | humanizePercentage }}"
+            runbook: "https://redis.io/docs/latest/integrate/prometheus-with-redis-enterprise/observability/#cpu"
+
+    # ========================================
+    # SHARD ALERTS
+    # ========================================
+    - name: redis-shards
+      interval: 30s
+      rules:
+        - alert: RedisShardDown
+          expr: redis_server_up == 0
+          for: 1m
+          labels:
+            severity: critical
+            component: redis-database
+            type: shard
+          annotations:
+            summary: "Redis shard is down"
+            description: "Redis Shard instance {{ $labels.cluster }} is down"
+
+        - alert: RedisMasterShardDown
+          expr: floor(redis_server_master_link_status{role="slave"}) < 1
+          for: 1m
+          labels:
+            severity: warning
+            component: redis-database
+            type: shard
+          annotations:
+            summary: "Redis master shard down"
+            description: "Slave has no master - Cluster: {{ $labels.cluster }} Shard: {{ $labels.redis }} Node: {{ $labels.node }}"
+            runbook: "https://redis.io/docs/latest/integrate/prometheus-with-redis-enterprise/observability/#cpu"
+
+        - alert: RedisShardHighCPUUsage
+          expr: rate(namedprocess_namegroup_cpu_seconds_total{redis=~".+"}[5m]) > 0.8
+          for: 5m
+          labels:
+            severity: warning
+            component: redis-database
+            type: shard
+          annotations:
+            summary: "Redis shard high CPU usage"
+            description: "Busy Shard - Cluster: {{ $labels.cluster }} Shard: {{ $labels.redis }} Node: {{ $labels.node }} CPU: {{ $value | humanizePercentage }}"
+            runbook: "https://redis.io/docs/latest/integrate/prometheus-with-redis-enterprise/observability/#cpu"
+
+        - alert: RedisHotMasterShard
+          expr: rate(namedprocess_namegroup_cpu_seconds_total{role="master", redis=~".+"}[5m]) > 0.8
+          for: 1m
+          labels:
+            severity: critical
+            component: redis-database
+            type: shard
+            role: master
+          annotations:
+            summary: "Redis hot master shard"
+            description: "Hot Shard - Cluster: {{ $labels.cluster }} Shard: {{ $labels.redis }} Node: {{ $labels.node }} CPU: {{ $value | humanizePercentage }}"
+            runbook: "https://redis.io/docs/latest/integrate/prometheus-with-redis-enterprise/observability/#cpu"
+
+        - alert: RedisProxyHighCPUUsage
+          expr: rate(namedprocess_namegroup_cpu_seconds_total{groupname="dmcproxy"}[5m]) > 0.8
+          for: 5m
+          labels:
+            severity: critical
+            component: redis-enterprise
+            type: proxy
+          annotations:
+            summary: "Redis proxy high CPU usage"
+            description: "Proxy CPU usage has exceeded {{ $value | humanizePercentage }} for more than 5 minutes"
+            runbook: "https://redis.io/docs/latest/integrate/prometheus-with-redis-enterprise/observability/#cpu"
+
+    # ========================================
+    # CERTIFICATE & LICENSE ALERTS
+    # ========================================
+    - name: redis-certificates-license
+      interval: 30s
+      rules:
+        - alert: RedisCertificateExpiringSoon
+          expr: node_cert_expires_in_seconds < (30 * 24 * 60 * 60)
+          for: 24h
+          labels:
+            severity: warning
+            component: redis-enterprise
+            type: certificate
+          annotations:
+            summary: "Redis Enterprise certificate expiring soon on node {{ $labels.node }}"
+            description: "Certificate on node {{ $labels.node }} will expire in {{ $value | humanizeDuration }}. Renew certificate before expiration."
+
+        - alert: RedisCertificateExpiringCritical
+          expr: node_cert_expires_in_seconds < (7 * 24 * 60 * 60)
+          for: 1h
+          labels:
+            severity: critical
+            component: redis-enterprise
+            type: certificate
+          annotations:
+            summary: "Redis Enterprise certificate expiring in less than 7 days on node {{ $labels.node }}"
+            description: "Certificate on node {{ $labels.node }} will expire in {{ $value | humanizeDuration }}. Immediate action required."
+
+        - alert: RedisLicenseExpiringSoon
+          expr: license_expiration_days < 30
+          for: 24h
+          labels:
+            severity: warning
+            component: redis-enterprise
+            type: license
+          annotations:
+            summary: "Redis Enterprise license expiring soon"
+            description: "License will expire in {{ $value }} days. Contact Redis support to renew license."
+
+        - alert: RedisLicenseExpiringCritical
+          expr: license_expiration_days < 7
+          for: 1h
+          labels:
+            severity: critical
+            component: redis-enterprise
+            type: license
+          annotations:
+            summary: "Redis Enterprise license expiring in less than 7 days"
+            description: "License will expire in {{ $value }} days. Immediate action required."
+
+        - alert: RedisLicenseShardLimitApproaching
+          expr: (count(redis_server_up) / license_shards_limit) * 100 > 80
+          for: 1h
+          labels:
+            severity: warning
+            component: redis-enterprise
+            type: license
+          annotations:
+            summary: "Redis Enterprise approaching shard limit"
+            description: "Using {{ $value }}% of licensed shards. Consider upgrading license."
+
+        - alert: RedisLicenseShardLimitCritical
+          expr: (count(redis_server_up) / license_shards_limit) * 100 > 95
+          for: 30m
+          labels:
+            severity: critical
+            component: redis-enterprise
+            type: license
+          annotations:
+            summary: "Redis Enterprise near shard limit"
+            description: "Using {{ $value }}% of licensed shards. Upgrade license immediately."
+
+    # ========================================
+    # CLUSTER HEALTH ALERTS
+    # ========================================
+    - name: redis-cluster-health
+      interval: 30s
+      rules:
+        - alert: RedisClusterQuorumLost
+          expr: has_quorum == 0
+          for: 1m
+          labels:
+            severity: critical
+            component: redis-enterprise
+            type: cluster
+          annotations:
+            summary: "Redis Enterprise cluster lost quorum"
+            description: "Cluster {{ $labels.cluster }} has lost quorum. Immediate action required to restore cluster health."
+
+        - alert: RedisClusterNotPrimary
+          expr: is_primary == 0
+          for: 5m
+          labels:
+            severity: warning
+            component: redis-enterprise
+            type: cluster
+          annotations:
+            summary: "Redis Enterprise cluster is not primary"
+            description: "Cluster {{ $labels.cluster }} is not in primary state. Check cluster configuration."
+
+        - alert: RedisClusterDown
+          expr: up{job="redis-enterprise-metrics"} == 0
+          for: 5m
+          labels:
+            severity: critical
+            component: redis-enterprise
+            type: cluster
+          annotations:
+            summary: "Redis Enterprise cluster {{ $labels.cluster }} is down"
+            description: "Redis Enterprise cluster {{ $labels.cluster }} in namespace {{ $labels.namespace }} has been down for more than 5 minutes."
+

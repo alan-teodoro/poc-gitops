@@ -1,0 +1,29 @@
+---
+# GrafanaDatasource for Prometheus
+# Purpose: Automatically configure Prometheus as a data source in Grafana
+# This enables the Redis Enterprise dashboards to query metrics from Prometheus
+# Managed by: Platform Team
+
+apiVersion: grafana.integreatly.org/v1beta1
+kind: GrafanaDatasource
+metadata:
+  name: prometheus-redis-enterprise
+  namespace: openshift-monitoring
+  labels:
+    app: grafana
+    component: datasource
+spec:
+  instanceSelector:
+    matchLabels:
+      dashboards: "grafana"
+  datasource:
+    name: Prometheus (Redis Enterprise)
+    type: prometheus
+    access: proxy
+    url: http://prometheus-k8s.openshift-monitoring.svc:9090
+    isDefault: false
+    jsonData:
+      timeInterval: "30s"
+      httpMethod: "POST"
+    editable: true
+

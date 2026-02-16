@@ -1,0 +1,189 @@
+---
+# Grafana Dashboard ConfigMap for Redis Enterprise
+# Purpose: Provide pre-built dashboard for Redis Enterprise monitoring
+# Managed by: Platform Team
+# 
+# To import: 
+# 1. Access Grafana UI
+# 2. Import dashboard from this ConfigMap
+# 3. Or use GrafanaDashboard CR if using Grafana Operator
+
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: grafana-dashboard-redis-enterprise
+  namespace: openshift-monitoring
+  labels:
+    grafana_dashboard: "true"
+    app: grafana
+data:
+  redis-enterprise-overview.json: |
+    {
+      "dashboard": {
+        "title": "Redis Enterprise - Overview",
+        "tags": ["redis", "redis-enterprise", "database"],
+        "timezone": "browser",
+        "schemaVersion": 16,
+        "version": 1,
+        "refresh": "30s",
+        "panels": [
+          {
+            "id": 1,
+            "title": "Cluster Status",
+            "type": "stat",
+            "targets": [
+              {
+                "expr": "up{job=\"redis-enterprise-metrics\"}",
+                "legendFormat": "{{ cluster }}"
+              }
+            ],
+            "gridPos": {"h": 4, "w": 6, "x": 0, "y": 0}
+          },
+          {
+            "id": 2,
+            "title": "Total Databases",
+            "type": "stat",
+            "targets": [
+              {
+                "expr": "count(redis_db_up)",
+                "legendFormat": "Databases"
+              }
+            ],
+            "gridPos": {"h": 4, "w": 6, "x": 6, "y": 0}
+          },
+          {
+            "id": 3,
+            "title": "Cluster Memory Usage",
+            "type": "gauge",
+            "targets": [
+              {
+                "expr": "(sum(redis_node_memory_used_bytes) / sum(redis_node_memory_limit_bytes)) * 100",
+                "legendFormat": "Memory %"
+              }
+            ],
+            "gridPos": {"h": 4, "w": 6, "x": 12, "y": 0},
+            "fieldConfig": {
+              "defaults": {
+                "thresholds": {
+                  "steps": [
+                    {"value": 0, "color": "green"},
+                    {"value": 70, "color": "yellow"},
+                    {"value": 85, "color": "red"}
+                  ]
+                },
+                "unit": "percent"
+              }
+            }
+          },
+          {
+            "id": 4,
+            "title": "Total Operations/sec",
+            "type": "stat",
+            "targets": [
+              {
+                "expr": "sum(rate(redis_db_total_req[5m]))",
+                "legendFormat": "Ops/sec"
+              }
+            ],
+            "gridPos": {"h": 4, "w": 6, "x": 18, "y": 0}
+          },
+          {
+            "id": 5,
+            "title": "Node Memory Usage",
+            "type": "graph",
+            "targets": [
+              {
+                "expr": "redis_node_memory_used_bytes",
+                "legendFormat": "{{ node }}"
+              }
+            ],
+            "gridPos": {"h": 8, "w": 12, "x": 0, "y": 4},
+            "yaxes": [
+              {"format": "bytes", "label": "Memory"},
+              {"format": "short"}
+            ]
+          },
+          {
+            "id": 6,
+            "title": "Node CPU Usage",
+            "type": "graph",
+            "targets": [
+              {
+                "expr": "rate(redis_node_cpu_user_seconds_total[5m]) * 100",
+                "legendFormat": "{{ node }}"
+              }
+            ],
+            "gridPos": {"h": 8, "w": 12, "x": 12, "y": 4},
+            "yaxes": [
+              {"format": "percent", "label": "CPU %"},
+              {"format": "short"}
+            ]
+          },
+          {
+            "id": 7,
+            "title": "Database Operations/sec",
+            "type": "graph",
+            "targets": [
+              {
+                "expr": "rate(redis_db_total_req[5m])",
+                "legendFormat": "{{ bdb }}"
+              }
+            ],
+            "gridPos": {"h": 8, "w": 12, "x": 0, "y": 12},
+            "yaxes": [
+              {"format": "ops", "label": "Operations/sec"},
+              {"format": "short"}
+            ]
+          },
+          {
+            "id": 8,
+            "title": "Database Memory Usage",
+            "type": "graph",
+            "targets": [
+              {
+                "expr": "redis_db_used_memory",
+                "legendFormat": "{{ bdb }}"
+              }
+            ],
+            "gridPos": {"h": 8, "w": 12, "x": 12, "y": 12},
+            "yaxes": [
+              {"format": "bytes", "label": "Memory"},
+              {"format": "short"}
+            ]
+          },
+          {
+            "id": 9,
+            "title": "Database Connections",
+            "type": "graph",
+            "targets": [
+              {
+                "expr": "redis_db_conns",
+                "legendFormat": "{{ bdb }}"
+              }
+            ],
+            "gridPos": {"h": 8, "w": 12, "x": 0, "y": 20},
+            "yaxes": [
+              {"format": "short", "label": "Connections"},
+              {"format": "short"}
+            ]
+          },
+          {
+            "id": 10,
+            "title": "Database Hit Rate",
+            "type": "graph",
+            "targets": [
+              {
+                "expr": "(rate(redis_db_keyspace_hits[5m]) / (rate(redis_db_keyspace_hits[5m]) + rate(redis_db_keyspace_misses[5m]))) * 100",
+                "legendFormat": "{{ bdb }}"
+              }
+            ],
+            "gridPos": {"h": 8, "w": 12, "x": 12, "y": 20},
+            "yaxes": [
+              {"format": "percent", "label": "Hit Rate %"},
+              {"format": "short"}
+            ]
+          }
+        ]
+      }
+    }
+

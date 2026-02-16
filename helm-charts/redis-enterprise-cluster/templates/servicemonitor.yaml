@@ -1,0 +1,52 @@
+{{- if .Values.monitoring.enabled }}
+---
+# ServiceMonitor for Prometheus to scrape Redis Enterprise metrics
+# Metrics endpoint: http://<pod>:8070/v2
+apiVersion: monitoring.coreos.com/v1
+kind: ServiceMonitor
+metadata:
+  name: {{ .Values.redis.clusterName }}-metrics
+  namespace: {{ .Values.namespace }}
+  labels:
+    cluster: {{ .Values.cluster.name }}
+    team: {{ .Values.cluster.team }}
+    component: metrics
+    {{- range $key, $value := .Values.labels }}
+    {{ $key }}: {{ $value | quote }}
+    {{- end }}
+  {{- with .Values.annotations }}
+  annotations:
+    {{- toYaml . | nindent 4 }}
+  {{- end }}
+spec:
+  # Select the Redis Enterprise pods
+  selector:
+    matchLabels:
+      app: redis-enterprise
+      redis.io/cluster: {{ .Values.redis.clusterName }}
+
+  # Namespace where the pods are located
+  namespaceSelector:
+    matchNames:
+      - {{ .Values.namespace }}
+
+  # Endpoint configuration
+  endpoints:
+    - port: metrics
+      path: /v2
+      interval: {{ .Values.monitoring.scrapeInterval }}
+      scrapeTimeout: {{ .Values.monitoring.scrapeTimeout }}
+      scheme: http
+      
+      # Relabeling to add cluster information
+      relabelings:
+        - sourceLabels: [__meta_kubernetes_pod_name]
+          targetLabel: pod
+        - sourceLabels: [__meta_kubernetes_namespace]
+          targetLabel: namespace
+        - targetLabel: cluster
+          replacement: {{ .Values.cluster.name }}
+        - targetLabel: team
+          replacement: {{ .Values.cluster.team }}
+{{- end }}
+
