@@ -1,0 +1,39 @@
+---
+# Namespace for Redis Databases - Production
+# Team: Orders
+# Purpose: Production Redis databases
+
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: redis-orders-prod
+  labels:
+    # Team ownership
+    team: orders
+    
+    # Environment
+    environment: prod
+    
+    # Cost allocation
+    cost-center: CC-1234
+    
+    # Application
+    app: redis-enterprise
+    
+    # Governance
+    managed-by: platform-team
+    gitops: argocd
+    
+    # OpenShift features
+    openshift.io/cluster-monitoring: "true"
+    
+    # Production-specific
+    pod-security.kubernetes.io/enforce: restricted
+  
+  annotations:
+    description: "Production Redis databases for Orders team"
+    owner: "orders-team@company.com"
+    created-by: "platform-team"
+    quota-profile: "prod"
+    backup-required: "true"
+

@@ -1,0 +1,66 @@
+---
+# Gatekeeper ConstraintTemplate: Prevent Decreasing Shard Count
+# Purpose: Prevent data loss by blocking attempts to decrease shardCount
+# Why: In Redis Enterprise, decreasing shardCount causes data loss
+# Managed by: Platform Team
+
+apiVersion: templates.gatekeeper.sh/v1
+kind: ConstraintTemplate
+metadata:
+  name: redisimmutableshardcount
+  annotations:
+    description: "Prevents decreasing shardCount on RedisEnterpriseDatabase (causes data loss)"
+    metadata.gatekeeper.sh/title: "Redis Immutable Shard Count"
+    metadata.gatekeeper.sh/version: "1.0.0"
+spec:
+  crd:
+    spec:
+      names:
+        kind: RedisImmutableShardCount
+  targets:
+    - target: admission.k8s.gatekeeper.sh
+      rego: |
+        package redisimmutableshardcount
+        
+        # Violation if UPDATE operation decreases shardCount
+        violation[{"msg": msg}] {
+          # Only check UPDATE operations (not CREATE)
+          input.review.operation == "UPDATE"
+          
+          # Only check RedisEnterpriseDatabase resources
+          input.review.kind.kind == "RedisEnterpriseDatabase"
+          
+          # Get old and new shard counts
+          old_shards := input.review.oldObject.spec.shardCount
+          new_shards := input.review.object.spec.shardCount
+          
+          # Violation if decreased
+          new_shards < old_shards
+          
+          msg := sprintf(
+            "DENIED: Cannot decrease shardCount from %v to %v (causes data loss). Database: %v/%v. To change shard count, you must delete and recreate the database.",
+            [old_shards, new_shards, input.review.namespace, input.review.object.metadata.name]
+          )
+        }
+
+# ========================================
+# How to Apply
+# ========================================
+# 1. Apply the ConstraintTemplate:
+#    oc apply -f platform/policies/templates/redis-immutable-shardcount.yaml
+#
+# 2. Verify:
+#    oc get constrainttemplates
+#
+# 3. Apply the Constraint (see platform/policies/constraints/)
+#
+# ========================================
+# How to Test
+# ========================================
+# Try to decrease shardCount on existing database:
+#   oc patch redb orders-cache-dev -n redis-orders-dev \
+#     --type merge \
+#     -p '{"spec":{"shardCount":0}}'
+#
+# Expected: Error message blocking the change
+

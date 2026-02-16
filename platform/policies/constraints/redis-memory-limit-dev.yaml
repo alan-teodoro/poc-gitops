@@ -1,0 +1,33 @@
+---
+# Gatekeeper Constraint: Memory Limit for Dev Environments
+# Purpose: Limit dev databases to 1GB max
+# Managed by: Platform Team
+
+apiVersion: constraints.gatekeeper.sh/v1beta1
+kind: RedisMemoryLimit
+metadata:
+  name: redis-memory-limit-dev
+spec:
+  match:
+    kinds:
+      - apiGroups: ["app.redislabs.com"]
+        kinds: ["RedisEnterpriseDatabase"]
+    namespaces:
+      - "redis-orders-dev"
+      # Add more dev namespaces:
+      # - "redis-payments-dev"
+      # - "redis-inventory-dev"
+  parameters:
+    maxMemoryMB: 1024  # 1GB max for dev environments
+
+# ========================================
+# Rationale
+# ========================================
+# Dev environments should use smaller databases to:
+# - Reduce costs
+# - Prevent resource exhaustion
+# - Encourage efficient data models
+# - Leave headroom for multiple dev databases
+#
+# If you need larger dev databases, request quota increase from Platform Team
+

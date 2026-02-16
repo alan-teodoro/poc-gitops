@@ -1,0 +1,49 @@
+---
+# ResourceQuota for Production Namespaces
+# Purpose: Limit resource consumption in prod environments (higher limits than dev)
+# Managed by: Platform Team
+# Applied to: redis-*-prod namespaces
+
+apiVersion: v1
+kind: ResourceQuota
+metadata:
+  name: redis-prod-quota
+  labels:
+    environment: prod
+    managed-by: platform-team
+    resource-type: quota
+spec:
+  hard:
+    # ========================================
+    # Compute Resources (4x dev limits)
+    # ========================================
+    requests.cpu: "16"
+    requests.memory: "32Gi"
+    limits.cpu: "32"
+    limits.memory: "64Gi"
+    
+    # ========================================
+    # Storage Resources (4x dev limits)
+    # ========================================
+    persistentvolumeclaims: "20"
+    requests.storage: "200Gi"
+    
+    # ========================================
+    # Object Counts
+    # ========================================
+    pods: "50"
+    services: "20"
+    secrets: "30"
+    configmaps: "20"
+    count/routes.route.openshift.io: "20"
+
+# ========================================
+# How to Apply
+# ========================================
+# For redis-orders-prod:
+#   oc apply -f platform/quotas/prod-quota-template.yaml -n redis-orders-prod
+#
+# Verify:
+#   oc get resourcequota -n redis-orders-prod
+#   oc describe resourcequota redis-prod-quota -n redis-orders-prod
+

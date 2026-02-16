@@ -1,0 +1,55 @@
+---
+apiVersion: argoproj.io/v1alpha1
+kind: AppProject
+metadata:
+  name: platform-team
+  namespace: openshift-gitops
+  labels:
+    team: platform
+    managed-by: platform-team
+  finalizers:
+    - resources-finalizer.argocd.argoproj.io
+spec:
+  description: |
+    AppProject for Platform team.
+    Manages cluster-wide resources: policies, quotas, monitoring, secrets infrastructure.
+    Has elevated privileges compared to tenant teams.
+  
+  # Source repositories
+  sourceRepos:
+    - '*'
+  
+  # Destinations - platform team can deploy to any namespace
+  destinations:
+    - namespace: '*'
+      server: 'https://kubernetes.default.svc'
+  
+  # Cluster-scoped resources - platform team has broad access
+  clusterResourceWhitelist:
+    - group: '*'
+      kind: '*'
+  
+  # Namespace-scoped resources - platform team has broad access
+  namespaceResourceWhitelist:
+    - group: '*'
+      kind: '*'
+  
+  # No blacklist for platform team
+  namespaceResourceBlacklist: []
+  
+  # RBAC roles
+  roles:
+    - name: admin
+      description: Platform admin - full access
+      policies:
+        - p, proj:platform-team:admin, applications, *, platform-team/*, allow
+        - p, proj:platform-team:admin, repositories, *, *, allow
+        - p, proj:platform-team:admin, clusters, *, *, allow
+      groups:
+        - platform-admins
+        - cluster-admins
+  
+  # Orphaned resources monitoring
+  orphanedResources:
+    warn: true
+

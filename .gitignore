@@ -40,3 +40,4 @@ test-output/
 # OS files
 Thumbs.db
 
+docs/*

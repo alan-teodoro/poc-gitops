@@ -7,7 +7,8 @@ database:
 
 cluster:
   name: orders
-  team: orders-team
+  team: orders
+  costCenter: CC-1234
   datacenter: dc1
 
 namespace: redis-orders-prod
@@ -28,9 +29,9 @@ route:
   tlsTermination: passthrough
 
 labels:
+  app: orders-api
   app.kubernetes.io/managed-by: argocd
   gitops: argocd
-  app: orders
   component: session
   env: prod
 

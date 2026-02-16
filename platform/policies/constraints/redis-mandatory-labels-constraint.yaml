@@ -1,0 +1,44 @@
+---
+# Gatekeeper Constraint: Apply Mandatory Labels Policy
+# Purpose: Require specific labels on all Redis databases
+# Managed by: Platform Team
+
+apiVersion: constraints.gatekeeper.sh/v1beta1
+kind: RedisMandatoryLabels
+metadata:
+  name: redis-mandatory-labels-all
+spec:
+  match:
+    kinds:
+      - apiGroups: ["app.redislabs.com"]
+        kinds: ["RedisEnterpriseDatabase"]
+    namespaces:
+      - "redis-orders-dev"
+      - "redis-orders-prod"
+      # Add more namespaces as needed
+  parameters:
+    labels:
+      - "team"          # Which team owns this (e.g., "orders")
+      - "environment"   # Environment type (e.g., "dev", "prod")
+      - "cost-center"   # For chargeback (e.g., "CC-1234")
+      - "app"           # Application name (e.g., "orders-api")
+
+# ========================================
+# How to Fix Existing Databases
+# ========================================
+# Add labels to existing databases:
+#
+#   oc label redb orders-cache-dev -n redis-orders-dev \
+#     team=orders \
+#     environment=dev \
+#     cost-center=CC-1234 \
+#     app=orders-api
+#
+#   oc label redb session-store-dev -n redis-orders-dev \
+#     team=orders \
+#     environment=dev \
+#     cost-center=CC-1234 \
+#     app=orders-api
+#
+# Repeat for all databases in all namespaces
+

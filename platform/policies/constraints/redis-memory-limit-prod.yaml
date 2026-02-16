@@ -1,0 +1,35 @@
+---
+# Gatekeeper Constraint: Memory Limit for Prod Environments
+# Purpose: Limit prod databases to 4GB max
+# Managed by: Platform Team
+
+apiVersion: constraints.gatekeeper.sh/v1beta1
+kind: RedisMemoryLimit
+metadata:
+  name: redis-memory-limit-prod
+spec:
+  match:
+    kinds:
+      - apiGroups: ["app.redislabs.com"]
+        kinds: ["RedisEnterpriseDatabase"]
+    namespaces:
+      - "redis-orders-prod"
+      # Add more prod namespaces:
+      # - "redis-payments-prod"
+      # - "redis-inventory-prod"
+  parameters:
+    maxMemoryMB: 4096  # 4GB max for prod environments
+
+# ========================================
+# Rationale
+# ========================================
+# Prod limit is 4x dev limit (4GB vs 1GB)
+# 
+# For larger databases:
+# 1. Submit capacity planning request
+# 2. Platform team reviews and approves
+# 3. Policy updated with higher limit
+# 4. Database can be created
+#
+# This ensures proper capacity planning and cost control
+

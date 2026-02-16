@@ -1,0 +1,37 @@
+---
+# Gatekeeper Constraint: Apply Immutable Shard Count Policy
+# Purpose: Apply the shardCount protection policy to all Redis namespaces
+# Managed by: Platform Team
+
+apiVersion: constraints.gatekeeper.sh/v1beta1
+kind: RedisImmutableShardCount
+metadata:
+  name: redis-immutable-shardcount-all-namespaces
+spec:
+  match:
+    kinds:
+      - apiGroups: ["app.redislabs.com"]
+        kinds: ["RedisEnterpriseDatabase"]
+    # Apply to all Redis namespaces
+    namespaces:
+      - "redis-orders-dev"
+      - "redis-orders-prod"
+      # Add more namespaces as you create them:
+      # - "redis-payments-dev"
+      # - "redis-payments-prod"
+      # - "redis-inventory-dev"
+      # - "redis-inventory-prod"
+
+# ========================================
+# How to Apply
+# ========================================
+# 1. First apply the ConstraintTemplate (if not already done):
+#    oc apply -f platform/policies/templates/redis-immutable-shardcount.yaml
+#
+# 2. Then apply this Constraint:
+#    oc apply -f platform/policies/constraints/redis-immutable-shardcount-constraint.yaml
+#
+# 3. Verify:
+#    oc get redisimmutableshardcount
+#    oc describe redisimmutableshardcount redis-immutable-shardcount-all-namespaces
+

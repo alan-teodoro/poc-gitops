@@ -4,13 +4,21 @@ metadata:
   name: {{ .Values.database.name }}-{{ .Values.database.env }}
   namespace: {{ .Values.namespace }}
   labels:
-    cluster: {{ .Values.cluster.name }}
+    # Mandatory labels for Gatekeeper policy compliance
     team: {{ .Values.cluster.team }}
+    environment: {{ .Values.database.env }}
+    cost-center: {{ .Values.cluster.costCenter | default "CC-0000" }}
+    app: {{ .Values.labels.app | default .Values.database.name }}
+
+    # Additional labels for organization
+    cluster: {{ .Values.cluster.name }}
     database: {{ .Values.database.name }}
     env: {{ .Values.database.env }}
     type: {{ .Values.database.type }}
     {{- range $key, $value := .Values.labels }}
+    {{- if ne $key "app" }}
     {{ $key }}: {{ $value | quote }}
+    {{- end }}
     {{- end }}
   {{- with .Values.annotations }}
   annotations:

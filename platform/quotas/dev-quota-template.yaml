@@ -1,0 +1,72 @@
+---
+# ResourceQuota for Development Namespaces
+# Purpose: Limit resource consumption in dev environments
+# Managed by: Platform Team
+# Applied to: redis-*-dev namespaces
+
+apiVersion: v1
+kind: ResourceQuota
+metadata:
+  name: redis-dev-quota
+  labels:
+    environment: dev
+    managed-by: platform-team
+    resource-type: quota
+spec:
+  hard:
+    # ========================================
+    # Compute Resources
+    # ========================================
+    # Total CPU requests across all pods in namespace
+    requests.cpu: "4"
+    
+    # Total memory requests across all pods
+    requests.memory: "8Gi"
+    
+    # Total CPU limits across all pods
+    limits.cpu: "8"
+    
+    # Total memory limits across all pods
+    limits.memory: "16Gi"
+    
+    # ========================================
+    # Storage Resources
+    # ========================================
+    # Maximum number of PersistentVolumeClaims
+    persistentvolumeclaims: "10"
+    
+    # Total storage requests across all PVCs
+    requests.storage: "50Gi"
+    
+    # ========================================
+    # Object Counts
+    # ========================================
+    # Maximum number of pods
+    pods: "20"
+    
+    # Maximum number of services
+    services: "10"
+    
+    # Maximum number of secrets
+    secrets: "20"
+    
+    # Maximum number of configmaps
+    configmaps: "10"
+    
+    # Maximum number of routes
+    count/routes.route.openshift.io: "10"
+
+# ========================================
+# How to Apply
+# ========================================
+# For redis-orders-dev:
+#   oc apply -f platform/quotas/dev-quota-template.yaml -n redis-orders-dev
+#
+# For other dev namespaces:
+#   oc apply -f platform/quotas/dev-quota-template.yaml -n redis-payments-dev
+#   oc apply -f platform/quotas/dev-quota-template.yaml -n redis-inventory-dev
+#
+# Verify:
+#   oc get resourcequota -n redis-orders-dev
+#   oc describe resourcequota redis-dev-quota -n redis-orders-dev
+

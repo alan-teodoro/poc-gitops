@@ -1,7 +1,7 @@
 # RBAC configuration for Orders cluster multi-namespace support
 cluster:
   name: orders
-  operatorNamespace: redis-orders
+  operatorNamespace: redis
   clusterName: orders-redis-cluster
 
 # Database namespaces to watch

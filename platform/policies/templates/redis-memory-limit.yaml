@@ -1,0 +1,85 @@
+---
+# Gatekeeper ConstraintTemplate: Enforce Memory Limits
+# Purpose: Prevent databases from requesting excessive memory
+# Why: Control costs and prevent resource exhaustion
+# Managed by: Platform Team
+
+apiVersion: templates.gatekeeper.sh/v1
+kind: ConstraintTemplate
+metadata:
+  name: redismemorylimit
+  annotations:
+    description: "Enforces maximum memory size for Redis databases per environment"
+    metadata.gatekeeper.sh/title: "Redis Memory Limit"
+    metadata.gatekeeper.sh/version: "1.0.0"
+spec:
+  crd:
+    spec:
+      names:
+        kind: RedisMemoryLimit
+      validation:
+        openAPIV3Schema:
+          type: object
+          properties:
+            maxMemoryMB:
+              type: integer
+              description: "Maximum memory in MB allowed for databases"
+  targets:
+    - target: admission.k8s.gatekeeper.sh
+      rego: |
+        package redismemorylimit
+        
+        violation[{"msg": msg}] {
+          input.review.kind.kind == "RedisEnterpriseDatabase"
+          
+          # Get memory size from spec
+          memory_str := input.review.object.spec.memorySize
+          
+          # Parse memory (supports "512MB", "1GB", etc.)
+          memory_mb := parse_memory_mb(memory_str)
+          
+          # Get max allowed from constraint parameters
+          max_mb := input.parameters.maxMemoryMB
+          
+          # Violation if exceeds limit
+          memory_mb > max_mb
+          
+          msg := sprintf(
+            "DENIED: Database memory %vMB exceeds limit of %vMB for namespace %v. Database: %v. Reduce memorySize or request quota increase.",
+            [memory_mb, max_mb, input.review.namespace, input.review.object.metadata.name]
+          )
+        }
+        
+        # Helper function to parse memory string to MB
+        parse_memory_mb(memory_str) = mb {
+          endswith(memory_str, "MB")
+          mb := to_number(trim_suffix(memory_str, "MB"))
+        }
+        
+        parse_memory_mb(memory_str) = mb {
+          endswith(memory_str, "GB")
+          gb := to_number(trim_suffix(memory_str, "GB"))
+          mb := gb * 1024
+        }
+        
+        parse_memory_mb(memory_str) = mb {
+          endswith(memory_str, "G")
+          gb := to_number(trim_suffix(memory_str, "G"))
+          mb := gb * 1024
+        }
+        
+        parse_memory_mb(memory_str) = mb {
+          endswith(memory_str, "M")
+          mb := to_number(trim_suffix(memory_str, "M"))
+        }
+
+# ========================================
+# How to Apply
+# ========================================
+# 1. Apply the ConstraintTemplate:
+#    oc apply -f platform/policies/templates/redis-memory-limit.yaml
+#
+# 2. Apply Constraints with different limits per environment:
+#    oc apply -f platform/policies/constraints/redis-memory-limit-dev.yaml
+#    oc apply -f platform/policies/constraints/redis-memory-limit-prod.yaml
+

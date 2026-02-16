@@ -1,0 +1,73 @@
+---
+# Gatekeeper ConstraintTemplate: Mandatory Labels
+# Purpose: Enforce tagging standards for cost allocation and ownership
+# Why: Required for chargeback, compliance, and operational visibility
+# Managed by: Platform Team
+
+apiVersion: templates.gatekeeper.sh/v1
+kind: ConstraintTemplate
+metadata:
+  name: redismandatorylabels
+  annotations:
+    description: "Enforces mandatory labels on Redis databases"
+    metadata.gatekeeper.sh/title: "Redis Mandatory Labels"
+    metadata.gatekeeper.sh/version: "1.0.0"
+spec:
+  crd:
+    spec:
+      names:
+        kind: RedisMandatoryLabels
+      validation:
+        openAPIV3Schema:
+          type: object
+          properties:
+            labels:
+              type: array
+              items:
+                type: string
+              description: "List of required label keys"
+  targets:
+    - target: admission.k8s.gatekeeper.sh
+      rego: |
+        package redismandatorylabels
+        
+        violation[{"msg": msg}] {
+          input.review.kind.kind == "RedisEnterpriseDatabase"
+          
+          # Get required labels from constraint parameters
+          required := input.parameters.labels[_]
+          
+          # Check if label exists
+          not input.review.object.metadata.labels[required]
+          
+          msg := sprintf(
+            "DENIED: Missing required label '%v'. Database: %v/%v. Required labels: %v",
+            [required, input.review.namespace, input.review.object.metadata.name, input.parameters.labels]
+          )
+        }
+
+# ========================================
+# Required Labels (defined in Constraint)
+# ========================================
+# - team: Which team owns this database (e.g., "orders", "payments")
+# - environment: Environment type (e.g., "dev", "prod")
+# - cost-center: Cost center for chargeback (e.g., "CC-1234")
+# - app: Application using this database (e.g., "orders-api")
+#
+# ========================================
+# Example Database with Correct Labels
+# ========================================
+# apiVersion: app.redislabs.com/v1alpha1
+# kind: RedisEnterpriseDatabase
+# metadata:
+#   name: orders-cache-dev
+#   namespace: redis-orders-dev
+#   labels:
+#     team: orders
+#     environment: dev
+#     cost-center: CC-1234
+#     app: orders-api
+# spec:
+#   memorySize: 512MB
+#   ...
+

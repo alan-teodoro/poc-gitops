@@ -1,0 +1,34 @@
+---
+# Namespace for Redis Enterprise Cluster (Operator + Cluster)
+# Team: Orders
+# Purpose: Redis Enterprise Operator and Cluster resources
+
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: redis-orders
+  labels:
+    # Team ownership
+    team: orders
+    
+    # Environment
+    environment: shared
+    
+    # Cost allocation
+    cost-center: CC-1234
+    
+    # Application
+    app: redis-enterprise
+    
+    # Governance
+    managed-by: platform-team
+    gitops: argocd
+    
+    # OpenShift features
+    openshift.io/cluster-monitoring: "true"
+  
+  annotations:
+    description: "Redis Enterprise Cluster for Orders team"
+    owner: "orders-team@company.com"
+    created-by: "platform-team"
+

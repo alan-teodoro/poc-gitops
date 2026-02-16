@@ -1,0 +1,124 @@
+---
+apiVersion: argoproj.io/v1alpha1
+kind: AppProject
+metadata:
+  name: team-orders
+  namespace: openshift-gitops
+  labels:
+    team: orders
+    managed-by: platform-team
+  finalizers:
+    - resources-finalizer.argocd.argoproj.io
+spec:
+  description: |
+    AppProject for Orders team Redis resources.
+    Provides namespace isolation and resource type restrictions.
+  
+  # Source repositories allowed for this project
+  sourceRepos:
+    - '*'  # Allow all repos (can be restricted to specific org/repo)
+  
+  # Destination clusters and namespaces
+  destinations:
+    # Allow deployment to orders-specific namespaces
+    - namespace: 'redis-orders'
+      server: 'https://kubernetes.default.svc'
+    - namespace: 'redis-orders-dev'
+      server: 'https://kubernetes.default.svc'
+    - namespace: 'redis-orders-prod'
+      server: 'https://kubernetes.default.svc'
+  
+  # Cluster-scoped resources allowed (very restrictive)
+  clusterResourceWhitelist:
+    - group: ''
+      kind: Namespace
+  
+  # Namespace-scoped resources allowed
+  namespaceResourceWhitelist:
+    # Redis Enterprise resources
+    - group: 'app.redislabs.com'
+      kind: RedisEnterpriseCluster
+    - group: 'app.redislabs.com'
+      kind: RedisEnterpriseDatabase
+    
+    # OpenShift/Kubernetes core resources
+    - group: 'route.openshift.io'
+      kind: Route
+    - group: ''
+      kind: Service
+    - group: ''
+      kind: Secret
+    - group: ''
+      kind: ConfigMap
+    - group: ''
+      kind: ServiceAccount
+    - group: ''
+      kind: PersistentVolumeClaim
+    
+    # RBAC resources
+    - group: 'rbac.authorization.k8s.io'
+      kind: Role
+    - group: 'rbac.authorization.k8s.io'
+      kind: RoleBinding
+    
+    # External Secrets
+    - group: 'external-secrets.io'
+      kind: ExternalSecret
+    - group: 'external-secrets.io'
+      kind: SecretStore
+  
+  # Resources explicitly denied (platform-managed only)
+  namespaceResourceBlacklist:
+    - group: ''
+      kind: ResourceQuota
+    - group: ''
+      kind: LimitRange
+    - group: 'templates.gatekeeper.sh'
+      kind: ConstraintTemplate
+    - group: 'constraints.gatekeeper.sh'
+      kind: '*'
+  
+  # RBAC roles for this project
+  roles:
+    # Admin role - full control over team resources
+    - name: admin
+      description: Admin privileges for Orders team
+      policies:
+        - p, proj:team-orders:admin, applications, *, team-orders/*, allow
+        - p, proj:team-orders:admin, repositories, *, *, allow
+      groups:
+        - orders-team-admins
+        - platform-admins
+    
+    # Developer role - can view and sync
+    - name: developer
+      description: Developer privileges for Orders team
+      policies:
+        - p, proj:team-orders:developer, applications, get, team-orders/*, allow
+        - p, proj:team-orders:developer, applications, sync, team-orders/*, allow
+        - p, proj:team-orders:developer, logs, get, team-orders/*, allow
+      groups:
+        - orders-team-developers
+    
+    # Read-only role - view only
+    - name: readonly
+      description: Read-only access for Orders team
+      policies:
+        - p, proj:team-orders:readonly, applications, get, team-orders/*, allow
+        - p, proj:team-orders:readonly, logs, get, team-orders/*, allow
+      groups:
+        - orders-team-viewers
+  
+  # Sync windows (optional - can restrict when syncs can happen)
+  # syncWindows:
+  #   - kind: allow
+  #     schedule: '0 9-17 * * 1-5'  # Mon-Fri 9am-5pm
+  #     duration: 8h
+  #     applications:
+  #       - '*-prod'
+  #     manualSync: true
+  
+  # Orphaned resources monitoring
+  orphanedResources:
+    warn: true
+
