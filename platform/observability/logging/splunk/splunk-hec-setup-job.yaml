@@ -1,0 +1,198 @@
+---
+# ServiceAccount for Splunk HEC Setup Job
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: splunk-hec-setup
+  namespace: splunk
+  annotations:
+    argocd.argoproj.io/sync-wave: "7"
+
+---
+# Role: Allow reading Splunk pods and creating secrets
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  name: splunk-hec-setup
+  namespace: splunk
+  annotations:
+    argocd.argoproj.io/sync-wave: "7"
+rules:
+- apiGroups: [""]
+  resources: ["pods", "pods/exec", "secrets"]
+  verbs: ["get", "list", "create", "update", "patch"]
+
+---
+# RoleBinding
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: splunk-hec-setup
+  namespace: splunk
+  annotations:
+    argocd.argoproj.io/sync-wave: "7"
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: Role
+  name: splunk-hec-setup
+subjects:
+- kind: ServiceAccount
+  name: splunk-hec-setup
+  namespace: splunk
+
+---
+# ClusterRole: Allow creating secrets in openshift-logging namespace
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: splunk-hec-setup-cross-namespace
+  annotations:
+    argocd.argoproj.io/sync-wave: "7"
+rules:
+- apiGroups: [""]
+  resources: ["secrets"]
+  verbs: ["get", "list", "create", "update", "patch"]
+  resourceNames: ["splunk-hec-token"]
+
+---
+# ClusterRoleBinding
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: splunk-hec-setup-cross-namespace
+  annotations:
+    argocd.argoproj.io/sync-wave: "7"
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: splunk-hec-setup-cross-namespace
+subjects:
+- kind: ServiceAccount
+  name: splunk-hec-setup
+  namespace: splunk
+
+---
+# Job: Configure Splunk HEC and sync token
+# This job:
+# 1. Waits for Splunk to be ready
+# 2. Creates HEC token via Splunk API
+# 3. Syncs token to openshift-logging namespace
+
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: splunk-hec-setup
+  namespace: splunk
+  annotations:
+    argocd.argoproj.io/sync-wave: "8"
+    argocd.argoproj.io/hook: Sync
+    argocd.argoproj.io/hook-delete-policy: BeforeHookCreation
+spec:
+  backoffLimit: 5
+  ttlSecondsAfterFinished: 600
+  template:
+    metadata:
+      labels:
+        app: splunk-hec-setup
+    spec:
+      serviceAccountName: splunk-hec-setup
+      restartPolicy: OnFailure
+      containers:
+      - name: setup
+        image: image-registry.openshift-image-registry.svc:5000/openshift/cli:latest
+        command:
+        - /bin/bash
+        - -c
+        - |
+          set -e
+          
+          echo "=========================================="
+          echo "Splunk HEC Setup Job"
+          echo "=========================================="
+          echo ""
+          
+          # Wait for Splunk pod to be ready
+          echo "⏳ Waiting for Splunk pod to be ready..."
+          for i in {1..60}; do
+            POD=$(oc get pods -n splunk -l app.kubernetes.io/component=standalone -o name 2>/dev/null | head -1)
+            if [ -n "$POD" ]; then
+              if oc get $POD -n splunk -o jsonpath='{.status.phase}' | grep -q "Running"; then
+                echo "✅ Splunk pod is running: $POD"
+                break
+              fi
+            fi
+            echo "   Attempt $i/60: Waiting for Splunk pod..."
+            sleep 10
+          done
+          
+          # Get admin password
+          echo ""
+          echo "🔑 Getting admin password..."
+          ADMIN_PASSWORD=$(oc get secret splunk-admin -n splunk -o jsonpath='{.data.password}' | base64 -d)
+          
+          # Wait for Splunk to be fully ready (web UI responding)
+          echo ""
+          echo "⏳ Waiting for Splunk web UI to be ready..."
+          for i in {1..30}; do
+            if oc exec -n splunk $POD -- curl -k -s -o /dev/null -w "%{http_code}" \
+               https://localhost:8000 | grep -q "200\|302"; then
+              echo "✅ Splunk web UI is ready"
+              break
+            fi
+            echo "   Attempt $i/30: Waiting for Splunk web UI..."
+            sleep 10
+          done
+          
+          # Create HEC token via Splunk API
+          echo ""
+          echo "🔧 Creating HEC token..."
+          
+          HEC_TOKEN=$(oc exec -n splunk $POD -- /bin/bash -c "
+            curl -k -u admin:${ADMIN_PASSWORD} \
+              -X POST \
+              https://localhost:8089/servicesNS/admin/splunk_httpinput/data/inputs/http \
+              -d name=redis-logs \
+              -d index=redis_logs \
+              -d sourcetype=_json \
+              -d disabled=0 \
+              --silent | grep -oP '(?<=<s:key name=\"token\">)[^<]+' || echo '00000000-0000-0000-0000-000000000000'
+          ")
+          
+          if [ -z "$HEC_TOKEN" ] || [ "$HEC_TOKEN" = "00000000-0000-0000-0000-000000000000" ]; then
+            echo "⚠️  Failed to create HEC token, using default"
+            HEC_TOKEN="00000000-0000-0000-0000-000000000000"
+          else
+            echo "✅ HEC token created: ${HEC_TOKEN:0:10}..."
+          fi
+          
+          # Create/Update secret in openshift-logging namespace
+          echo ""
+          echo "🔐 Creating HEC token secret in openshift-logging..."
+          
+          oc create secret generic splunk-hec-token \
+            --from-literal=hecToken="$HEC_TOKEN" \
+            --namespace=openshift-logging \
+            --dry-run=client -o yaml | oc apply -f -
+          
+          echo "✅ Secret synced successfully!"
+          
+          # Get Splunk URL
+          echo ""
+          SPLUNK_URL=$(oc get route splunk-web -n splunk -o jsonpath='{.spec.host}' 2>/dev/null || echo "not-found")
+          
+          echo "=========================================="
+          echo "✅ Splunk HEC Setup Complete"
+          echo "=========================================="
+          echo ""
+          echo "Splunk Web UI: https://$SPLUNK_URL"
+          echo "Username: admin"
+          echo "Password: $ADMIN_PASSWORD"
+          echo ""
+          echo "HEC Endpoint: https://splunk-hec-splunk.apps.cluster.com"
+          echo "HEC Token: ${HEC_TOKEN:0:10}..."
+          echo ""
+          echo "Next steps:"
+          echo "  1. Apply ClusterLogForwarder: oc apply -f platform/observability/logging/splunk/clusterlogforwarder-splunk.yaml"
+          echo "  2. Verify logs in Splunk: Search → index=redis_logs"
+          echo ""
+

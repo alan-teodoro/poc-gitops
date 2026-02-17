@@ -1,0 +1,138 @@
+---
+# Sustained Load Performance Test
+# Purpose: Verify stability under continuous load
+# Duration: 30 minutes
+# Load: Moderate sustained
+# Use Case: Endurance testing, memory leak detection, stability validation
+
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: memtier-sustained-load
+  namespace: redis-orders-dev
+  labels:
+    app: memtier-benchmark
+    test-type: sustained-load
+    team: orders
+    environment: dev
+spec:
+  backoffLimit: 0
+  ttlSecondsAfterFinished: 3600
+  template:
+    metadata:
+      labels:
+        app: memtier-benchmark
+        test-type: sustained-load
+    spec:
+      restartPolicy: Never
+      containers:
+      - name: memtier
+        image: redislabs/memtier_benchmark:latest
+        imagePullPolicy: Always
+        command:
+        - /bin/sh
+        - -c
+        - |
+          echo "=========================================="
+          echo "Redis Enterprise Sustained Load Test"
+          echo "=========================================="
+          echo "Target: orders-cache-dev"
+          echo "Namespace: redis-orders-dev"
+          echo "Test Type: Sustained Load (Endurance)"
+          echo "Duration: 30 minutes"
+          echo "⚠️  This is a long-running test!"
+          echo "=========================================="
+          echo ""
+          
+          # Run memtier_benchmark with moderate sustained load
+          memtier_benchmark \
+            --server=orders-cache-dev \
+            --port=12000 \
+            --protocol=redis \
+            --clients=100 \
+            --threads=8 \
+            --ratio=1:10 \
+            --data-size=1024 \
+            --pipeline=5 \
+            --test-time=1800 \
+            --run-count=1 \
+            --key-pattern=R:R \
+            --hide-histogram \
+            --print-percentiles=50,95,99,99.9
+          
+          echo ""
+          echo "=========================================="
+          echo "Sustained load test completed!"
+          echo "=========================================="
+          echo ""
+          echo "Next steps:"
+          echo "1. Review performance stability over 30 minutes"
+          echo "2. Check Grafana for memory growth trends"
+          echo "3. Verify no performance degradation over time"
+          echo "4. Check for any errors or connection issues"
+          echo ""
+        resources:
+          requests:
+            cpu: 1000m
+            memory: 1Gi
+          limits:
+            cpu: 2000m
+            memory: 2Gi
+
+---
+# Instructions:
+#
+# ⚠️  This test runs for 30 minutes. Plan accordingly!
+#
+# 1. Apply this Job:
+#    oc apply -f platform/testing/test-scenarios/sustained-load-test.yaml
+#
+# 2. Monitor Job:
+#    oc get jobs -n redis-orders-dev -w
+#
+# 3. View logs (periodically):
+#    oc logs job/memtier-sustained-load -n redis-orders-dev
+#
+# 4. Wait for completion (30+ minutes):
+#    oc wait --for=condition=complete job/memtier-sustained-load -n redis-orders-dev --timeout=40m
+#
+# 5. Save results:
+#    oc logs job/memtier-sustained-load -n redis-orders-dev > results/sustained-load-$(date +%Y%m%d-%H%M%S).txt
+#
+# 6. Monitor in Grafana (IMPORTANT - watch trends over time):
+#    - Open "Database Status Dashboard"
+#    - Set time range to "Last 1 hour"
+#    - Watch for:
+#      * Memory usage trends (should be stable, not growing)
+#      * Latency consistency (should not degrade over time)
+#      * Throughput stability (should remain constant)
+#      * Connection count (should be stable)
+#    - Open "Node Dashboard"
+#      * CPU usage (should be consistent)
+#      * Memory fragmentation (should not increase significantly)
+#
+# 7. Cleanup:
+#    oc delete job memtier-sustained-load -n redis-orders-dev
+#
+# Expected Results:
+# - Throughput: Consistent throughout 30 minutes (±5%)
+# - Latency P99: Stable, no degradation over time
+# - Memory usage: Stable (no continuous growth = no memory leak)
+# - CPU usage: Consistent (40-60%)
+# - No errors or timeouts
+# - No connection drops
+#
+# What to look for (Red Flags):
+# - ❌ Memory continuously growing (memory leak)
+# - ❌ Latency increasing over time (performance degradation)
+# - ❌ Throughput decreasing over time (resource exhaustion)
+# - ❌ Connection errors appearing later in test
+# - ❌ CPU hitting 100% and staying there
+#
+# What to look for (Good Signs):
+# - ✅ Flat memory usage graph
+# - ✅ Consistent latency percentiles
+# - ✅ Stable throughput
+# - ✅ No errors throughout entire test
+# - ✅ Predictable resource usage
+

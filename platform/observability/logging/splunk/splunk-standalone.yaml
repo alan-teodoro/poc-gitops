@@ -1,0 +1,174 @@
+---
+# Splunk Standalone Instance for Redis Enterprise Logging
+# This creates a single Splunk Enterprise instance suitable for lab/demo/POC
+#
+# License: Uses 60-day Enterprise Trial (500MB/day limit)
+# Perfect for labs that last 3 days!
+#
+# Components:
+# - Splunk Enterprise Standalone
+# - HTTP Event Collector (HEC) enabled
+# - Indexes for Redis logs
+# - Admin credentials
+
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: splunk
+  labels:
+    openshift.io/cluster-monitoring: "true"
+  annotations:
+    argocd.argoproj.io/sync-wave: "1"
+
+---
+# Splunk Admin Secret
+# Default credentials for initial login
+# CHANGE THESE IN PRODUCTION!
+
+apiVersion: v1
+kind: Secret
+metadata:
+  name: splunk-admin
+  namespace: splunk
+  annotations:
+    argocd.argoproj.io/sync-wave: "2"
+type: Opaque
+stringData:
+  password: "RedisLab2024!"  # Change this!
+  hec_token: "00000000-0000-0000-0000-000000000000"  # Will be auto-generated
+
+---
+# Splunk Standalone Instance
+# Single instance deployment for lab/demo
+
+apiVersion: enterprise.splunk.com/v4
+kind: Standalone
+metadata:
+  name: redis-splunk
+  namespace: splunk
+  annotations:
+    argocd.argoproj.io/sync-wave: "5"
+  labels:
+    app: splunk
+    component: standalone
+spec:
+  # Replicas
+  replicas: 1
+  
+  # Image (uses latest certified image)
+  # Splunk Operator will pull from Red Hat registry
+  
+  # Resources
+  resources:
+    requests:
+      memory: "2Gi"
+      cpu: "500m"
+    limits:
+      memory: "4Gi"
+      cpu: "2000m"
+  
+  # Storage
+  # etcVolumeStorageConfig: Splunk configuration
+  # varVolumeStorageConfig: Splunk data (indexes)
+  etcVolumeStorageConfig:
+    storageClassName: ocs-storagecluster-ceph-rbd
+    storageCapacity: 10Gi
+  
+  varVolumeStorageConfig:
+    storageClassName: ocs-storagecluster-ceph-rbd
+    storageCapacity: 50Gi
+  
+  # License
+  # Uses trial license by default (60 days, 500MB/day)
+  # For production, add licenseUrl or licenseMasterRef
+  
+  # Defaults (app installation, etc)
+  defaults: |-
+    splunk:
+      # HTTP Event Collector (HEC) configuration
+      hec:
+        enable: true
+        port: 8088
+        ssl: false
+      
+      # Indexes for Redis logs
+      indexes:
+        - name: redis_logs
+          maxTotalDataSizeMB: 10000
+          frozenTimePeriodInSecs: 604800  # 7 days retention
+        - name: redis_metrics
+          maxTotalDataSizeMB: 5000
+          frozenTimePeriodInSecs: 604800
+      
+      # Enable web UI
+      http:
+        enable: true
+        port: 8000
+      
+      # Admin password from secret
+      password: $SPLUNK_PASSWORD
+  
+  # Service template
+  serviceTemplate:
+    spec:
+      type: ClusterIP
+      ports:
+      - name: web
+        port: 8000
+        protocol: TCP
+        targetPort: 8000
+      - name: hec
+        port: 8088
+        protocol: TCP
+        targetPort: 8088
+      - name: s2s
+        port: 9997
+        protocol: TCP
+        targetPort: 9997
+
+---
+# Route for Splunk Web UI
+apiVersion: route.openshift.io/v1
+kind: Route
+metadata:
+  name: splunk-web
+  namespace: splunk
+  annotations:
+    argocd.argoproj.io/sync-wave: "6"
+  labels:
+    app: splunk
+spec:
+  to:
+    kind: Service
+    name: splunk-redis-splunk-standalone-service
+    weight: 100
+  port:
+    targetPort: web
+  tls:
+    termination: edge
+    insecureEdgeTerminationPolicy: Redirect
+  wildcardPolicy: None
+
+---
+# Route for HEC (HTTP Event Collector)
+apiVersion: route.openshift.io/v1
+kind: Route
+metadata:
+  name: splunk-hec
+  namespace: splunk
+  annotations:
+    argocd.argoproj.io/sync-wave: "6"
+  labels:
+    app: splunk
+spec:
+  to:
+    kind: Service
+    name: splunk-redis-splunk-standalone-service
+    weight: 100
+  port:
+    targetPort: hec
+  tls:
+    termination: edge
+    insecureEdgeTerminationPolicy: Redirect
+  wildcardPolicy: None
+

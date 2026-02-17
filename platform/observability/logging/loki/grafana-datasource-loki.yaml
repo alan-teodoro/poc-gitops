@@ -1,0 +1,94 @@
+---
+# Grafana Datasource for Loki
+# Configures Loki as a datasource in Grafana for log visualization
+#
+# This allows:
+# - Viewing logs in Grafana Explore
+# - Correlating logs with metrics
+# - Creating log-based dashboards
+# - Setting up log-based alerts
+
+apiVersion: grafana.integreatly.org/v1beta1
+kind: GrafanaDatasource
+metadata:
+  name: loki-redis-logs
+  namespace: openshift-monitoring
+  labels:
+    app: grafana
+  annotations:
+    argocd.argoproj.io/sync-wave: "12"
+spec:
+  # Target Grafana instance
+  instanceSelector:
+    matchLabels:
+      dashboards: "grafana"
+  
+  # Datasource configuration
+  datasource:
+    name: Loki (Redis Logs)
+    type: loki
+    access: proxy
+
+    # Loki gateway URL (internal service)
+    url: https://logging-loki-gateway-http.openshift-logging.svc:8080/api/logs/v1/application/
+
+    # Basic auth disabled
+    basicAuth: false
+
+    # JSON data configuration
+    jsonData:
+      # Timeout settings
+      timeout: 60
+
+      # Max lines to display
+      maxLines: 1000
+
+      # TLS configuration - skip verification for testing
+      tlsSkipVerify: true
+
+      # HTTP headers for authentication
+      httpHeaderName1: "Authorization"
+
+      # Derived fields for linking logs to traces (optional)
+      derivedFields:
+      - name: "TraceID"
+        matcherRegex: "trace_id=(\\w+)"
+        url: "$${__value.raw}"
+
+    # Secure JSON data (token from secret)
+    secureJsonData:
+      # Bearer token for authentication
+      httpHeaderValue1: "Bearer ${token}"
+    
+    # Default datasource for logs
+    isDefault: false
+    
+    # Editable in Grafana UI
+    editable: true
+  
+  # Values from external sources
+  valuesFrom:
+  - targetPath: "secureJsonData.httpHeaderValue1"
+    valueFrom:
+      secretKeyRef:
+        name: grafana-loki-token
+        key: token
+
+---
+# Note: This datasource uses the same service account token as Prometheus
+# The token is created by grafana-token-secret-job.yaml
+#
+# To verify the datasource:
+# 1. Login to Grafana
+# 2. Go to Configuration → Data Sources
+# 3. Find "Loki (Redis Logs)"
+# 4. Click "Test" - should show "Data source is working"
+#
+# To query logs:
+# 1. Go to Explore
+# 2. Select "Loki (Redis Logs)" datasource
+# 3. Use LogQL queries:
+#    - {kubernetes_namespace_name="redis"}
+#    - {kubernetes_namespace_name="redis-orders-dev"}
+#    - {kubernetes_namespace_name=~"redis.*"} |= "error"
+

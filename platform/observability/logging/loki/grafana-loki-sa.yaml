@@ -1,0 +1,91 @@
+---
+# ServiceAccount for Grafana to access Loki
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: grafana-loki-reader
+  namespace: openshift-monitoring
+  annotations:
+    argocd.argoproj.io/sync-wave: "9"
+
+---
+# Secret to hold the ServiceAccount token
+apiVersion: v1
+kind: Secret
+metadata:
+  name: grafana-loki-token
+  namespace: openshift-monitoring
+  annotations:
+    kubernetes.io/service-account.name: grafana-loki-reader
+    argocd.argoproj.io/sync-wave: "9"
+type: kubernetes.io/service-account-token
+
+---
+# ClusterRoleBinding to system:auth-delegator (required for OAuth token validation)
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: grafana-loki-auth-delegator
+  annotations:
+    argocd.argoproj.io/sync-wave: "9"
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: system:auth-delegator
+subjects:
+- kind: ServiceAccount
+  name: grafana-loki-reader
+  namespace: openshift-monitoring
+
+---
+# ClusterRole to read application logs from Loki
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: logging-application-logs-reader
+  annotations:
+    argocd.argoproj.io/sync-wave: "9"
+rules:
+- apiGroups:
+  - loki.grafana.com
+  resourceNames:
+  - logs
+  resources:
+  - application
+  verbs:
+  - get
+
+---
+# ClusterRoleBinding for Grafana ServiceAccount to read application logs
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: grafana-loki-application-logs-reader
+  annotations:
+    argocd.argoproj.io/sync-wave: "9"
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: logging-application-logs-reader
+subjects:
+- kind: ServiceAccount
+  name: grafana-loki-reader
+  namespace: openshift-monitoring
+
+---
+# ClusterRoleBinding for Grafana ServiceAccount to view cluster monitoring
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: grafana-loki-metrics-view
+  annotations:
+    argocd.argoproj.io/sync-wave: "9"
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: cluster-monitoring-view
+subjects:
+- kind: ServiceAccount
+  name: grafana-loki-reader
+  namespace: openshift-monitoring
+

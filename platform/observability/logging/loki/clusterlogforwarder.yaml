@@ -1,0 +1,117 @@
+---
+# ServiceAccount for Log Collector
+# Required by observability.openshift.io/v1 API
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: logcollector
+  namespace: openshift-logging
+  annotations:
+    argocd.argoproj.io/sync-wave: "10"
+
+---
+# ClusterRoleBinding for Log Collector
+# Binds OpenShift's built-in collect-application-logs ClusterRole to ServiceAccount
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: logcollector-application-logs
+  annotations:
+    argocd.argoproj.io/sync-wave: "10"
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: collect-application-logs
+subjects:
+- kind: ServiceAccount
+  name: logcollector
+  namespace: openshift-logging
+
+---
+# ClusterLogForwarder for Redis Enterprise
+# Collects logs from Redis namespaces and forwards to LokiStack
+#
+# This configuration:
+# - Collects application logs from Redis namespaces
+# - Forwards to LokiStack for storage
+# - Enables log viewing in Grafana
+
+apiVersion: observability.openshift.io/v1
+kind: ClusterLogForwarder
+metadata:
+  name: instance
+  namespace: openshift-logging
+  annotations:
+    argocd.argoproj.io/sync-wave: "11"
+spec:
+  # ServiceAccount (required in observability.openshift.io/v1 API)
+  serviceAccount:
+    name: logcollector
+
+  # Inputs: Select logs from specific namespaces
+  inputs:
+  - name: redis-logs
+    type: application
+    application:
+      namespaces:
+      - redis
+      - redis-orders-dev
+      - redis-orders-prod
+      - redis-sessions-dev
+      - redis-sessions-prod
+      - redis-payments-dev
+      - redis-payments-prod
+
+  # Outputs: Where to send logs
+  outputs:
+
+  # LokiStack output
+  - name: loki-redis
+    type: loki
+    loki:
+      # URL to LokiStack gateway
+      url: https://logging-loki-gateway-http.openshift-logging.svc:8080/api/logs/v1/application
+      # Tenant mode
+      tenantKey: kubernetes.namespace_name
+    # TLS configuration
+    tls:
+      insecureSkipVerify: true
+
+  # Pipelines: Connect inputs to outputs
+  pipelines:
+
+  # Pipeline 1: Redis Enterprise logs
+  - name: redis-application-logs
+    inputRefs:
+    - redis-logs
+    outputRefs:
+    - loki-redis
+    labels:
+      log_type: "redis-enterprise"
+
+---
+# Alternative: Simpler configuration without filters
+# Uncomment this if you want to collect ALL application logs
+#
+# apiVersion: logging.openshift.io/v1
+# kind: ClusterLogForwarder
+# metadata:
+#   name: instance
+#   namespace: openshift-logging
+# spec:
+#   outputs:
+#   - name: loki-all
+#     type: loki
+#     loki:
+#       url: https://logging-loki-gateway-http.openshift-logging.svc:8080/api/logs/v1/application
+#       tenantKey: kubernetes.namespace_name
+#     tls:
+#       insecureSkipVerify: true
+#   
+#   pipelines:
+#   - name: all-application-logs
+#     inputRefs:
+#     - application
+#     outputRefs:
+#     - loki-all
+

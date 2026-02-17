@@ -1,0 +1,151 @@
+---
+# LokiStack Instance for Redis Enterprise Logging
+# Size: 1x.demo - Suitable for POC/demo environments
+# Storage: Object storage via ODF/Ceph S3 (NooBaa)
+#
+# This creates a complete Loki deployment with:
+# - Ingester: Receives and processes logs
+# - Distributor: Routes logs to ingesters
+# - Querier: Handles log queries
+# - Query Frontend: Query optimization
+# - Compactor: Log compaction and retention
+# - Index Gateway: Index management
+
+apiVersion: loki.grafana.com/v1
+kind: LokiStack
+metadata:
+  name: logging-loki
+  namespace: openshift-logging
+  annotations:
+    argocd.argoproj.io/sync-wave: "10"
+spec:
+  # Size: 1x.demo
+  # - Single replica per component
+  # - Minimal resource requirements
+  # - Suitable for POC/demo/dev environments
+  size: 1x.demo
+  
+  # Storage configuration
+  storage:
+    # Schema version v13 (latest stable)
+    schemas:
+    - version: v13
+      effectiveDate: "2024-01-01"
+    
+    # Object storage secret
+    # Points to ODF/Ceph S3 (NooBaa) or external S3
+    secret:
+      name: logging-loki-s3
+      type: s3
+  
+  # Storage class for PVCs
+  # Uses ODF Ceph RBD for persistent storage (external mode)
+  storageClassName: ocs-external-storagecluster-ceph-rbd
+  
+  # Tenant mode: openshift-logging
+  # Integrates with OpenShift logging infrastructure
+  tenants:
+    mode: openshift-logging
+  
+  # Resource limits (optional - can be customized)
+  limits:
+    global:
+      # Log retention period
+      retention:
+        days: 7
+      
+      # Query limits
+      queries:
+        maxEntriesLimitPerQuery: 5000
+        maxChunksPerQuery: 2000000
+  
+  # Template for component customization (optional)
+  template:
+    compactor:
+      replicas: 1
+    distributor:
+      replicas: 1
+    gateway:
+      replicas: 1
+    indexGateway:
+      replicas: 1
+    ingester:
+      replicas: 1
+    querier:
+      replicas: 1
+    queryFrontend:
+      replicas: 1
+
+---
+# ObjectBucketClaim for Loki Storage
+# This creates an S3 bucket automatically using ODF/Ceph
+# No manual bucket creation needed!
+
+apiVersion: objectbucket.io/v1alpha1
+kind: ObjectBucketClaim
+metadata:
+  name: loki-logs-bucket
+  namespace: openshift-logging
+  annotations:
+    argocd.argoproj.io/sync-wave: "8"
+spec:
+  # Bucket name
+  bucketName: loki-logs
+
+  # Storage class for object storage
+  # ODF provides 'openshift-storage.noobaa.io' for S3-compatible storage
+  storageClassName: openshift-storage.noobaa.io
+
+  # Additional config (optional)
+  additionalConfig:
+    bucketclass: noobaa-default-bucket-class
+
+---
+# Object Storage Secret for LokiStack
+# This secret references the auto-generated credentials from ObjectBucketClaim
+# The OBC creates a ConfigMap and Secret automatically with connection details
+
+apiVersion: v1
+kind: Secret
+metadata:
+  name: logging-loki-s3
+  namespace: openshift-logging
+  annotations:
+    argocd.argoproj.io/sync-wave: "9"
+type: Opaque
+stringData:
+  # These values will be populated from the OBC-generated secret
+  # The secret name is: loki-logs-bucket (same as OBC name)
+  #
+  # For now, we use placeholders that will be replaced by External Secrets Operator
+  # or manually updated after OBC creation
+
+  # S3 endpoint - from ConfigMap: loki-logs-bucket
+  # Key: BUCKET_HOST
+  endpoint: https://s3.openshift-storage.svc
+
+  # Bucket name - from ConfigMap: loki-logs-bucket
+  # Key: BUCKET_NAME
+  bucketnames: loki-logs
+
+  # Region
+  region: us-east-1
+
+  # Access credentials - from Secret: loki-logs-bucket
+  # Keys: AWS_ACCESS_KEY_ID, AWS_SECRET_ACCESS_KEY
+  access_key_id: ""
+  access_key_secret: ""
+
+---
+# Note: After ObjectBucketClaim is created, you need to update the secret above with:
+#
+# 1. Get the auto-generated credentials:
+#    oc get secret loki-logs-bucket -n openshift-logging -o yaml
+#
+# 2. Get the endpoint:
+#    oc get configmap loki-logs-bucket -n openshift-logging -o jsonpath='{.data.BUCKET_HOST}'
+#
+# 3. Update this secret OR use External Secrets Operator to sync automatically
+#
+# Alternative: Use a Job to copy credentials automatically (see loki-secret-sync-job.yaml)
+

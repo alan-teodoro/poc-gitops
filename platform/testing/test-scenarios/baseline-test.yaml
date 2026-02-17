@@ -1,0 +1,112 @@
+---
+# Baseline Performance Test
+# Purpose: Quick validation that Redis cluster is functional
+# Duration: ~2 minutes
+# Load: Light (50 clients, 4 threads)
+# Use Case: Smoke test after deployment
+
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: memtier-baseline
+  namespace: redis-orders-dev
+  labels:
+    app: memtier-benchmark
+    test-type: baseline
+    team: orders
+    environment: dev
+spec:
+  backoffLimit: 0  # Don't retry on failure
+  ttlSecondsAfterFinished: 3600  # Auto-delete after 1 hour
+  template:
+    metadata:
+      labels:
+        app: memtier-benchmark
+        test-type: baseline
+    spec:
+      restartPolicy: Never
+      containers:
+      - name: memtier
+        image: redislabs/memtier_benchmark:latest
+        imagePullPolicy: Always
+        command:
+        - /bin/sh
+        - -c
+        - |
+          echo "=========================================="
+          echo "Redis Enterprise Baseline Performance Test"
+          echo "=========================================="
+          echo "Target: orders-cache-dev"
+          echo "Namespace: redis-orders-dev"
+          echo "Test Type: Baseline (Light Load)"
+          echo "Duration: ~2 minutes"
+          echo "=========================================="
+          echo ""
+          
+          # Run memtier_benchmark
+          memtier_benchmark \
+            --server=orders-cache-dev \
+            --port=12000 \
+            --protocol=redis \
+            --clients=50 \
+            --threads=4 \
+            --ratio=1:10 \
+            --data-size=1024 \
+            --requests=10000 \
+            --run-count=3 \
+            --key-pattern=R:R \
+            --hide-histogram \
+            --print-percentiles=50,95,99,99.9
+          
+          echo ""
+          echo "=========================================="
+          echo "Test completed successfully!"
+          echo "=========================================="
+          echo ""
+          echo "Next steps:"
+          echo "1. Review results above"
+          echo "2. Check Grafana dashboards for metrics"
+          echo "3. Verify no alerts were triggered"
+          echo ""
+        resources:
+          requests:
+            cpu: 500m
+            memory: 512Mi
+          limits:
+            cpu: 2000m
+            memory: 1Gi
+
+---
+# Instructions:
+#
+# 1. Apply this Job:
+#    oc apply -f platform/testing/test-scenarios/baseline-test.yaml
+#
+# 2. Monitor Job:
+#    oc get jobs -n redis-orders-dev -w
+#
+# 3. View logs (while running):
+#    oc logs -f job/memtier-baseline -n redis-orders-dev
+#
+# 4. Wait for completion:
+#    oc wait --for=condition=complete job/memtier-baseline -n redis-orders-dev --timeout=5m
+#
+# 5. Save results:
+#    oc logs job/memtier-baseline -n redis-orders-dev > results/baseline-$(date +%Y%m%d-%H%M%S).txt
+#
+# 6. Monitor in Grafana:
+#    - Open "Database Status Dashboard"
+#    - Select cluster=orders, database=orders-cache-dev
+#    - Observe: Latency, Throughput, Connections, CPU, Memory
+#
+# 7. Cleanup:
+#    oc delete job memtier-baseline -n redis-orders-dev
+#
+# Expected Results:
+# - Latency P50: < 1ms
+# - Latency P95: < 2ms
+# - Latency P99: < 5ms
+# - Throughput: > 50,000 ops/sec
+# - No errors or timeouts
+# - No alerts triggered in Prometheus
+

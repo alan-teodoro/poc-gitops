@@ -1,0 +1,108 @@
+---
+# ClusterLogForwarder for Splunk
+# Collects logs from Redis namespaces and forwards to Splunk HEC
+#
+# This configuration:
+# - Collects application logs from Redis namespaces
+# - Forwards to Splunk HTTP Event Collector (HEC)
+# - Uses sourcetype for proper parsing in Splunk
+
+apiVersion: logging.openshift.io/v1
+kind: ClusterLogForwarder
+metadata:
+  name: instance
+  namespace: openshift-logging
+  annotations:
+    argocd.argoproj.io/sync-wave: "11"
+spec:
+  # Outputs: Where to send logs
+  outputs:
+  
+  # Splunk HEC output
+  - name: splunk-redis
+    type: splunk
+    url: https://splunk-hec.splunk.svc:8088
+    secret:
+      name: splunk-hec-token
+    # TLS configuration
+    tls:
+      insecureSkipVerify: true
+  
+  # Pipelines: What logs to collect and where to send them
+  pipelines:
+  
+  # Pipeline 1: Redis Enterprise Cluster logs to Splunk
+  - name: redis-to-splunk
+    inputRefs:
+    - application
+    outputRefs:
+    - splunk-redis
+    filterRefs:
+    - redis-namespace-filter
+    labels:
+      log_type: "redis-enterprise"
+      cluster: "orders"
+  
+  # Filters: Which logs to include
+  filters:
+  
+  # Filter: Only Redis namespaces
+  - name: redis-namespace-filter
+    type: kubernetesMetadata
+    kubernetesMetadata:
+      namespaces:
+      - redis
+      - redis-orders-dev
+      - redis-orders-prod
+      - redis-session-dev
+      - redis-session-prod
+
+---
+# Secret for Splunk HEC Token
+# This token is used to authenticate log forwarding to Splunk
+#
+# To get the HEC token after Splunk is deployed:
+# 1. Login to Splunk Web UI
+# 2. Settings → Data Inputs → HTTP Event Collector
+# 3. Create new token or use existing
+# 4. Update this secret with the token value
+
+apiVersion: v1
+kind: Secret
+metadata:
+  name: splunk-hec-token
+  namespace: openshift-logging
+  annotations:
+    argocd.argoproj.io/sync-wave: "10"
+type: Opaque
+stringData:
+  # HEC token from Splunk
+  # This is a placeholder - replace with actual token from Splunk
+  # Or use the default token from splunk-admin secret
+  hecToken: "00000000-0000-0000-0000-000000000000"
+
+---
+# Note: To get the actual HEC token:
+#
+# Option 1: Use Splunk Web UI
+# 1. Get Splunk URL:
+#    oc get route splunk-web -n splunk -o jsonpath='{.spec.host}'
+#
+# 2. Login with admin credentials:
+#    Username: admin
+#    Password: (from secret splunk-admin)
+#
+# 3. Navigate to: Settings → Data Inputs → HTTP Event Collector
+#
+# 4. Click "New Token" or use existing token
+#
+# 5. Update this secret:
+#    oc create secret generic splunk-hec-token \
+#      --from-literal=hecToken="YOUR_TOKEN_HERE" \
+#      --namespace=openshift-logging \
+#      --dry-run=client -o yaml | oc apply -f -
+#
+# Option 2: Use Splunk API
+# curl -k -u admin:password \
+#   https://splunk-web-splunk.apps.cluster.com:8089/services/data/inputs/http
+

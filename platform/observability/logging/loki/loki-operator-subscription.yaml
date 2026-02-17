@@ -1,0 +1,39 @@
+---
+# Loki Operator Subscription
+# Installs the Loki Operator from Red Hat Operators catalog
+# This operator manages LokiStack instances for log storage
+
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: openshift-operators-redhat
+  labels:
+    openshift.io/cluster-monitoring: "true"
+  annotations:
+    argocd.argoproj.io/sync-wave: "1"
+
+---
+apiVersion: operators.coreos.com/v1
+kind: OperatorGroup
+metadata:
+  name: openshift-operators-redhat
+  namespace: openshift-operators-redhat
+  annotations:
+    argocd.argoproj.io/sync-wave: "2"
+spec: {}
+
+---
+apiVersion: operators.coreos.com/v1alpha1
+kind: Subscription
+metadata:
+  name: loki-operator
+  namespace: openshift-operators-redhat
+  annotations:
+    argocd.argoproj.io/sync-wave: "3"
+spec:
+  channel: stable-6.2
+  name: loki-operator
+  source: redhat-operators
+  sourceNamespace: openshift-marketplace
+  installPlanApproval: Automatic
+

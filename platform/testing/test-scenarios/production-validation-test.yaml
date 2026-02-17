@@ -1,0 +1,138 @@
+---
+# Production Validation Test
+# Purpose: Safe validation test for production databases
+# Duration: ~5 minutes
+# Load: Conservative (simulates realistic production load)
+# Use Case: Validate production databases without risk
+
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: memtier-production-validation
+  namespace: redis-orders-prod
+  labels:
+    app: memtier-benchmark
+    test-type: production-validation
+    team: orders
+    environment: prod
+spec:
+  backoffLimit: 0
+  ttlSecondsAfterFinished: 3600
+  template:
+    metadata:
+      labels:
+        app: memtier-benchmark
+        test-type: production-validation
+    spec:
+      restartPolicy: Never
+      containers:
+      - name: memtier
+        image: redislabs/memtier_benchmark:latest
+        imagePullPolicy: Always
+        command:
+        - /bin/sh
+        - -c
+        - |
+          echo "=========================================="
+          echo "Redis Enterprise Production Validation"
+          echo "=========================================="
+          echo "Target: orders-cache-prod"
+          echo "Namespace: redis-orders-prod"
+          echo "Test Type: Production Validation (Safe)"
+          echo "Duration: ~5 minutes"
+          echo "⚠️  PRODUCTION ENVIRONMENT - Conservative load"
+          echo "=========================================="
+          echo ""
+          
+          # Run conservative test suitable for production
+          memtier_benchmark \
+            --server=orders-cache-prod \
+            --port=12000 \
+            --protocol=redis \
+            --clients=20 \
+            --threads=2 \
+            --ratio=1:20 \
+            --data-size=512 \
+            --pipeline=3 \
+            --test-time=300 \
+            --run-count=1 \
+            --key-pattern=R:R \
+            --hide-histogram \
+            --print-percentiles=50,95,99,99.9
+          
+          echo ""
+          echo "=========================================="
+          echo "Production validation completed!"
+          echo "=========================================="
+          echo ""
+          echo "Next steps:"
+          echo "1. Review results - should show healthy performance"
+          echo "2. Check Grafana for any anomalies"
+          echo "3. Verify no alerts were triggered"
+          echo "4. Document baseline for production"
+          echo ""
+        resources:
+          requests:
+            cpu: 200m
+            memory: 256Mi
+          limits:
+            cpu: 500m
+            memory: 512Mi
+
+---
+# Instructions for PRODUCTION Testing:
+#
+# ⚠️  IMPORTANT: This test is designed to be SAFE for production, but:
+#    - Run during low-traffic periods if possible
+#    - Monitor closely during execution
+#    - Have rollback plan ready
+#    - Inform team before running
+#
+# 1. Apply this Job:
+#    oc apply -f platform/testing/test-scenarios/production-validation-test.yaml
+#
+# 2. Monitor Job closely:
+#    oc get jobs -n redis-orders-prod -w
+#
+# 3. View logs in real-time:
+#    oc logs -f job/memtier-production-validation -n redis-orders-prod
+#
+# 4. Monitor Grafana dashboards:
+#    - Keep Grafana open during entire test
+#    - Watch for any spikes or anomalies
+#    - Monitor application metrics if available
+#
+# 5. Wait for completion:
+#    oc wait --for=condition=complete job/memtier-production-validation -n redis-orders-prod --timeout=10m
+#
+# 6. Save results:
+#    oc logs job/memtier-production-validation -n redis-orders-prod > results/prod-validation-$(date +%Y%m%d-%H%M%S).txt
+#
+# 7. Cleanup:
+#    oc delete job memtier-production-validation -n redis-orders-prod
+#
+# Expected Results (Production):
+# - Latency P50: < 0.5ms
+# - Latency P95: < 1.5ms
+# - Latency P99: < 3.0ms
+# - Throughput: > 10,000 ops/sec (conservative load)
+# - No errors or timeouts
+# - No impact on existing application traffic
+# - No alerts triggered
+#
+# When to run this test:
+# - ✅ After initial production deployment
+# - ✅ After infrastructure changes (scaling, upgrades)
+# - ✅ During maintenance windows
+# - ✅ As part of disaster recovery validation
+# - ❌ NOT during peak traffic hours
+# - ❌ NOT without team notification
+#
+# Safety features of this test:
+# - Low client count (20 vs 100+ in dev tests)
+# - Low thread count (2 vs 8+ in dev tests)
+# - Read-heavy ratio (1:20 vs 1:10)
+# - Smaller data size (512 bytes vs 1KB)
+# - Moderate pipelining (3 vs 10)
+# - Conservative resource limits
+

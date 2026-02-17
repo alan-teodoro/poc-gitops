@@ -1,0 +1,127 @@
+---
+# Latency Performance Test
+# Purpose: Measure P50, P95, P99 latency accurately
+# Duration: ~10 minutes
+# Load: Moderate (no pipelining for accurate latency measurement)
+# Use Case: SLA validation, latency baseline establishment
+
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: memtier-latency
+  namespace: redis-orders-dev
+  labels:
+    app: memtier-benchmark
+    test-type: latency
+    team: orders
+    environment: dev
+spec:
+  backoffLimit: 0
+  ttlSecondsAfterFinished: 3600
+  template:
+    metadata:
+      labels:
+        app: memtier-benchmark
+        test-type: latency
+    spec:
+      restartPolicy: Never
+      containers:
+      - name: memtier
+        image: redislabs/memtier_benchmark:latest
+        imagePullPolicy: Always
+        command:
+        - /bin/sh
+        - -c
+        - |
+          echo "=========================================="
+          echo "Redis Enterprise Latency Test"
+          echo "=========================================="
+          echo "Target: orders-cache-dev"
+          echo "Namespace: redis-orders-dev"
+          echo "Test Type: Latency Measurement"
+          echo "Duration: ~10 minutes"
+          echo "Note: No pipelining for accurate latency"
+          echo "=========================================="
+          echo ""
+          
+          # Run memtier_benchmark without pipelining for accurate latency
+          memtier_benchmark \
+            --server=orders-cache-dev \
+            --port=12000 \
+            --protocol=redis \
+            --clients=100 \
+            --threads=8 \
+            --ratio=1:10 \
+            --data-size=1024 \
+            --pipeline=1 \
+            --test-time=600 \
+            --run-count=1 \
+            --key-pattern=R:R \
+            --print-percentiles=50,75,90,95,99,99.9,99.99
+          
+          echo ""
+          echo "=========================================="
+          echo "Latency test completed!"
+          echo "=========================================="
+          echo ""
+          echo "Next steps:"
+          echo "1. Review latency percentiles above"
+          echo "2. Compare with SLA requirements"
+          echo "3. Check Grafana latency graphs"
+          echo "4. Document baseline latencies"
+          echo ""
+        resources:
+          requests:
+            cpu: 1000m
+            memory: 1Gi
+          limits:
+            cpu: 2000m
+            memory: 2Gi
+
+---
+# Instructions:
+#
+# 1. Apply this Job:
+#    oc apply -f platform/testing/test-scenarios/latency-test.yaml
+#
+# 2. Monitor Job:
+#    oc get jobs -n redis-orders-dev -w
+#
+# 3. View logs (while running):
+#    oc logs -f job/memtier-latency -n redis-orders-dev
+#
+# 4. Wait for completion (~10 minutes):
+#    oc wait --for=condition=complete job/memtier-latency -n redis-orders-dev --timeout=15m
+#
+# 5. Save results:
+#    oc logs job/memtier-latency -n redis-orders-dev > results/latency-$(date +%Y%m%d-%H%M%S).txt
+#
+# 6. Monitor in Grafana:
+#    - Open "Database Status Dashboard"
+#    - Focus on "Average Latency" panel
+#    - Observe latency distribution over time
+#
+# 7. Cleanup:
+#    oc delete job memtier-latency -n redis-orders-dev
+#
+# Expected Results (Typical for Redis Enterprise):
+# - Latency P50:    < 0.5ms  (sub-millisecond)
+# - Latency P75:    < 0.8ms
+# - Latency P90:    < 1.0ms
+# - Latency P95:    < 1.5ms
+# - Latency P99:    < 3.0ms
+# - Latency P99.9:  < 10ms
+# - Latency P99.99: < 50ms
+#
+# SLA Considerations:
+# - If P99 > 5ms: Investigate (may indicate resource constraints)
+# - If P50 > 1ms: Check network latency, node performance
+# - Consistent latency is more important than absolute minimum
+#
+# What affects latency:
+# - Network latency between client and Redis
+# - CPU contention on Redis nodes
+# - Memory pressure (swapping)
+# - Disk I/O (if persistence enabled)
+# - Number of concurrent operations
+

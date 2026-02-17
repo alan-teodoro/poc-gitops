@@ -1,0 +1,123 @@
+---
+# High Throughput Performance Test
+# Purpose: Find maximum operations per second
+# Duration: ~5 minutes
+# Load: Heavy (200 clients, 16 threads, pipeline=10)
+# Use Case: Capacity planning, stress testing
+
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: memtier-high-throughput
+  namespace: redis-orders-dev
+  labels:
+    app: memtier-benchmark
+    test-type: high-throughput
+    team: orders
+    environment: dev
+spec:
+  backoffLimit: 0
+  ttlSecondsAfterFinished: 3600
+  template:
+    metadata:
+      labels:
+        app: memtier-benchmark
+        test-type: high-throughput
+    spec:
+      restartPolicy: Never
+      containers:
+      - name: memtier
+        image: redislabs/memtier_benchmark:latest
+        imagePullPolicy: Always
+        command:
+        - /bin/sh
+        - -c
+        - |
+          echo "=========================================="
+          echo "Redis Enterprise High Throughput Test"
+          echo "=========================================="
+          echo "Target: orders-cache-dev"
+          echo "Namespace: redis-orders-dev"
+          echo "Test Type: High Throughput (Heavy Load)"
+          echo "Duration: ~5 minutes"
+          echo "⚠️  WARNING: This test generates heavy load!"
+          echo "=========================================="
+          echo ""
+          
+          # Run memtier_benchmark with high concurrency and pipelining
+          memtier_benchmark \
+            --server=orders-cache-dev \
+            --port=12000 \
+            --protocol=redis \
+            --clients=200 \
+            --threads=16 \
+            --ratio=1:10 \
+            --data-size=1024 \
+            --pipeline=10 \
+            --test-time=300 \
+            --run-count=1 \
+            --key-pattern=R:R \
+            --hide-histogram \
+            --print-percentiles=50,95,99,99.9
+          
+          echo ""
+          echo "=========================================="
+          echo "High throughput test completed!"
+          echo "=========================================="
+          echo ""
+          echo "Next steps:"
+          echo "1. Review maximum ops/sec achieved"
+          echo "2. Check Grafana for CPU/Memory usage peaks"
+          echo "3. Verify cluster remained stable"
+          echo "4. Check if any alerts were triggered"
+          echo ""
+        resources:
+          requests:
+            cpu: 2000m
+            memory: 2Gi
+          limits:
+            cpu: 4000m
+            memory: 4Gi
+
+---
+# Instructions:
+#
+# ⚠️  WARNING: This test generates HEAVY load. Only run in dev/test environments!
+#
+# 1. Apply this Job:
+#    oc apply -f platform/testing/test-scenarios/high-throughput-test.yaml
+#
+# 2. Monitor Job:
+#    oc get jobs -n redis-orders-dev -w
+#
+# 3. View logs (while running):
+#    oc logs -f job/memtier-high-throughput -n redis-orders-dev
+#
+# 4. Wait for completion (~5 minutes):
+#    oc wait --for=condition=complete job/memtier-high-throughput -n redis-orders-dev --timeout=10m
+#
+# 5. Save results:
+#    oc logs job/memtier-high-throughput -n redis-orders-dev > results/high-throughput-$(date +%Y%m%d-%H%M%S).txt
+#
+# 6. Monitor in Grafana:
+#    - Open "Database Status Dashboard" for throughput metrics
+#    - Open "Node Dashboard" for CPU/Memory usage
+#    - Open "Shard Dashboard" for shard-level metrics
+#
+# 7. Cleanup:
+#    oc delete job memtier-high-throughput -n redis-orders-dev
+#
+# Expected Results:
+# - Throughput: > 500,000 ops/sec (with pipelining)
+# - CPU usage: 60-80% (should not hit 100%)
+# - Memory usage: Stable (no continuous growth)
+# - Latency P99: < 10ms (higher due to load)
+# - No connection errors
+# - Cluster remains healthy throughout test
+#
+# What to look for:
+# - Maximum sustainable throughput
+# - CPU/Memory bottlenecks
+# - Network saturation
+# - Any error rates or timeouts
+
