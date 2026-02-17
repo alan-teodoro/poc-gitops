@@ -48,10 +48,6 @@ See [`docs/GRAFANA_DASHBOARDS.md`](../../docs/GRAFANA_DASHBOARDS.md) for details
 
 **Source**: [Redis Enterprise Observability Repository](https://github.com/redis-field-engineering/redis-enterprise-observability)
 
-#### **Custom Dashboard** (`grafana-dashboard-redis.yaml`)
-- **Purpose**: Basic custom dashboard (legacy)
-- **Status**: Replaced by official dashboards
-
 ---
 
 ## 🚀 How Monitoring Works
