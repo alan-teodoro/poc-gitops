@@ -1,0 +1,104 @@
+---
+# ServiceAccount for Grafana to access Prometheus
+# Purpose: Allow Grafana to query Prometheus metrics
+# Managed by: Platform Team
+
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: grafana-serviceaccount
+  namespace: openshift-monitoring
+  annotations:
+    serviceaccounts.openshift.io/oauth-redirectreference.primary: '{"kind":"OAuthRedirectReference","apiVersion":"v1","reference":{"kind":"Route","name":"grafana-route"}}'
+
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: grafana-prometheus-reader
+rules:
+  # Allow reading metrics from Prometheus
+  - apiGroups: [""]
+    resources:
+      - namespaces
+      - pods
+      - services
+      - endpoints
+    verbs: ["get", "list", "watch"]
+  
+  # Allow access to Prometheus API
+  - nonResourceURLs:
+      - /metrics
+      - /api/v1/*
+      - /federate
+    verbs: ["get"]
+
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: grafana-prometheus-reader
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: grafana-prometheus-reader
+subjects:
+  - kind: ServiceAccount
+    name: grafana-serviceaccount
+    namespace: openshift-monitoring
+
+---
+# ClusterRoleBinding for cluster-monitoring-view (built-in OpenShift role)
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: grafana-cluster-monitoring-view
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: cluster-monitoring-view
+subjects:
+  - kind: ServiceAccount
+    name: grafana-serviceaccount
+    namespace: openshift-monitoring
+
+---
+# Role to allow ServiceAccount to create tokens for itself
+# Required for the Job that creates the Secret
+
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  name: grafana-token-creator
+  namespace: openshift-monitoring
+  labels:
+    app: grafana
+    component: rbac
+rules:
+  - apiGroups: [""]
+    resources: ["serviceaccounts/token"]
+    verbs: ["create"]
+  - apiGroups: [""]
+    resources: ["secrets"]
+    verbs: ["create", "get", "update", "patch"]
+
+---
+# RoleBinding to grant token creation permission
+
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: grafana-token-creator
+  namespace: openshift-monitoring
+  labels:
+    app: grafana
+    component: rbac
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: Role
+  name: grafana-token-creator
+subjects:
+  - kind: ServiceAccount
+    name: grafana-serviceaccount
+    namespace: openshift-monitoring
+

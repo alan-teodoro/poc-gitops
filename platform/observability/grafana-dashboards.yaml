@@ -1,0 +1,77 @@
+---
+apiVersion: grafana.integreatly.org/v1beta1
+kind: GrafanaDashboard
+metadata:
+  name: redis-cluster-dashboard
+  namespace: openshift-monitoring
+  labels:
+    app: grafana
+spec:
+  instanceSelector:
+    matchLabels:
+      dashboards: "grafana"
+  folder: "Redis Enterprise"
+  datasources:
+    - inputName: "DS_PROMETHEUS"
+      datasourceName: "Prometheus (Redis Enterprise)"
+  configMapRef:
+    name: grafana-dashboard-redis-cluster-dashboard
+    key: redis-cluster-dashboard.json
+---
+apiVersion: grafana.integreatly.org/v1beta1
+kind: GrafanaDashboard
+metadata:
+  name: redis-database-dashboard
+  namespace: openshift-monitoring
+  labels:
+    app: grafana
+spec:
+  instanceSelector:
+    matchLabels:
+      dashboards: "grafana"
+  folder: "Redis Enterprise"
+  datasources:
+    - inputName: "DS_PROMETHEUS"
+      datasourceName: "Prometheus (Redis Enterprise)"
+  configMapRef:
+    name: grafana-dashboard-redis-database-dashboard
+    key: redis-database-dashboard.json
+---
+apiVersion: grafana.integreatly.org/v1beta1
+kind: GrafanaDashboard
+metadata:
+  name: redis-node-dashboard
+  namespace: openshift-monitoring
+  labels:
+    app: grafana
+spec:
+  instanceSelector:
+    matchLabels:
+      dashboards: "grafana"
+  folder: "Redis Enterprise"
+  datasources:
+    - inputName: "DS_PROMETHEUS"
+      datasourceName: "Prometheus (Redis Enterprise)"
+  configMapRef:
+    name: grafana-dashboard-redis-node-dashboard
+    key: redis-node-dashboard.json
+---
+apiVersion: grafana.integreatly.org/v1beta1
+kind: GrafanaDashboard
+metadata:
+  name: redis-shard-dashboard
+  namespace: openshift-monitoring
+  labels:
+    app: grafana
+spec:
+  instanceSelector:
+    matchLabels:
+      dashboards: "grafana"
+  folder: "Redis Enterprise"
+  datasources:
+    - inputName: "DS_PROMETHEUS"
+      datasourceName: "Prometheus (Redis Enterprise)"
+  configMapRef:
+    name: grafana-dashboard-redis-shard-dashboard
+    key: redis-shard-dashboard.json
+

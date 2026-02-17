@@ -1,8 +1,10 @@
 ---
-# GrafanaDatasource for Prometheus
+# GrafanaDatasource for Prometheus via Thanos Querier
 # Purpose: Automatically configure Prometheus as a data source in Grafana
 # This enables the Redis Enterprise dashboards to query metrics from Prometheus
+# Uses Thanos Querier which provides unified access to Prometheus metrics
 # Managed by: Platform Team
+# Note: This datasource uses valuesFrom to reference the Secret with the Bearer token
 
 apiVersion: grafana.integreatly.org/v1beta1
 kind: GrafanaDatasource
@@ -16,14 +18,24 @@ spec:
   instanceSelector:
     matchLabels:
       dashboards: "grafana"
+  valuesFrom:
+    - targetPath: "secureJsonData.httpHeaderValue1"
+      valueFrom:
+        secretKeyRef:
+          name: grafana-prometheus-token
+          key: token
   datasource:
     name: Prometheus (Redis Enterprise)
     type: prometheus
     access: proxy
-    url: http://prometheus-k8s.openshift-monitoring.svc:9090
-    isDefault: false
+    url: https://thanos-querier.openshift-monitoring.svc:9091
+    isDefault: true
     jsonData:
       timeInterval: "30s"
       httpMethod: "POST"
+      tlsSkipVerify: true
+      httpHeaderName1: "Authorization"
+    secureJsonData:
+      httpHeaderValue1: "${token}"
     editable: true
 

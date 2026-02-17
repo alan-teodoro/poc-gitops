@@ -1,0 +1,24 @@
+---
+# Route for Grafana
+# Purpose: Expose Grafana UI externally
+# Managed by: Platform Team
+
+apiVersion: route.openshift.io/v1
+kind: Route
+metadata:
+  name: grafana-redis-monitoring
+  namespace: openshift-monitoring
+  labels:
+    app: grafana
+spec:
+  to:
+    kind: Service
+    name: grafana-redis-monitoring-service
+    weight: 100
+  port:
+    targetPort: 3000
+  tls:
+    termination: edge
+    insecureEdgeTerminationPolicy: Redirect
+  wildcardPolicy: None
+

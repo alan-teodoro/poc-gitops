@@ -1,7 +1,7 @@
 {{- if .Values.monitoring.enabled }}
 ---
 # ServiceMonitor for Prometheus to scrape Redis Enterprise metrics
-# Metrics endpoint: http://<pod>:8070/v2
+# Metrics endpoint: https://<pod>:8070/v2 (HTTPS with self-signed cert)
 apiVersion: monitoring.coreos.com/v1
 kind: ServiceMonitor
 metadata:
@@ -36,7 +36,9 @@ spec:
       path: /v2
       interval: {{ .Values.monitoring.scrapeInterval }}
       scrapeTimeout: {{ .Values.monitoring.scrapeTimeout }}
-      scheme: http
+      scheme: https
+      tlsConfig:
+        insecureSkipVerify: true
       
       # Relabeling to add cluster information
       relabelings:
