@@ -20,7 +20,7 @@ metadata:
 roleRef:
   apiGroup: rbac.authorization.k8s.io
   kind: ClusterRole
-  name: cluster-logging-application-logs-writer
+  name: cluster-logging-write-application-logs
 subjects:
 - kind: ServiceAccount
   name: logcollector
