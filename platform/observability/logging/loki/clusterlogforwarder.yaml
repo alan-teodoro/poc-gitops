@@ -10,8 +10,24 @@ metadata:
     argocd.argoproj.io/sync-wave: "10"
 
 ---
-# ClusterRoleBinding for Log Collector
-# Binds OpenShift's built-in collect-application-logs ClusterRole to ServiceAccount
+# ClusterRoleBinding: Allow log collector to write logs to LokiStack
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: logcollector-loki-writer
+  annotations:
+    argocd.argoproj.io/sync-wave: "10"
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: cluster-logging-application-logs-writer
+subjects:
+- kind: ServiceAccount
+  name: logcollector
+  namespace: openshift-logging
+
+---
+# ClusterRoleBinding: Allow log collector to collect application logs
 apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRoleBinding
 metadata:
