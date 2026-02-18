@@ -70,7 +70,7 @@ roleRef:
 subjects:
 - kind: ServiceAccount
   name: grafana-loki-reader
-  namespace: redis-enterprise
+  namespace: openshift-monitoring
 
 ---
 # ClusterRoleBinding for Grafana ServiceAccount to view cluster monitoring
@@ -87,5 +87,5 @@ roleRef:
 subjects:
 - kind: ServiceAccount
   name: grafana-loki-reader
-  namespace: redis-enterprise
+  namespace: openshift-monitoring
 
