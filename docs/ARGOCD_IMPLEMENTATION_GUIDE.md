@@ -571,35 +571,84 @@ oc get redb -A
 
 **Skip if**: Not using observability
 
+### 15.1: Update RBAC Permissions
+
 ```bash
-# Deploy observability via ArgoCD (Grafana, ServiceMonitor, PrometheusRules, Dashboards)
-oc apply -f platform/argocd/apps/observability.yaml
+# Apply RBAC permissions for PrometheusRule and Grafana CRDs
+oc apply -f platform/argocd/rbac/gatekeeper-permissions.yaml
 
-# Watch ArgoCD sync (2-3 minutes)
-oc get application redis-observability -n openshift-gitops -w
-
-# Wait for Grafana pod
-oc get pods -n redis-enterprise -w
-# Wait for grafana-deployment pod to be Running
-
-# Verify all components
-oc get grafana -n redis-enterprise
-oc get servicemonitor -n redis-enterprise
-oc get prometheusrule -n redis-enterprise
-oc get grafanadashboard -n redis-enterprise
-
-# Get Grafana URL
-oc get route grafana-route -n redis-enterprise -o jsonpath='{.spec.host}'
+# Verify permissions
+oc describe clusterrole argocd-platform-manager | grep -A5 "monitoring.coreos.com"
+oc describe clusterrole argocd-platform-manager | grep -A5 "grafana.integreatly.org"
 ```
 
-**What this deploys**:
-- **Grafana Instance**: Web UI for dashboards
-- **ServiceMonitor**: Prometheus scraping configuration
-- **PrometheusRules**: 40+ Redis Enterprise alerts
-- **Grafana DataSource**: Prometheus connection
-- **Grafana Dashboards**: 4 official Redis Enterprise dashboards
+**Note**: RBAC is currently managed **manually** (not via ArgoCD) to avoid chicken-and-egg problem. Consider creating a `platform-rbac` Application (Wave 0) for full GitOps.
 
-**✅ Success**: ArgoCD Application synced, observability stack deployed
+### 15.2: Deploy Observability Applications
+
+The observability stack is split into **2 separate Applications** for better modularity:
+
+```bash
+# Deploy Prometheus monitoring (alerts)
+oc apply -f platform/argocd/apps/observability-prometheus.yaml
+
+# Deploy Grafana dashboards
+oc apply -f platform/argocd/apps/observability-grafana.yaml
+
+# Watch ArgoCD sync (2-3 minutes)
+oc get applications -n openshift-gitops | grep observability
+
+# Wait for Grafana pod
+oc get pods -n openshift-monitoring -w
+# Wait for grafana-deployment pod to be Running
+
+# Get Grafana route
+oc get route -n openshift-monitoring | grep grafana
+```
+
+### 15.3: Verify Deployment
+
+```bash
+# Check Applications
+oc get application redis-observability-prometheus -n openshift-gitops
+oc get application redis-observability-grafana -n openshift-gitops
+
+# Check Prometheus resources
+oc get prometheusrule -n openshift-monitoring | grep redis
+
+# Check Grafana resources
+oc get grafana,grafanadatasource,grafanadashboard -n openshift-monitoring
+
+# Check ServiceMonitor (deployed via cluster Helm chart)
+oc get servicemonitor -n redis-enterprise | grep redis
+```
+
+**What gets deployed**:
+
+**Application 1: `redis-observability-prometheus`** (Wave 5)
+- **Namespace**: `openshift-monitoring`
+- **PrometheusRule**: 40+ production-grade alerts across 9 categories
+- **ServiceMonitor**: Already deployed via cluster Helm chart
+
+**Application 2: `redis-observability-grafana`** (Wave 5)
+- **Namespace**: `openshift-monitoring`
+- **Grafana Instance**: Monitoring UI
+- **Grafana DataSource**: Prometheus/Thanos Querier connection
+- **Grafana Dashboards**: 4 official Redis Enterprise dashboards
+  - redis-cluster-dashboard
+  - redis-database-dashboard
+  - redis-node-dashboard
+  - redis-shard-dashboard
+- **Grafana RBAC**: ServiceAccount, ClusterRole, ClusterRoleBinding
+- **Grafana Route**: External access to UI
+
+**Why 2 Applications?**
+- ✅ Independent deployment (can deploy Prometheus without Grafana)
+- ✅ Easier troubleshooting
+- ✅ Better modularity
+- ✅ Can disable Grafana but keep alerts
+
+**✅ Success**: Both Applications synced, observability stack deployed in `openshift-monitoring`
 
 **⏭️ Next**: Continue to Step 16 (or skip to Step 18 if not using logging)
 
