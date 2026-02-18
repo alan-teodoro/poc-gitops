@@ -51,7 +51,7 @@ rules:
   resourceNames:
   - logs
   resources:
-  - application.loki.grafana.com
+  - application
   verbs:
   - get
 
