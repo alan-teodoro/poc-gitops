@@ -29,7 +29,7 @@ spec:
       prune: true
       selfHeal: true
     syncOptions:
-      - CreateNamespace=true
+      - CreateNamespace=false
       - RespectIgnoreDifferences=true
     retry:
       limit: 5
