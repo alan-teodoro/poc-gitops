@@ -8,6 +8,7 @@ metadata:
     app: argocd
     managed-by: platform-team
 rules:
+  # Gatekeeper Operator resources
   - apiGroups:
       - operator.gatekeeper.sh
     resources:
@@ -28,6 +29,34 @@ rules:
       - get
       - list
       - watch
+
+  # Gatekeeper ConstraintTemplates (creates policy CRDs)
+  - apiGroups:
+      - templates.gatekeeper.sh
+    resources:
+      - constrainttemplates
+    verbs:
+      - get
+      - list
+      - watch
+      - create
+      - update
+      - patch
+      - delete
+
+  # Gatekeeper Constraints (all constraint types)
+  - apiGroups:
+      - constraints.gatekeeper.sh
+    resources:
+      - '*'
+    verbs:
+      - get
+      - list
+      - watch
+      - create
+      - update
+      - patch
+      - delete
 ---
 # ClusterRoleBinding to grant ArgoCD application controller the permissions
 apiVersion: rbac.authorization.k8s.io/v1
