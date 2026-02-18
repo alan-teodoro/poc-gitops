@@ -1,0 +1,47 @@
+---
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: redis-logging
+  namespace: openshift-gitops
+  labels:
+    app: redis-logging
+    managed-by: platform-team
+  annotations:
+    argocd.argoproj.io/sync-wave: "6"
+  finalizers:
+    - resources-finalizer.argocd.argoproj.io
+spec:
+  project: platform-team
+  
+  source:
+    repoURL: https://github.com/alan-teodoro/poc-gitops.git
+    targetRevision: main
+    path: platform/observability/logging
+    directory:
+      recurse: true
+      exclude: '{splunk/**,README.md}'
+  
+  destination:
+    server: https://kubernetes.default.svc
+  
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+    syncOptions:
+      - CreateNamespace=false
+    retry:
+      limit: 5
+      backoff:
+        duration: 5s
+        factor: 2
+        maxDuration: 3m
+  
+  # Ignore differences in Loki resources
+  ignoreDifferences:
+    - group: loki.grafana.com
+      kind: LokiStack
+      jsonPointers:
+        - /status
+
