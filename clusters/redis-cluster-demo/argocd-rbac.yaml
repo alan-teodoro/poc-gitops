@@ -1,27 +1,28 @@
 apiVersion: argoproj.io/v1alpha1
 kind: Application
 metadata:
-  name: redis-rbac-orders
+  name: redis-rbac-demo
   namespace: openshift-gitops
   labels:
-    cluster: orders
+    cluster: demo
+    component: rbac
     type: redis-rbac
   finalizers:
     - resources-finalizer.argocd.argoproj.io
 spec:
   project: platform-team
-  
+
   source:
     repoURL: https://github.com/alan-teodoro/poc-gitops.git
     targetRevision: main
     path: helm-charts/redis-multi-namespace-rbac
     helm:
       valueFiles:
-        - ../../clusters/orders/rbac.yaml
-  
+        - ../../clusters/redis-cluster-demo/rbac.yaml
+
   destination:
     server: https://kubernetes.default.svc
-    namespace: redis
+    namespace: redis-enterprise
   
   syncPolicy:
     automated:
