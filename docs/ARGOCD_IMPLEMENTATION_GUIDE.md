@@ -280,7 +280,31 @@ oc get appproject -n openshift-gitops
 
 ---
 
-## Step 9: Deploy Gatekeeper Policies (GitOps)
+## Step 9: Create Namespaces (GitOps)
+
+```bash
+# Deploy namespaces via ArgoCD
+oc apply -f platform/argocd/apps/namespaces.yaml
+
+# Watch ArgoCD sync (30 seconds)
+oc get application redis-namespaces -n openshift-gitops -w
+
+# Verify namespaces created
+oc get namespaces | grep redis
+```
+
+**Expected output**:
+- `redis-enterprise` (cluster namespace)
+- `redis-team1-dev` and `redis-team1-prod` (team1 databases)
+- `redis-team2-dev` and `redis-team2-prod` (team2 databases)
+
+**✅ Success**: ArgoCD Application synced, 5 namespaces created
+
+**⏭️ Next**: Continue to Step 10
+
+---
+
+## Step 10: Deploy Gatekeeper Policies (GitOps)
 
 **Skip if**: Not using Gatekeeper policies
 
@@ -311,31 +335,7 @@ oc get constraints -A
 
 **✅ Success**: ArgoCD Application synced, policies active
 
-**⏭️ Next**: Continue to Step 10
-
----
-
-## Step 10: Create Namespaces (GitOps)
-
-```bash
-# Deploy namespaces via ArgoCD
-oc apply -f platform/argocd/apps/namespaces.yaml
-
-# Watch ArgoCD sync (30 seconds)
-oc get application redis-namespaces -n openshift-gitops -w
-
-# Verify namespaces created
-oc get namespaces | grep redis
-```
-
-**Expected output**:
-- `redis-enterprise` (cluster namespace)
-- `redis-team1-dev` and `redis-team1-prod` (team1 databases)
-- `redis-team2-dev` and `redis-team2-prod` (team2 databases)
-
-**✅ Success**: ArgoCD Application synced, 5 namespaces created
-
-**⏭️ Next**: Continue to Step 12
+**⏭️ Next**: Continue to Step 11
 
 ---
 
