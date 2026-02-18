@@ -474,11 +474,126 @@ oc get limitrange -A | grep redis
 
 **✅ Success**: ArgoCD Application synced, quotas and limitranges applied to all 5 namespaces
 
+**⏭️ Next**: Continue to Step 12
+
+---
+
+## Step 12: Deploy Network Policies (Security - Optional)
+
+**Purpose:** Implement network-level security using Kubernetes Network Policies.
+
+**Sync Wave:** 2 (before Redis Cluster in Wave 3)
+
+**Skip if:** Not required for your environment (development/testing)
+
+**Strategy:** Simplified approach - allow all egress, restrict only ingress.
+
+### Why Simplified Network Policies?
+
+Redis Enterprise requires 40+ ports for internal communication. Complex Network Policies with explicit port lists:
+- ❌ Are hard to maintain and error-prone
+- ❌ Can cause pod crashes if even ONE port is missing
+- ❌ Cannot be tested "one by one" due to Kubernetes "default deny" behavior
+
+Our simplified approach:
+- ✅ Allow ALL egress (outbound) - Redis pods can communicate freely
+- ✅ Restrict only ingress (inbound) - Protect from unwanted access
+- ✅ Still provides security without breaking functionality
+
+### Apply Network Policies
+
+```bash
+# Apply the ArgoCD Application
+oc apply -f platform/argocd/apps/network-policies.yaml
+
+# Wait for sync (30 seconds)
+sleep 30
+
+# Verify ArgoCD Application
+oc get application redis-network-policies -n openshift-gitops
+# Expected: SYNC STATUS=Synced, HEALTH STATUS=Healthy
+```
+
+### Verify Network Policies
+
+```bash
+# List Network Policies
+oc get networkpolicies -n redis-enterprise
+
+# Expected output:
+# NAME                    POD-SELECTOR           AGE
+# allow-all-egress        <none>                 1m
+# allow-client-access     app=redis-enterprise   1m
+# allow-prometheus        app=redis-enterprise   1m
+# allow-redis-internode   app=redis-enterprise   1m
+```
+
+### CRITICAL: Verify Pod Health
+
+⚠️ **IMPORTANT:** ArgoCD can show "Synced" and "Healthy" even when pods are crashing!
+
+**Why:** ArgoCD checks if Kubernetes resources match Git, but does NOT check if pods are actually running.
+
+**Solution:** Always verify pod status separately:
+
+```bash
+# Check pod status (CRITICAL!)
+oc get pods -n redis-enterprise -l app=redis-enterprise
+
+# Expected: All pods should be "Running" with NO new restarts
+# If you see CrashLoopBackOff or increased RESTARTS, Network Policies may be blocking traffic
+
+# Check cluster status
+oc get rec -n redis-enterprise
+# Expected: STATE=Running (not Error or Initializing)
+
+# Check operator logs for errors
+oc logs -n redis-enterprise -l name=redis-enterprise-operator --tail=50 | grep -i "error\|fail\|timeout"
+# Expected: No errors
+```
+
+### Enable Client Access
+
+To allow an application namespace to access Redis databases:
+
+```bash
+# Label the namespace
+oc label namespace redis-team1-dev redis-client=true
+
+# Verify label
+oc get namespace redis-team1-dev --show-labels | grep redis-client
+```
+
+### Troubleshooting
+
+**If pods start crashing after applying Network Policies:**
+
+```bash
+# Remove Network Policies immediately
+oc delete application redis-network-policies -n openshift-gitops
+
+# Wait for cluster to recover (60 seconds)
+sleep 60
+
+# Verify cluster recovered
+oc get rec -n redis-enterprise
+oc get pods -n redis-enterprise -l app=redis-enterprise
+```
+
+**Common issues:**
+- Network Policies applied to existing cluster may cause temporary disruption
+- Always deploy Network Policies BEFORE creating Redis Cluster on fresh installations
+- If using custom ports, you may need to adjust the policies
+
+### Documentation
+
+See `platform/security/network-policies/README.md` for complete documentation.
+
 **⏭️ Next**: Continue to Step 13
 
 ---
 
-## Step 12: Deploy Redis Enterprise Cluster
+## Step 13: Deploy Redis Enterprise Cluster
 
 ```bash
 # Apply ArgoCD Application for demo cluster
@@ -502,7 +617,7 @@ oc get pods -n redis-enterprise
 
 ---
 
-## Step 13: Deploy Multi-Namespace RBAC
+## Step 14: Deploy Multi-Namespace RBAC
 
 ```bash
 # Apply RBAC ArgoCD Application
@@ -533,7 +648,7 @@ oc get configmap operator-environment-config -n redis-enterprise
 
 ---
 
-## Step 14: Deploy Redis Databases
+## Step 15: Deploy Redis Databases
 
 ```bash
 # Apply team1 databases (cache)
@@ -563,11 +678,11 @@ oc get redb -A
 
 **✅ Success**: All 4 databases show `active`
 
-**⏭️ Next**: Continue to Step 15 (or skip to Step 19 if not using observability)
+**⏭️ Next**: Continue to Step 16 (or skip to Step 19 if not using observability)
 
 ---
 
-## Step 15: Deploy Observability Stack (GitOps - Optional)
+## Step 16: Deploy Observability Stack (GitOps - Optional)
 
 **Skip if**: Not using observability
 
@@ -651,11 +766,11 @@ oc get servicemonitor -n redis-enterprise | grep redis
 
 **✅ Success**: Both Applications synced, observability stack deployed in `openshift-monitoring`
 
-**⏭️ Next**: Continue to Step 16 (or skip to Step 18 if not using logging)
+**⏭️ Next**: Continue to Step 17 (or skip to Step 19 if not using logging)
 
 ---
 
-## Step 16: Deploy Logging Stack (GitOps - Optional)
+## Step 17: Deploy Logging Stack (GitOps - Optional)
 
 **Skip if**: Not using logging
 
@@ -682,11 +797,11 @@ oc get grafanadatasource -n redis-enterprise | grep loki
 
 **✅ Success**: ArgoCD Application synced, logging stack deployed
 
-**⏭️ Next**: Continue to Step 17
+**⏭️ Next**: Continue to Step 18
 
 ---
 
-## Step 17: Deploy High Availability (GitOps - Optional)
+## Step 18: Deploy High Availability (GitOps - Optional)
 
 **Skip if**: Not using HA features
 
@@ -714,11 +829,11 @@ oc describe pdb redis-cluster-pdb -n redis-enterprise
 
 **✅ Success**: ArgoCD Application synced, PDB protecting demo-redis-cluster
 
-**⏭️ Next**: Continue to Step 18
+**⏭️ Next**: Continue to Step 19
 
 ---
 
-## Step 18: Validation
+## Step 19: Validation
 
 ```bash
 # Check all components
@@ -745,130 +860,7 @@ oc get redb -n redis-team2-prod
 
 ---
 
-## Step 16: Network Policies (Security)
-
-**Purpose:** Implement network-level security using Kubernetes Network Policies.
-
-**Sync Wave:** 2 (before Redis Cluster in Wave 3)
-
-**Strategy:** Simplified approach - allow all egress, restrict only ingress.
-
-### Why Simplified Network Policies?
-
-Redis Enterprise requires 40+ ports for internal communication. Complex Network Policies with explicit port lists:
-- ❌ Are hard to maintain and error-prone
-- ❌ Can cause pod crashes if even ONE port is missing
-- ❌ Cannot be tested "one by one" due to Kubernetes "default deny" behavior
-
-Our simplified approach:
-- ✅ Allow ALL egress (outbound) - Redis pods can communicate freely
-- ✅ Restrict only ingress (inbound) - Protect from unwanted access
-- ✅ Still provides security without breaking functionality
-
-### Apply Network Policies
-
-```bash
-# Apply the ArgoCD Application
-oc apply -f platform/argocd/apps/network-policies.yaml
-
-# Wait for sync (30 seconds)
-sleep 30
-
-# Verify ArgoCD Application
-oc get application redis-network-policies -n openshift-gitops
-# Expected: SYNC STATUS=Synced, HEALTH STATUS=Healthy
-```
-
-### Verify Network Policies
-
-```bash
-# List Network Policies
-oc get networkpolicies -n redis-enterprise
-
-# Expected output:
-# NAME                    POD-SELECTOR           AGE
-# allow-all-egress        <none>                 1m
-# allow-client-access     app=redis-enterprise   1m
-# allow-prometheus        app=redis-enterprise   1m
-# allow-redis-internode   app=redis-enterprise   1m
-```
-
-### CRITICAL: Verify Pod Health
-
-⚠️ **IMPORTANT:** ArgoCD can show "Synced" and "Healthy" even when pods are crashing!
-
-**Why:** ArgoCD checks if Kubernetes resources match Git, but does NOT check if pods are actually running.
-
-**Solution:** Always verify pod status separately:
-
-```bash
-# Check pod status (CRITICAL!)
-oc get pods -n redis-enterprise -l app=redis-enterprise
-
-# Expected: All pods should be "Running" with NO new restarts
-# NAME                                                  READY   STATUS    RESTARTS
-# demo-redis-cluster-0                                  2/2     Running   X
-# demo-redis-cluster-1                                  2/2     Running   X
-# demo-redis-cluster-2                                  2/2     Running   X
-# demo-redis-cluster-services-rigger-xxxxx              1/1     Running   X
-# redis-enterprise-operator-xxxxx                       2/2     Running   X
-
-# Check cluster status
-oc get rec -n redis-enterprise
-# Expected: STATE=Running
-
-# Check operator logs for errors
-oc logs -n redis-enterprise -l name=redis-enterprise-operator --tail=50 | grep -i "error\|fail\|timeout"
-# Expected: No errors
-```
-
-### Enable Client Access
-
-To allow an application namespace to access Redis databases:
-
-```bash
-# Label the namespace
-oc label namespace redis-team1-dev redis-client=true
-
-# Verify label
-oc get namespace redis-team1-dev --show-labels | grep redis-client
-```
-
-### Network Policies Details
-
-1. **allow-all-egress**: Permits all outbound traffic (DNS, K8s API, inter-pod, external)
-2. **allow-client-access**: Permits access from namespaces labeled `redis-client=true`
-3. **allow-prometheus**: Permits Prometheus scraping on port 8070
-4. **allow-redis-internode**: Permits all traffic between Redis Enterprise pods
-
-### Troubleshooting
-
-**If pods start crashing after applying Network Policies:**
-
-```bash
-# Remove Network Policies immediately
-oc delete application redis-network-policies -n openshift-gitops
-
-# Wait for cluster to recover (60 seconds)
-sleep 60
-
-# Verify cluster recovered
-oc get rec -n redis-enterprise
-oc get pods -n redis-enterprise -l app=redis-enterprise
-```
-
-**Common issues:**
-- Network Policies applied to existing cluster may cause temporary disruption
-- Always deploy Network Policies BEFORE creating Redis Cluster on fresh installations
-- If using custom ports, you may need to adjust the policies
-
-### Documentation
-
-See `platform/security/network-policies/README.md` for complete documentation.
-
----
-
-## 🎉 DEPLOYMENT COMPLETE
+## 🎉 Conclusion
 
 Your Redis Enterprise multi-tenant platform is now fully deployed!
 
