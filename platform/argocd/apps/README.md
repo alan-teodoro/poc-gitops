@@ -6,6 +6,7 @@ This directory contains ArgoCD Application manifests for GitOps deployment.
 
 ```
 platform/argocd/apps/
+├── gatekeeper-instance.yaml     # Wave 0: Create Gatekeeper instance
 ├── namespaces.yaml              # Wave 1: Create namespaces
 ├── gatekeeper-policies.yaml     # Wave 2: Deploy Gatekeeper policies
 ├── quotas-limitranges.yaml      # Wave 2: Apply quotas and limitranges
@@ -20,6 +21,7 @@ Applications are deployed in order using sync waves:
 
 | Wave | Application | Purpose |
 |------|-------------|---------|
+| 0 | `gatekeeper-instance` | Create Gatekeeper instance (installs CRDs) |
 | 1 | `namespaces` | Create all required namespaces |
 | 2 | `gatekeeper-policies` | Deploy policy templates and constraints |
 | 2 | `quotas-limitranges` | Apply resource quotas and limits |
@@ -35,6 +37,9 @@ Applications are deployed in order using sync waves:
 ### Option 1: Deploy Individual Applications
 
 ```bash
+# Deploy Gatekeeper instance
+oc apply -f platform/argocd/apps/gatekeeper-instance.yaml
+
 # Deploy namespaces
 oc apply -f platform/argocd/apps/namespaces.yaml
 

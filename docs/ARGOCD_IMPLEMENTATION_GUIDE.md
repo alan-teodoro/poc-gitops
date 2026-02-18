@@ -157,16 +157,20 @@ oc get csv -A | grep gatekeeper
 5. Click **Install**
 6. Wait 2-3 minutes for installation
 
-**Create Gatekeeper Instance**:
+**Create Gatekeeper Instance (GitOps)**:
 ```bash
-# Apply Gatekeeper instance
-oc apply -f platform/operators/gatekeeper-instance.yaml
+# Deploy Gatekeeper instance via ArgoCD
+oc apply -f platform/argocd/apps/gatekeeper-instance.yaml
+
+# Watch ArgoCD sync (1-2 minutes)
+oc get application gatekeeper-instance -n openshift-gitops -w
 
 # Verify Gatekeeper pods
 oc get pods -n openshift-gatekeeper-system
+# Expected: gatekeeper-audit and gatekeeper-controller-manager pods Running
 ```
 
-**✅ Success**: Gatekeeper pods Running
+**✅ Success**: ArgoCD Application synced, Gatekeeper pods Running
 
 **⏭️ Next**: Continue to Step 6
 

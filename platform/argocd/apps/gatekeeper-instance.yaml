@@ -1,0 +1,47 @@
+---
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: gatekeeper-instance
+  namespace: openshift-gitops
+  labels:
+    app: gatekeeper-instance
+    managed-by: platform-team
+  annotations:
+    argocd.argoproj.io/sync-wave: "0"
+  finalizers:
+    - resources-finalizer.argocd.argoproj.io
+spec:
+  project: platform-team
+  
+  source:
+    repoURL: https://github.com/alan-teodoro/poc-gitops.git
+    targetRevision: main
+    path: platform/gatekeeper
+    directory:
+      recurse: false
+  
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: openshift-gatekeeper-system
+  
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+    syncOptions:
+      - CreateNamespace=true
+    retry:
+      limit: 5
+      backoff:
+        duration: 5s
+        factor: 2
+        maxDuration: 3m
+  
+  # Ignore differences in Gatekeeper status
+  ignoreDifferences:
+    - group: operator.gatekeeper.sh
+      kind: Gatekeeper
+      jsonPointers:
+        - /status
+

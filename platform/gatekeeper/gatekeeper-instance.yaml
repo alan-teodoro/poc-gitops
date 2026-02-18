@@ -1,0 +1,16 @@
+---
+apiVersion: operator.gatekeeper.sh/v1alpha1
+kind: Gatekeeper
+metadata:
+  name: gatekeeper
+  namespace: openshift-gatekeeper-system
+spec:
+  audit:
+    replicas: 1
+    logLevel: INFO
+  validatingWebhook: Enabled
+  mutatingWebhook: Disabled
+  webhook:
+    replicas: 2
+    logLevel: INFO
+
