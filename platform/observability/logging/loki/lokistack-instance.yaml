@@ -39,10 +39,9 @@ spec:
       type: s3
 
     # TLS configuration for S3 (NooBaa)
-    # Use service-ca.crt to trust OpenShift service certificates
+    # Use OpenShift service CA to trust self-signed certificates
     tls:
-      caName: logging-loki-s3
-      caKey: service-ca.crt
+      caName: openshift-service-ca.crt
 
   # Storage class for PVCs
   # Uses ODF Ceph RBD for persistent storage (external mode)
