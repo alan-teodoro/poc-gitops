@@ -1,0 +1,48 @@
+---
+# ArgoCD Application: Network Policies
+# Purpose: Deploy zero-trust network security policies for Redis Enterprise
+# Sync Wave: 2 (after Namespaces, before Redis Cluster)
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: redis-network-policies
+  namespace: openshift-gitops
+  annotations:
+    argocd.argoproj.io/sync-wave: "2"
+  labels:
+    app: redis-enterprise
+    component: network-policies
+    managed-by: argocd
+spec:
+  project: platform-team
+  
+  source:
+    repoURL: https://github.com/alan-teodoro/poc-gitops.git
+    targetRevision: main
+    path: platform/security/network-policies
+  
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: redis-enterprise
+  
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+    syncOptions:
+      - CreateNamespace=false  # Namespace created by namespaces app
+      - ApplyOutOfSyncOnly=true
+    retry:
+      limit: 5
+      backoff:
+        duration: 5s
+        factor: 2
+        maxDuration: 3m
+  
+  # Health check for NetworkPolicy resources
+  ignoreDifferences:
+    - group: networking.k8s.io
+      kind: NetworkPolicy
+      jsonPointers:
+        - /metadata/generation
+

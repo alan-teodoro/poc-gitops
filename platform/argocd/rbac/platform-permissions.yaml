@@ -6,6 +6,7 @@
 # Includes permissions for:
 # - Gatekeeper (operator, templates, constraints)
 # - ResourceQuotas, LimitRanges
+# - Network Policies
 # - Services, ServiceAccounts, Jobs
 # - Redis Enterprise (clusters, databases)
 # - Monitoring (ServiceMonitors, PrometheusRules)
@@ -89,6 +90,20 @@ rules:
       - ""
     resources:
       - limitranges
+    verbs:
+      - get
+      - list
+      - watch
+      - create
+      - update
+      - patch
+      - delete
+
+  # Network Policies (networking.k8s.io)
+  - apiGroups:
+      - networking.k8s.io
+    resources:
+      - networkpolicies
     verbs:
       - get
       - list

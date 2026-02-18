@@ -1,0 +1,143 @@
+---
+# Allow Redis Internode Communication Network Policy
+# Purpose: Allow Redis Enterprise cluster nodes to communicate with each other
+# Required for: Cluster formation, replication, failover
+# Ports: Multiple (see below)
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: allow-redis-internode
+  namespace: redis-enterprise
+  labels:
+    app: redis-enterprise
+    component: network-policy
+    security: internode
+spec:
+  # Apply to Redis Enterprise pods
+  podSelector:
+    matchLabels:
+      app: redis-enterprise
+  
+  policyTypes:
+    - Ingress
+    - Egress
+  
+  ingress:
+    # Allow from other Redis Enterprise pods in same namespace
+    - from:
+        - podSelector:
+            matchLabels:
+              app: redis-enterprise
+      ports:
+        # Cluster communication ports (3333-3354)
+        - protocol: TCP
+          port: 3333
+        - protocol: TCP
+          port: 3334
+        - protocol: TCP
+          port: 3335
+        - protocol: TCP
+          port: 3336
+        - protocol: TCP
+          port: 3337
+        - protocol: TCP
+          port: 3338
+        - protocol: TCP
+          port: 3339
+        - protocol: TCP
+          port: 3340
+        - protocol: TCP
+          port: 3341
+        - protocol: TCP
+          port: 3342
+        - protocol: TCP
+          port: 3343
+        - protocol: TCP
+          port: 3344
+        - protocol: TCP
+          port: 3345
+        - protocol: TCP
+          port: 3346
+        - protocol: TCP
+          port: 3347
+        - protocol: TCP
+          port: 3348
+        - protocol: TCP
+          port: 3349
+        - protocol: TCP
+          port: 3350
+        - protocol: TCP
+          port: 3351
+        - protocol: TCP
+          port: 3352
+        - protocol: TCP
+          port: 3353
+        - protocol: TCP
+          port: 3354
+        
+        # REST API
+        - protocol: TCP
+          port: 8001
+        
+        # Metrics endpoint
+        - protocol: TCP
+          port: 8070
+        
+        # Admin UI
+        - protocol: TCP
+          port: 8443
+        
+        # Admission controller
+        - protocol: TCP
+          port: 9443
+        
+        # Sentinel port
+        - protocol: TCP
+          port: 36379
+        
+        # Database ports (10000-19999 range)
+        # Note: Listing all would be too verbose, using common range
+        - protocol: TCP
+          port: 10000
+        - protocol: TCP
+          port: 10001
+        - protocol: TCP
+          port: 10002
+        - protocol: TCP
+          port: 10003
+        - protocol: TCP
+          port: 12000
+        - protocol: TCP
+          port: 12001
+        - protocol: TCP
+          port: 12002
+        - protocol: TCP
+          port: 12003
+  
+  egress:
+    # Allow to other Redis Enterprise pods in same namespace
+    - to:
+        - podSelector:
+            matchLabels:
+              app: redis-enterprise
+      ports:
+        # Same ports as ingress
+        - protocol: TCP
+          port: 3333
+        - protocol: TCP
+          port: 3354
+        - protocol: TCP
+          port: 8001
+        - protocol: TCP
+          port: 8070
+        - protocol: TCP
+          port: 8443
+        - protocol: TCP
+          port: 9443
+        - protocol: TCP
+          port: 36379
+        - protocol: TCP
+          port: 10000
+        - protocol: TCP
+          port: 12000
+

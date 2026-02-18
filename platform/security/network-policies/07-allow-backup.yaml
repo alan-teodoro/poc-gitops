@@ -1,0 +1,50 @@
+---
+# Allow Backup Network Policy
+# Purpose: Allow Redis Enterprise to communicate with backup storage (S3/NooBaa)
+# Required for: Automated backups, disaster recovery
+# Ports: 443 (HTTPS to object storage)
+# Note: This is prepared for future backup implementation
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: allow-backup
+  namespace: redis-enterprise
+  labels:
+    app: redis-enterprise
+    component: network-policy
+    security: backup
+spec:
+  # Apply to Redis Enterprise pods
+  podSelector:
+    matchLabels:
+      app: redis-enterprise
+  
+  policyTypes:
+    - Egress
+  
+  egress:
+    # Allow HTTPS to object storage (S3/NooBaa)
+    # Note: This allows to any destination on port 443
+    # In production, you may want to restrict to specific CIDR blocks
+    - to:
+        # Allow to openshift-storage namespace (NooBaa/ODF)
+        - namespaceSelector:
+            matchLabels:
+              kubernetes.io/metadata.name: openshift-storage
+      ports:
+        - protocol: TCP
+          port: 443
+        - protocol: TCP
+          port: 80
+    
+    # Allow to external S3 endpoints (if using AWS S3, GCS, Azure Blob)
+    # This is a broad rule - restrict in production to specific IPs/CIDRs
+    - ports:
+        - protocol: TCP
+          port: 443
+      # Note: No 'to' selector means allow to any destination
+      # In production, add ipBlock with specific CIDR ranges:
+      # to:
+      #   - ipBlock:
+      #       cidr: 52.92.0.0/16  # Example: AWS S3 IP range
+

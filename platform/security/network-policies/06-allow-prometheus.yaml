@@ -1,0 +1,43 @@
+---
+# Allow Prometheus Network Policy
+# Purpose: Allow Prometheus to scrape Redis Enterprise metrics
+# Required for: Observability, monitoring, alerting
+# Ports: 8070 (metrics endpoint)
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: allow-prometheus
+  namespace: redis-enterprise
+  labels:
+    app: redis-enterprise
+    component: network-policy
+    security: monitoring
+spec:
+  # Apply to Redis Enterprise pods
+  podSelector:
+    matchLabels:
+      app: redis-enterprise
+  
+  policyTypes:
+    - Ingress
+  
+  ingress:
+    # Allow from openshift-monitoring namespace (Prometheus)
+    - from:
+        - namespaceSelector:
+            matchLabels:
+              kubernetes.io/metadata.name: openshift-monitoring
+      ports:
+        # Metrics endpoint
+        - protocol: TCP
+          port: 8070
+    
+    # Also allow from openshift-user-workload-monitoring (if using user workload monitoring)
+    - from:
+        - namespaceSelector:
+            matchLabels:
+              kubernetes.io/metadata.name: openshift-user-workload-monitoring
+      ports:
+        - protocol: TCP
+          port: 8070
+
