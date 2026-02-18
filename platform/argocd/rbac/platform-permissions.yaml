@@ -11,6 +11,7 @@
 # - Redis Enterprise (clusters, databases)
 # - Monitoring (ServiceMonitors, PrometheusRules)
 # - Grafana (instances, datasources, dashboards)
+# - Loki (LokiStack, ClusterLogForwarder, ObjectBucketClaim)
 # - Routes (OpenShift)
 #
 apiVersion: rbac.authorization.k8s.io/v1
@@ -193,6 +194,100 @@ rules:
       - grafanadatasources
       - grafanadashboards
       - grafanafolders
+    verbs:
+      - get
+      - list
+      - watch
+      - create
+      - update
+      - patch
+      - delete
+
+  # Loki resources (loki.grafana.com)
+  - apiGroups:
+      - loki.grafana.com
+    resources:
+      - lokistacks
+    verbs:
+      - get
+      - list
+      - watch
+      - create
+      - update
+      - patch
+      - delete
+  - apiGroups:
+      - loki.grafana.com
+    resources:
+      - lokistacks/status
+    verbs:
+      - get
+      - list
+      - watch
+
+  # ClusterLogForwarder (logging.openshift.io)
+  - apiGroups:
+      - logging.openshift.io
+    resources:
+      - clusterlogforwarders
+    verbs:
+      - get
+      - list
+      - watch
+      - create
+      - update
+      - patch
+      - delete
+  - apiGroups:
+      - logging.openshift.io
+    resources:
+      - clusterlogforwarders/status
+    verbs:
+      - get
+      - list
+      - watch
+
+  # ObjectBucketClaim (objectbucket.io)
+  - apiGroups:
+      - objectbucket.io
+    resources:
+      - objectbucketclaims
+    verbs:
+      - get
+      - list
+      - watch
+      - create
+      - update
+      - patch
+      - delete
+  - apiGroups:
+      - objectbucket.io
+    resources:
+      - objectbucketclaims/status
+    verbs:
+      - get
+      - list
+      - watch
+
+  # ConfigMaps (needed for OBC and Loki configuration)
+  - apiGroups:
+      - ""
+    resources:
+      - configmaps
+    verbs:
+      - get
+      - list
+      - watch
+      - create
+      - update
+      - patch
+      - delete
+
+  # Secrets (needed for Loki S3 credentials)
+  - apiGroups:
+      - ""
+    resources:
+      - secrets
     verbs:
       - get
       - list

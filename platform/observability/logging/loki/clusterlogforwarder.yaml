@@ -54,13 +54,11 @@ spec:
     type: application
     application:
       namespaces:
-      - redis
-      - redis-orders-dev
-      - redis-orders-prod
-      - redis-sessions-dev
-      - redis-sessions-prod
-      - redis-payments-dev
-      - redis-payments-prod
+      - redis-enterprise
+      - redis-team1-dev
+      - redis-team1-prod
+      - redis-team2-dev
+      - redis-team2-prod
 
   # Outputs: Where to send logs
   outputs:
