@@ -1,18 +1,19 @@
 apiVersion: argoproj.io/v1alpha1
 kind: Application
 metadata:
-  name: redb-orders-cache-dev
+  name: redb-team1-cache-dev
   namespace: openshift-gitops
   labels:
-    cluster: orders
-    database: orders-cache
+    cluster: demo
+    team: team1
+    database: cache
     env: dev
     type: redis-database
   finalizers:
     - resources-finalizer.argocd.argoproj.io
 spec:
-  project: team-orders
-  
+  project: app-team1
+
   source:
     repoURL: https://github.com/alan-teodoro/poc-gitops.git
     targetRevision: main
@@ -20,18 +21,18 @@ spec:
     helm:
       valueFiles:
         - values-cache.yaml
-        - ../../clusters/orders/databases/cache/dev.yaml
-  
+        - ../../clusters/redis-cluster-demo/teams/team1/cache-dev.yaml
+
   destination:
     server: https://kubernetes.default.svc
-    namespace: redis-orders-dev
-  
+    namespace: redis-team1-dev
+
   syncPolicy:
     automated:
       prune: true
       selfHeal: true
     syncOptions:
-      - CreateNamespace=true
+      - CreateNamespace=false
       - RespectIgnoreDifferences=true
     retry:
       limit: 5

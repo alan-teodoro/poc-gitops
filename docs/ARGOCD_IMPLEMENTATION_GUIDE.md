@@ -509,16 +509,22 @@ oc get pods -n redis-enterprise
 oc apply -f clusters/redis-cluster-demo/argocd-rbac.yaml
 
 # Verify RBAC resources for team1
-oc get role -n redis-team1-dev | grep redis
-oc get role -n redis-team1-prod | grep redis
-oc get rolebinding -n redis-team1-dev | grep redis
-oc get rolebinding -n redis-team1-prod | grep redis
+oc get role -n redis-team1-dev | grep redb
+oc get role -n redis-team1-prod | grep redb
+oc get rolebinding -n redis-team1-dev | grep redb
+oc get rolebinding -n redis-team1-prod | grep redb
 
 # Verify RBAC resources for team2
-oc get role -n redis-team2-dev | grep redis
-oc get role -n redis-team2-prod | grep redis
-oc get rolebinding -n redis-team2-dev | grep redis
-oc get rolebinding -n redis-team2-prod | grep redis
+oc get role -n redis-team2-dev | grep redb
+oc get role -n redis-team2-prod | grep redb
+oc get rolebinding -n redis-team2-dev | grep redb
+oc get rolebinding -n redis-team2-prod | grep redb
+
+# Verify ClusterRole and ClusterRoleBinding
+oc get clusterrole,clusterrolebinding | grep demo-operator
+
+# Verify operator ConfigMap
+oc get configmap operator-environment-config -n redis-enterprise
 ```
 
 **✅ Success**: Roles and RoleBindings created in all team namespaces (team1 and team2)
