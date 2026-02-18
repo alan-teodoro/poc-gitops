@@ -6,6 +6,8 @@ metadata:
   namespace: openshift-monitoring
   labels:
     app: grafana
+  annotations:
+    argocd.argoproj.io/sync-wave: "3"
 spec:
   instanceSelector:
     matchLabels:
@@ -25,6 +27,8 @@ metadata:
   namespace: openshift-monitoring
   labels:
     app: grafana
+  annotations:
+    argocd.argoproj.io/sync-wave: "3"
 spec:
   instanceSelector:
     matchLabels:
@@ -44,6 +48,8 @@ metadata:
   namespace: openshift-monitoring
   labels:
     app: grafana
+  annotations:
+    argocd.argoproj.io/sync-wave: "3"
 spec:
   instanceSelector:
     matchLabels:
@@ -63,6 +69,8 @@ metadata:
   namespace: openshift-monitoring
   labels:
     app: grafana
+  annotations:
+    argocd.argoproj.io/sync-wave: "3"
 spec:
   instanceSelector:
     matchLabels:

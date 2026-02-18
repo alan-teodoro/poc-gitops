@@ -2,6 +2,7 @@
 # Route for Grafana
 # Purpose: Expose Grafana UI externally
 # Managed by: Platform Team
+# Sync Wave: 4 - Must be created AFTER Grafana instance (wave 2)
 
 apiVersion: route.openshift.io/v1
 kind: Route
@@ -10,6 +11,8 @@ metadata:
   namespace: openshift-monitoring
   labels:
     app: grafana
+  annotations:
+    argocd.argoproj.io/sync-wave: "4"
 spec:
   to:
     kind: Service

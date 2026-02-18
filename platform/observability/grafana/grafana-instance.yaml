@@ -2,6 +2,7 @@
 # Grafana Instance
 # Purpose: Deploy Grafana instance for Redis Enterprise monitoring
 # Managed by: Platform Team
+# Sync Wave: 2 - Must be created AFTER datasource (wave 1)
 
 apiVersion: grafana.integreatly.org/v1beta1
 kind: Grafana
@@ -11,6 +12,8 @@ metadata:
   labels:
     dashboards: "grafana"
     app: grafana
+  annotations:
+    argocd.argoproj.io/sync-wave: "2"
 spec:
   config:
     log:

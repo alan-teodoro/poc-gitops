@@ -1,6 +1,17 @@
 ---
 # ClusterRole to allow ArgoCD to manage platform resources
-# Includes: Gatekeeper, ResourceQuotas, LimitRanges
+# Purpose: Grant ArgoCD application controller permissions to deploy platform components
+# Managed by: Platform Team (applied manually, not via ArgoCD to avoid chicken-and-egg problem)
+#
+# Includes permissions for:
+# - Gatekeeper (operator, templates, constraints)
+# - ResourceQuotas, LimitRanges
+# - Services, ServiceAccounts, Jobs
+# - Redis Enterprise (clusters, databases)
+# - Monitoring (ServiceMonitors, PrometheusRules)
+# - Grafana (instances, datasources, dashboards)
+# - Routes (OpenShift)
+#
 apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRole
 metadata:

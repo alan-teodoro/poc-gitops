@@ -2,6 +2,7 @@
 # ServiceAccount for Grafana to access Prometheus
 # Purpose: Allow Grafana to query Prometheus metrics
 # Managed by: Platform Team
+# Sync Wave: -1 - Must be created BEFORE Job (wave 0)
 
 apiVersion: v1
 kind: ServiceAccount
@@ -10,12 +11,15 @@ metadata:
   namespace: openshift-monitoring
   annotations:
     serviceaccounts.openshift.io/oauth-redirectreference.primary: '{"kind":"OAuthRedirectReference","apiVersion":"v1","reference":{"kind":"Route","name":"grafana-route"}}'
+    argocd.argoproj.io/sync-wave: "-1"
 
 ---
 apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRole
 metadata:
   name: grafana-prometheus-reader
+  annotations:
+    argocd.argoproj.io/sync-wave: "-1"
 rules:
   # Allow reading metrics from Prometheus
   - apiGroups: [""]
@@ -38,6 +42,8 @@ apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRoleBinding
 metadata:
   name: grafana-prometheus-reader
+  annotations:
+    argocd.argoproj.io/sync-wave: "-1"
 roleRef:
   apiGroup: rbac.authorization.k8s.io
   kind: ClusterRole
@@ -53,6 +59,8 @@ apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRoleBinding
 metadata:
   name: grafana-cluster-monitoring-view
+  annotations:
+    argocd.argoproj.io/sync-wave: "-1"
 roleRef:
   apiGroup: rbac.authorization.k8s.io
   kind: ClusterRole
@@ -74,6 +82,8 @@ metadata:
   labels:
     app: grafana
     component: rbac
+  annotations:
+    argocd.argoproj.io/sync-wave: "-1"
 rules:
   - apiGroups: [""]
     resources: ["serviceaccounts/token"]
@@ -93,6 +103,8 @@ metadata:
   labels:
     app: grafana
     component: rbac
+  annotations:
+    argocd.argoproj.io/sync-wave: "-1"
 roleRef:
   apiGroup: rbac.authorization.k8s.io
   kind: Role

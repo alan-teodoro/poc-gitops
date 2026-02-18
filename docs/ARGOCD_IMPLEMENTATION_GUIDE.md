@@ -200,14 +200,14 @@ oc get csv -A | grep gatekeeper
 5. Click **Install**
 6. Wait 2-3 minutes for installation
 
-**Grant ArgoCD Permissions to Manage Gatekeeper**:
+**Grant ArgoCD Permissions to Manage Platform Resources**:
 ```bash
-# ArgoCD needs permissions to manage Gatekeeper CRDs
-oc apply -f platform/argocd/rbac/gatekeeper-permissions.yaml
+# ArgoCD needs permissions to manage platform resources (Gatekeeper, Quotas, Redis, Monitoring, etc.)
+oc apply -f platform/argocd/rbac/platform-permissions.yaml
 
 # Verify permissions
-oc get clusterrole argocd-gatekeeper-manager
-oc get clusterrolebinding argocd-gatekeeper-manager
+oc get clusterrole argocd-platform-manager
+oc get clusterrolebinding argocd-platform-manager
 ```
 
 **Create Gatekeeper Instance (GitOps)**:
@@ -571,18 +571,19 @@ oc get redb -A
 
 **Skip if**: Not using observability
 
-### 15.1: Update RBAC Permissions
+### 15.1: Update RBAC Permissions (if not done in Step 8)
 
 ```bash
-# Apply RBAC permissions for PrometheusRule and Grafana CRDs
-oc apply -f platform/argocd/rbac/gatekeeper-permissions.yaml
+# Apply RBAC permissions for all platform resources
+# (This should already be done in Step 8, but verify it includes Grafana permissions)
+oc apply -f platform/argocd/rbac/platform-permissions.yaml
 
 # Verify permissions
 oc describe clusterrole argocd-platform-manager | grep -A5 "monitoring.coreos.com"
 oc describe clusterrole argocd-platform-manager | grep -A5 "grafana.integreatly.org"
 ```
 
-**Note**: RBAC is currently managed **manually** (not via ArgoCD) to avoid chicken-and-egg problem. Consider creating a `platform-rbac` Application (Wave 0) for full GitOps.
+**Note**: RBAC is currently managed **manually** (not via ArgoCD) to avoid chicken-and-egg problem. The `platform-permissions.yaml` file contains all permissions needed for the entire platform deployment.
 
 ### 15.2: Deploy Observability Applications
 
