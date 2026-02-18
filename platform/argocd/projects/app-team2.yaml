@@ -1,0 +1,122 @@
+---
+apiVersion: argoproj.io/v1alpha1
+kind: AppProject
+metadata:
+  name: app-team2
+  namespace: openshift-gitops
+  labels:
+    project: app-team2
+    team: team2
+    managed-by: platform-team
+  finalizers:
+    - resources-finalizer.argocd.argoproj.io
+spec:
+  description: |
+    AppProject for Team 2 - Session Databases.
+    Team 2 manages session databases in dev and prod environments.
+    Provides namespace isolation and resource type restrictions.
+  
+  # Source repositories allowed for this project
+  sourceRepos:
+    - '*'  # Allow all repos (can be restricted to specific org/repo)
+  
+  # Destination clusters and namespaces
+  destinations:
+    # Team 2 can only deploy to their namespaces
+    - namespace: 'redis-team2-dev'
+      server: 'https://kubernetes.default.svc'
+    - namespace: 'redis-team2-prod'
+      server: 'https://kubernetes.default.svc'
+  
+  # Cluster-scoped resources - NONE allowed for teams
+  clusterResourceWhitelist: []
+  
+  # Namespace-scoped resources allowed
+  namespaceResourceWhitelist:
+    # Redis Enterprise resources
+    - group: 'app.redislabs.com'
+      kind: RedisEnterpriseDatabase
+    
+    # OpenShift/Kubernetes core resources
+    - group: 'route.openshift.io'
+      kind: Route
+    - group: ''
+      kind: Service
+    - group: ''
+      kind: Secret
+    - group: ''
+      kind: ConfigMap
+    - group: ''
+      kind: ServiceAccount
+    
+    # External Secrets
+    - group: 'external-secrets.io'
+      kind: ExternalSecret
+    - group: 'external-secrets.io'
+      kind: SecretStore
+  
+  # Resources explicitly denied (platform-managed only)
+  namespaceResourceBlacklist:
+    # Teams cannot create clusters
+    - group: 'app.redislabs.com'
+      kind: RedisEnterpriseCluster
+    # Teams cannot modify quotas/limits
+    - group: ''
+      kind: ResourceQuota
+    - group: ''
+      kind: LimitRange
+    # Teams cannot create RBAC
+    - group: 'rbac.authorization.k8s.io'
+      kind: Role
+    - group: 'rbac.authorization.k8s.io'
+      kind: RoleBinding
+    # Teams cannot create policies
+    - group: 'templates.gatekeeper.sh'
+      kind: ConstraintTemplate
+    - group: 'constraints.gatekeeper.sh'
+      kind: '*'
+  
+  # RBAC roles for this project
+  roles:
+    # Admin role - full control over team2 resources
+    - name: admin
+      description: Admin privileges for Team 2
+      policies:
+        - p, proj:app-team2:admin, applications, *, app-team2/*, allow
+        - p, proj:app-team2:admin, repositories, *, *, allow
+      groups:
+        - team2-admins
+        - platform-admins
+    
+    # Developer role - can view and sync
+    - name: developer
+      description: Developer privileges for Team 2
+      policies:
+        - p, proj:app-team2:developer, applications, get, app-team2/*, allow
+        - p, proj:app-team2:developer, applications, sync, app-team2/*, allow
+        - p, proj:app-team2:developer, logs, get, app-team2/*, allow
+      groups:
+        - team2-developers
+    
+    # Read-only role - view only
+    - name: readonly
+      description: Read-only access for Team 2
+      policies:
+        - p, proj:app-team2:readonly, applications, get, app-team2/*, allow
+        - p, proj:app-team2:readonly, logs, get, app-team2/*, allow
+      groups:
+        - team2-viewers
+  
+  # Sync windows - restrict prod deployments to business hours
+  syncWindows:
+    - kind: allow
+      schedule: '0 9-17 * * 1-5'  # Mon-Fri 9am-5pm
+      duration: 8h
+      applications:
+        - '*-prod'
+      manualSync: true
+  
+  # Orphaned resources monitoring
+  orphanedResources:
+    warn: true
+
