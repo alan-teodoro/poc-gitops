@@ -1,0 +1,25 @@
+---
+apiVersion: v1
+kind: ResourceQuota
+metadata:
+  name: redis-prod-quota
+  namespace: redis-team1-prod
+  labels:
+    environment: prod
+    team: team1
+    managed-by: platform-team
+    resource-type: quota
+spec:
+  hard:
+    requests.cpu: "8"
+    requests.memory: "16Gi"
+    limits.cpu: "16"
+    limits.memory: "32Gi"
+    persistentvolumeclaims: "20"
+    requests.storage: "100Gi"
+    pods: "40"
+    services: "20"
+    secrets: "40"
+    configmaps: "20"
+    count/routes.route.openshift.io: "20"
+

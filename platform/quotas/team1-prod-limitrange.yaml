@@ -1,0 +1,39 @@
+---
+apiVersion: v1
+kind: LimitRange
+metadata:
+  name: redis-prod-limits
+  namespace: redis-team1-prod
+  labels:
+    environment: prod
+    team: team1
+    managed-by: platform-team
+    resource-type: limitrange
+spec:
+  limits:
+    - type: Pod
+      max:
+        cpu: "8"
+        memory: "16Gi"
+      min:
+        cpu: "100m"
+        memory: "128Mi"
+    - type: Container
+      max:
+        cpu: "4"
+        memory: "8Gi"
+      min:
+        cpu: "50m"
+        memory: "64Mi"
+      default:
+        cpu: "1"
+        memory: "1Gi"
+      defaultRequest:
+        cpu: "200m"
+        memory: "256Mi"
+    - type: PersistentVolumeClaim
+      max:
+        storage: "20Gi"
+      min:
+        storage: "1Gi"
+

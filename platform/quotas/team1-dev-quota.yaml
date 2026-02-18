@@ -1,0 +1,25 @@
+---
+apiVersion: v1
+kind: ResourceQuota
+metadata:
+  name: redis-dev-quota
+  namespace: redis-team1-dev
+  labels:
+    environment: dev
+    team: team1
+    managed-by: platform-team
+    resource-type: quota
+spec:
+  hard:
+    requests.cpu: "4"
+    requests.memory: "8Gi"
+    limits.cpu: "8"
+    limits.memory: "16Gi"
+    persistentvolumeclaims: "10"
+    requests.storage: "50Gi"
+    pods: "20"
+    services: "10"
+    secrets: "20"
+    configmaps: "10"
+    count/routes.route.openshift.io: "10"
+

@@ -1,0 +1,38 @@
+---
+apiVersion: v1
+kind: LimitRange
+metadata:
+  name: redis-enterprise-limits
+  namespace: redis-enterprise
+  labels:
+    environment: shared
+    managed-by: platform-team
+    resource-type: limitrange
+spec:
+  limits:
+    - type: Pod
+      max:
+        cpu: "16"
+        memory: "32Gi"
+      min:
+        cpu: "100m"
+        memory: "128Mi"
+    - type: Container
+      max:
+        cpu: "8"
+        memory: "16Gi"
+      min:
+        cpu: "50m"
+        memory: "64Mi"
+      default:
+        cpu: "2"
+        memory: "2Gi"
+      defaultRequest:
+        cpu: "500m"
+        memory: "512Mi"
+    - type: PersistentVolumeClaim
+      max:
+        storage: "50Gi"
+      min:
+        storage: "1Gi"
+
