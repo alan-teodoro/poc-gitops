@@ -563,7 +563,7 @@ oc get redb -A
 
 **✅ Success**: All 4 databases show `active`
 
-**⏭️ Next**: Continue to Step 16 (or skip to Step 19 if not using observability)
+**⏭️ Next**: Continue to Step 15 (or skip to Step 19 if not using observability)
 
 ---
 

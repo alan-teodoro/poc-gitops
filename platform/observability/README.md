@@ -2,6 +2,48 @@
 
 This directory contains **production-grade observability resources** for Redis Enterprise monitoring based on official Redis best practices.
 
+## 📁 Structure
+
+```
+platform/observability/
+├── prometheus/              # Prometheus monitoring (Wave 5)
+│   └── prometheus-rules-redis.yaml
+├── grafana/                 # Grafana dashboards (Wave 5)
+│   ├── grafana-instance.yaml
+│   ├── grafana-datasource-prometheus.yaml
+│   ├── grafana-dashboards.yaml
+│   ├── grafana-dashboards-configmaps.yaml
+│   ├── grafana-prometheus-sa.yaml
+│   ├── grafana-token-secret-job.yaml
+│   └── grafana-route.yaml
+├── dashboards/              # Dashboard JSON files
+│   ├── redis-cluster-dashboard.json
+│   ├── redis-database-dashboard.json
+│   ├── redis-node-dashboard.json
+│   └── redis-shard-dashboard.json
+└── logging/                 # Logging stack (optional)
+```
+
+## 🚀 ArgoCD Applications
+
+This observability stack is deployed via **2 separate ArgoCD Applications**:
+
+1. **`redis-observability-prometheus`** (Wave 5)
+   - **Namespace**: `openshift-monitoring`
+   - **Components**: PrometheusRule (40+ alerts)
+   - **Path**: `platform/observability/prometheus`
+
+2. **`redis-observability-grafana`** (Wave 5)
+   - **Namespace**: `openshift-monitoring`
+   - **Components**: Grafana instance, datasources, dashboards, RBAC
+   - **Path**: `platform/observability/grafana`
+
+**Why separate?**
+- ✅ Independent deployment (can deploy Prometheus without Grafana)
+- ✅ Easier troubleshooting
+- ✅ Better modularity
+- ✅ Can disable Grafana but keep alerts
+
 ---
 
 ## 📊 Components

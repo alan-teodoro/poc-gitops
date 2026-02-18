@@ -2,10 +2,11 @@
 apiVersion: argoproj.io/v1alpha1
 kind: Application
 metadata:
-  name: redis-observability
+  name: redis-observability-prometheus
   namespace: openshift-gitops
   labels:
     app: redis-observability
+    component: prometheus
     managed-by: platform-team
   annotations:
     argocd.argoproj.io/sync-wave: "5"
@@ -17,14 +18,13 @@ spec:
   source:
     repoURL: https://github.com/alan-teodoro/poc-gitops.git
     targetRevision: main
-    path: platform/observability
+    path: platform/observability/prometheus
     directory:
-      recurse: true
-      exclude: 'logging/**'
+      recurse: false
   
   destination:
     server: https://kubernetes.default.svc
-    namespace: redis-enterprise
+    namespace: openshift-monitoring
   
   syncPolicy:
     automated:
@@ -39,19 +39,10 @@ spec:
         factor: 2
         maxDuration: 3m
   
-  # Ignore differences in Grafana resources (they get modified by operator)
+  # Ignore differences in PrometheusRule status
   ignoreDifferences:
-    - group: grafana.integreatly.org
-      kind: Grafana
-      jsonPointers:
-        - /spec/client
-        - /status
-    - group: grafana.integreatly.org
-      kind: GrafanaDashboard
-      jsonPointers:
-        - /status
-    - group: grafana.integreatly.org
-      kind: GrafanaDataSource
+    - group: monitoring.coreos.com
+      kind: PrometheusRule
       jsonPointers:
         - /status
 

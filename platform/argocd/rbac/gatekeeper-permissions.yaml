@@ -116,11 +116,29 @@ rules:
       - patch
       - delete
 
-  # ServiceMonitors (monitoring.coreos.com)
+  # ServiceMonitors and PrometheusRules (monitoring.coreos.com)
   - apiGroups:
       - monitoring.coreos.com
     resources:
       - servicemonitors
+      - prometheusrules
+    verbs:
+      - get
+      - list
+      - watch
+      - create
+      - update
+      - patch
+      - delete
+
+  # Grafana resources (grafana.integreatly.org)
+  - apiGroups:
+      - grafana.integreatly.org
+    resources:
+      - grafanas
+      - grafanadatasources
+      - grafanadashboards
+      - grafanafolders
     verbs:
       - get
       - list
