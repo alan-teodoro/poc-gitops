@@ -1,0 +1,30 @@
+---
+# SIMPLIFIED: Allow Client Access Network Policy
+# Purpose: Allow application clients to access Redis databases
+# Strategy: Allow from labeled namespaces (simplified - no port restrictions)
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: allow-client-access
+  namespace: redis-enterprise
+  labels:
+    app: redis-enterprise
+    component: network-policy
+    security: client-access
+spec:
+  # Apply to Redis Enterprise pods
+  podSelector:
+    matchLabels:
+      app: redis-enterprise
+  
+  policyTypes:
+    - Ingress
+  
+  ingress:
+    # Allow ALL ports from namespaces labeled with redis-client=true (simplified)
+    # To enable access from a namespace: oc label namespace <namespace> redis-client=true
+    - from:
+        - namespaceSelector:
+            matchLabels:
+              redis-client: "true"
+
