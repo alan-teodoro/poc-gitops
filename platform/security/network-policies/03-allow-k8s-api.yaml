@@ -22,24 +22,12 @@ spec:
   egress:
     # Allow access to Kubernetes API server
     # Note: API server is typically in default namespace or master nodes
-    - to:
-        # Allow to default namespace (kubernetes service)
-        - namespaceSelector:
-            matchLabels:
-              kubernetes.io/metadata.name: default
-      ports:
+    # Using broad rule to allow API access (API server may be outside cluster network)
+    - ports:
         - protocol: TCP
           port: 443
         - protocol: TCP
           port: 6443
-    
-    # Allow to master nodes (OpenShift API server)
-    - to:
-        # Allow to any IP (API server may be outside cluster)
-        - podSelector: {}
-      ports:
-        - protocol: TCP
-          port: 443
-        - protocol: TCP
-          port: 6443
+      # No 'to' selector = allow to any destination on these ports
+      # This is necessary because K8s API server may be on master nodes outside pod network
 
