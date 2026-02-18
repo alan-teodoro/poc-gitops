@@ -31,6 +31,8 @@ spec:
     syncOptions:
       - CreateNamespace=false
       - RespectIgnoreDifferences=true
+      - PrunePropagationPolicy=foreground
+      - PruneLast=true
     retry:
       limit: 5
       backoff:
