@@ -41,6 +41,7 @@ spec:
     # TLS configuration for S3 (NooBaa)
     # Use service-ca.crt to trust OpenShift service certificates
     tls:
+      caName: logging-loki-s3
       caKey: service-ca.crt
 
   # Storage class for PVCs
