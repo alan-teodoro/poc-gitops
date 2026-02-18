@@ -1,0 +1,48 @@
+---
+# ClusterRole to allow ArgoCD to manage Gatekeeper resources
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: argocd-gatekeeper-manager
+  labels:
+    app: argocd
+    managed-by: platform-team
+rules:
+  - apiGroups:
+      - operator.gatekeeper.sh
+    resources:
+      - gatekeepers
+    verbs:
+      - get
+      - list
+      - watch
+      - create
+      - update
+      - patch
+      - delete
+  - apiGroups:
+      - operator.gatekeeper.sh
+    resources:
+      - gatekeepers/status
+    verbs:
+      - get
+      - list
+      - watch
+---
+# ClusterRoleBinding to grant ArgoCD application controller the permissions
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: argocd-gatekeeper-manager
+  labels:
+    app: argocd
+    managed-by: platform-team
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: argocd-gatekeeper-manager
+subjects:
+  - kind: ServiceAccount
+    name: openshift-gitops-argocd-application-controller
+    namespace: openshift-gitops
+

@@ -19,6 +19,47 @@
 
 ---
 
+## 📊 Deployment Order Summary
+
+### Phase 1: Operators (Manual - Steps 1-7)
+1. **OpenShift GitOps Operator** - ArgoCD installation
+2. **Redis Enterprise Operator** - Redis cluster management
+3. **Gatekeeper Operator** - Policy enforcement
+4. **Grafana Operator** - Observability (optional)
+5. **Loki & Logging Operators** - Log aggregation (optional)
+
+### Phase 2: GitOps Setup (Steps 8-11)
+**Sync Wave 0**: Gatekeeper Instance
+- Grant ArgoCD permissions for Gatekeeper
+- Deploy Gatekeeper instance (creates CRDs)
+
+**Sync Wave 1**: Namespaces
+- Create 5 Redis namespaces (enterprise, team1-dev/prod, team2-dev/prod)
+
+**Sync Wave 2**: Policies & Quotas
+- Deploy Gatekeeper policies (ConstraintTemplates + Constraints)
+- Apply ResourceQuotas & LimitRanges
+
+### Phase 3: Redis Deployment (Steps 12-14)
+**Sync Wave 3**: Redis Cluster
+- Deploy Redis Enterprise Cluster in redis-enterprise namespace
+
+**Sync Wave 4**: RBAC & Databases
+- Configure multi-namespace RBAC
+- Deploy Redis databases (team1: cache, team2: session)
+
+### Phase 4: Observability & HA (Steps 15-17) - Optional
+**Sync Wave 5**: Observability
+- Grafana instance, ServiceMonitor, PrometheusRules, Dashboards
+
+**Sync Wave 6**: Logging
+- LokiStack, ClusterLogForwarder, Grafana datasource
+
+**Sync Wave 7**: High Availability
+- PodDisruptionBudgets for Redis cluster
+
+---
+
 # 🚀 DEPLOYMENT STEPS
 
 ---
@@ -157,6 +198,16 @@ oc get csv -A | grep gatekeeper
 5. Click **Install**
 6. Wait 2-3 minutes for installation
 
+**Grant ArgoCD Permissions to Manage Gatekeeper**:
+```bash
+# ArgoCD needs permissions to manage Gatekeeper CRDs
+oc apply -f platform/argocd/rbac/gatekeeper-permissions.yaml
+
+# Verify permissions
+oc get clusterrole argocd-gatekeeper-manager
+oc get clusterrolebinding argocd-gatekeeper-manager
+```
+
 **Create Gatekeeper Instance (GitOps)**:
 ```bash
 # Deploy Gatekeeper instance via ArgoCD
@@ -168,9 +219,13 @@ oc get application gatekeeper-instance -n openshift-gitops -w
 # Verify Gatekeeper pods
 oc get pods -n openshift-gatekeeper-system
 # Expected: gatekeeper-audit and gatekeeper-controller-manager pods Running
+
+# Verify CRDs were created
+oc get crd | grep gatekeeper
+# Expected: constrainttemplates.templates.gatekeeper.sh
 ```
 
-**✅ Success**: ArgoCD Application synced, Gatekeeper pods Running
+**✅ Success**: ArgoCD Application synced, Gatekeeper pods Running, CRDs created
 
 **⏭️ Next**: Continue to Step 6
 
@@ -352,17 +407,37 @@ oc apply -f platform/argocd/apps/quotas-limitranges.yaml
 # Watch ArgoCD sync (30 seconds)
 oc get application quotas-limitranges -n openshift-gitops -w
 
-# Verify quotas
+# Verify quotas in all namespaces
+oc get resourcequota -n redis-enterprise
 oc get resourcequota -n redis-team1-dev
 oc get resourcequota -n redis-team1-prod
 oc get resourcequota -n redis-team2-dev
 oc get resourcequota -n redis-team2-prod
 
 # Verify limitranges
-oc get limitrange -A | grep redis-team
+oc get limitrange -A | grep redis
 ```
 
-**✅ Success**: ArgoCD Application synced, quotas and limitranges applied to all team namespaces
+**What this deploys**:
+- **ResourceQuotas**: Limit total resources per namespace (10 files)
+  - `enterprise-quota.yaml` - redis-enterprise namespace (16 CPU, 32Gi RAM)
+  - `team1-dev-quota.yaml` - redis-team1-dev namespace (4 CPU, 8Gi RAM)
+  - `team1-prod-quota.yaml` - redis-team1-prod namespace (8 CPU, 16Gi RAM)
+  - `team2-dev-quota.yaml` - redis-team2-dev namespace (4 CPU, 8Gi RAM)
+  - `team2-prod-quota.yaml` - redis-team2-prod namespace (8 CPU, 16Gi RAM)
+- **LimitRanges**: Set default/max limits per pod/container (5 files)
+  - `enterprise-limitrange.yaml` - redis-enterprise namespace
+  - `team1-dev-limitrange.yaml` - redis-team1-dev namespace
+  - `team1-prod-limitrange.yaml` - redis-team1-prod namespace
+  - `team2-dev-limitrange.yaml` - redis-team2-dev namespace
+  - `team2-prod-limitrange.yaml` - redis-team2-prod namespace
+
+**Resource allocation**:
+- **Dev environments**: 4 CPU / 8Gi RAM per namespace
+- **Prod environments**: 8 CPU / 16Gi RAM per namespace (2x dev)
+- **Enterprise cluster**: 16 CPU / 32Gi RAM (shared cluster)
+
+**✅ Success**: ArgoCD Application synced, quotas and limitranges applied to all 5 namespaces
 
 **⏭️ Next**: Continue to Step 13
 
