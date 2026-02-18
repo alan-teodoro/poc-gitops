@@ -31,13 +31,18 @@ spec:
     schemas:
     - version: v13
       effectiveDate: "2024-01-01"
-    
+
     # Object storage secret
     # Points to ODF/Ceph S3 (NooBaa) or external S3
     secret:
       name: logging-loki-s3
       type: s3
-  
+
+    # TLS configuration for S3 (NooBaa)
+    # Use service-ca.crt to trust OpenShift service certificates
+    tls:
+      caKey: service-ca.crt
+
   # Storage class for PVCs
   # Uses ODF Ceph RBD for persistent storage (external mode)
   storageClassName: ocs-external-storagecluster-ceph-rbd
