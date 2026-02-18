@@ -1,0 +1,41 @@
+---
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: gatekeeper-constraints
+  namespace: openshift-gitops
+  labels:
+    app: gatekeeper-constraints
+    managed-by: platform-team
+  annotations:
+    argocd.argoproj.io/sync-wave: "3"
+  finalizers:
+    - resources-finalizer.argocd.argoproj.io
+spec:
+  project: platform-team
+  
+  source:
+    repoURL: https://github.com/alan-teodoro/poc-gitops.git
+    targetRevision: main
+    path: platform/policies/constraints
+    directory:
+      recurse: false
+  
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: openshift-gatekeeper-system
+  
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+    syncOptions:
+      - CreateNamespace=false
+      - ApplyOutOfSyncOnly=false
+    retry:
+      limit: 5
+      backoff:
+        duration: 5s
+        factor: 2
+        maxDuration: 3m
+

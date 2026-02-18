@@ -8,8 +8,9 @@ This directory contains ArgoCD Application manifests for GitOps deployment.
 platform/argocd/apps/
 ├── gatekeeper-instance.yaml     # Wave 0: Create Gatekeeper instance
 ├── namespaces.yaml              # Wave 1: Create namespaces
-├── gatekeeper-policies.yaml     # Wave 2: Deploy Gatekeeper policies
+├── gatekeeper-templates.yaml    # Wave 2: Deploy ConstraintTemplates (creates CRDs)
 ├── quotas-limitranges.yaml      # Wave 2: Apply quotas and limitranges
+├── gatekeeper-constraints.yaml  # Wave 3: Deploy Constraints (uses CRDs)
 ├── observability.yaml           # Wave 5: Grafana, Prometheus monitoring
 ├── logging.yaml                 # Wave 6: Loki logging stack
 └── high-availability.yaml       # Wave 7: PodDisruptionBudgets
@@ -23,8 +24,9 @@ Applications are deployed in order using sync waves:
 |------|-------------|---------|
 | 0 | `gatekeeper-instance` | Create Gatekeeper instance (installs CRDs) |
 | 1 | `namespaces` | Create all required namespaces |
-| 2 | `gatekeeper-policies` | Deploy policy templates and constraints |
+| 2 | `gatekeeper-templates` | Deploy ConstraintTemplates (creates policy CRDs) |
 | 2 | `quotas-limitranges` | Apply resource quotas and limits |
+| 3 | `gatekeeper-constraints` | Deploy Constraints (enforces policies) |
 | 3 | `redis-cluster` | Deploy Redis Enterprise Cluster (in clusters/) |
 | 4 | `redis-rbac` | Deploy multi-namespace RBAC (in clusters/) |
 | 4 | `redis-databases` | Deploy Redis databases (in clusters/) |
@@ -43,11 +45,14 @@ oc apply -f platform/argocd/apps/gatekeeper-instance.yaml
 # Deploy namespaces
 oc apply -f platform/argocd/apps/namespaces.yaml
 
-# Deploy policies
-oc apply -f platform/argocd/apps/gatekeeper-policies.yaml
+# Deploy Gatekeeper templates (creates CRDs)
+oc apply -f platform/argocd/apps/gatekeeper-templates.yaml
 
 # Deploy quotas
 oc apply -f platform/argocd/apps/quotas-limitranges.yaml
+
+# Deploy Gatekeeper constraints (enforces policies)
+oc apply -f platform/argocd/apps/gatekeeper-constraints.yaml
 
 # Deploy observability (optional)
 oc apply -f platform/argocd/apps/observability.yaml

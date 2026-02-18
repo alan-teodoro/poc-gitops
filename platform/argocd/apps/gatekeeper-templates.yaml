@@ -2,10 +2,10 @@
 apiVersion: argoproj.io/v1alpha1
 kind: Application
 metadata:
-  name: gatekeeper-policies
+  name: gatekeeper-templates
   namespace: openshift-gitops
   labels:
-    app: gatekeeper-policies
+    app: gatekeeper-templates
     managed-by: platform-team
   annotations:
     argocd.argoproj.io/sync-wave: "2"
@@ -17,9 +17,9 @@ spec:
   source:
     repoURL: https://github.com/alan-teodoro/poc-gitops.git
     targetRevision: main
-    path: platform/policies
+    path: platform/policies/templates
     directory:
-      recurse: true
+      recurse: false
   
   destination:
     server: https://kubernetes.default.svc
@@ -31,7 +31,7 @@ spec:
       selfHeal: true
     syncOptions:
       - CreateNamespace=false
-      - ApplyOutOfSyncOnly=true
+      - ApplyOutOfSyncOnly=false
     retry:
       limit: 5
       backoff:
@@ -39,7 +39,7 @@ spec:
         factor: 2
         maxDuration: 3m
   
-  # Health assessment
+  # Ignore differences in ConstraintTemplate status
   ignoreDifferences:
     - group: templates.gatekeeper.sh
       kind: ConstraintTemplate
