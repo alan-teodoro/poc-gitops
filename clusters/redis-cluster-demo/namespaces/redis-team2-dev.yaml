@@ -10,20 +10,23 @@ metadata:
   labels:
     # Team ownership
     team: team2
-    
+
     # Environment
     environment: dev
-    
+
     # Cost allocation
     cost-center: CC-TEAM2
-    
+
     # Application
     app: redis-enterprise
-    
+
+    # Redis Enterprise multi-namespace support
+    redis-db-namespace: enabled
+
     # Governance
     managed-by: platform-team
     gitops: argocd
-    
+
     # OpenShift features
     openshift.io/cluster-monitoring: "true"
   

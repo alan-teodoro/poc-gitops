@@ -20,6 +20,9 @@ metadata:
     # Application
     app: redis-enterprise
 
+    # Redis Enterprise multi-namespace support
+    redis-db-namespace: enabled
+
     # Governance
     managed-by: platform-team
     gitops: argocd
