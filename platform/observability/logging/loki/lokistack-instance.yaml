@@ -101,51 +101,7 @@ spec:
     bucketclass: noobaa-default-bucket-class
 
 ---
-# Object Storage Secret for LokiStack
-# This secret references the auto-generated credentials from ObjectBucketClaim
-# The OBC creates a ConfigMap and Secret automatically with connection details
-
-apiVersion: v1
-kind: Secret
-metadata:
-  name: logging-loki-s3
-  namespace: openshift-logging
-  annotations:
-    argocd.argoproj.io/sync-wave: "9"
-type: Opaque
-stringData:
-  # These values will be populated from the OBC-generated secret
-  # The secret name is: loki-logs-bucket (same as OBC name)
-  #
-  # For now, we use placeholders that will be replaced by External Secrets Operator
-  # or manually updated after OBC creation
-
-  # S3 endpoint - from ConfigMap: loki-logs-bucket
-  # Key: BUCKET_HOST
-  endpoint: https://s3.openshift-storage.svc
-
-  # Bucket name - from ConfigMap: loki-logs-bucket
-  # Key: BUCKET_NAME
-  bucketnames: loki-logs
-
-  # Region
-  region: us-east-1
-
-  # Access credentials - from Secret: loki-logs-bucket
-  # Keys: AWS_ACCESS_KEY_ID, AWS_SECRET_ACCESS_KEY
-  access_key_id: ""
-  access_key_secret: ""
-
----
-# Note: After ObjectBucketClaim is created, you need to update the secret above with:
-#
-# 1. Get the auto-generated credentials:
-#    oc get secret loki-logs-bucket -n openshift-logging -o yaml
-#
-# 2. Get the endpoint:
-#    oc get configmap loki-logs-bucket -n openshift-logging -o jsonpath='{.data.BUCKET_HOST}'
-#
-# 3. Update this secret OR use External Secrets Operator to sync automatically
-#
-# Alternative: Use a Job to copy credentials automatically (see loki-secret-sync-job.yaml)
+# Note: The logging-loki-s3 secret is created automatically by the loki-secret-sync-job.yaml
+# The Job copies credentials from the ObjectBucketClaim secret to the LokiStack secret
+# See: loki-secret-sync-job.yaml (sync-wave 10)
 

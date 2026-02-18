@@ -225,7 +225,7 @@ rules:
       - list
       - watch
 
-  # ClusterLogForwarder (logging.openshift.io)
+  # ClusterLogForwarder (logging.openshift.io - legacy API)
   - apiGroups:
       - logging.openshift.io
     resources:
@@ -240,6 +240,28 @@ rules:
       - delete
   - apiGroups:
       - logging.openshift.io
+    resources:
+      - clusterlogforwarders/status
+    verbs:
+      - get
+      - list
+      - watch
+
+  # ClusterLogForwarder (observability.openshift.io - new API)
+  - apiGroups:
+      - observability.openshift.io
+    resources:
+      - clusterlogforwarders
+    verbs:
+      - get
+      - list
+      - watch
+      - create
+      - update
+      - patch
+      - delete
+  - apiGroups:
+      - observability.openshift.io
     resources:
       - clusterlogforwarders/status
     verbs:
