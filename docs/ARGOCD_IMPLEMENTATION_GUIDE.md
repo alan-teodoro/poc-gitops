@@ -36,13 +36,15 @@
 **Sync Wave 1**: Namespaces
 - Create 5 Redis namespaces (enterprise, team1-dev/prod, team2-dev/prod)
 
-**Sync Wave 2**: Policies & Quotas
-- Deploy Gatekeeper policies (ConstraintTemplates + Constraints)
+**Sync Wave 2**: ConstraintTemplates & Quotas
+- Deploy Gatekeeper ConstraintTemplates (creates policy CRDs)
 - Apply ResourceQuotas & LimitRanges
 
-### Phase 3: Redis Deployment (Steps 12-14)
-**Sync Wave 3**: Redis Cluster
+**Sync Wave 3**: Constraints & Redis Cluster
+- Deploy Gatekeeper Constraints (enforces policies)
 - Deploy Redis Enterprise Cluster in redis-enterprise namespace
+
+### Phase 3: Redis Deployment (Steps 12-14)
 
 **Sync Wave 4**: RBAC & Databases
 - Configure multi-namespace RBAC
@@ -363,36 +365,69 @@ oc get namespaces | grep redis
 
 ---
 
-## Step 10: Deploy Gatekeeper Policies (GitOps)
+## Step 10: Deploy Gatekeeper ConstraintTemplates (GitOps)
 
 **Skip if**: Not using Gatekeeper policies
 
+**Why 2 separate steps?**: ConstraintTemplates create CRDs that Constraints depend on. They must be applied in order.
+
 ```bash
-# Deploy Gatekeeper policies via ArgoCD
-oc apply -f platform/argocd/apps/gatekeeper-policies.yaml
+# Deploy ConstraintTemplates via ArgoCD (creates CRDs)
+oc apply -f platform/argocd/apps/gatekeeper-templates.yaml
 
-# Watch ArgoCD sync (1-2 minutes)
-oc get application gatekeeper-policies -n openshift-gitops -w
+# Watch ArgoCD sync (1 minute)
+oc get application gatekeeper-templates -n openshift-gitops -w
 
-# Verify templates
+# Verify ConstraintTemplates created
 oc get constrainttemplates
-# Expected: redis-immutable-shardcount, redis-mandatory-labels, redis-memory-limit
+# Expected: redisimmutableshardcount, redismandatorylabels, redismemorylimit
 
-# Verify constraints
-oc get constraints -A
-# Expected: Constraints in various namespaces
+# Verify CRDs were created by the templates
+oc get crd | grep -E "(redisimmutable|redismandatory|redismemory)"
+# Expected: 3 CRDs (redisimmutableshardcount, redismandatorylabels, redismemorylimit)
 ```
 
 **What this deploys**:
 - **ConstraintTemplates**: Policy definitions (3 templates)
-- **Constraints**: Policy enforcement rules (4 constraints)
+  - `redis-immutable-shardcount`: Template for immutable shardCount policy
+  - `redis-mandatory-labels`: Template for required labels policy
+  - `redis-memory-limit`: Template for memory limit policy
 
-**Policies enforced**:
+**✅ Success**: ArgoCD Application synced, 3 ConstraintTemplates created, 3 CRDs available
+
+**⏭️ Next**: Continue to Step 10.5
+
+---
+
+## Step 10.5: Deploy Gatekeeper Constraints (GitOps)
+
+**Prerequisites**: Step 10 completed (ConstraintTemplates and CRDs exist)
+
+```bash
+# Deploy Constraints via ArgoCD (enforces policies)
+oc apply -f platform/argocd/apps/gatekeeper-constraints.yaml
+
+# Watch ArgoCD sync (30 seconds)
+oc get application gatekeeper-constraints -n openshift-gitops -w
+
+# Verify constraints created
+oc get constraints -A
+# Expected: 4 constraints
+```
+
+**What this deploys**:
+- **Constraints**: Policy enforcement rules (4 constraints)
+  - `redis-immutable-shardcount-all-namespaces`: Prevents changing shardCount after creation
+  - `redis-mandatory-labels-all`: Requires team, cost-center, environment labels
+  - `redis-memory-limit-dev`: Enforces 1GB memory limit in dev namespaces
+  - `redis-memory-limit-prod`: Enforces 2GB memory limit in prod namespaces
+
+**Policies now active**:
 1. **redis-mandatory-labels**: Requires team, cost-center, environment labels
 2. **redis-memory-limit**: Enforces memory limits (dev: 1GB, prod: 2GB)
 3. **redis-immutable-shardcount**: Prevents changing shardCount after creation
 
-**✅ Success**: ArgoCD Application synced, policies active
+**✅ Success**: ArgoCD Application synced, 4 Constraints active, policies enforced
 
 **⏭️ Next**: Continue to Step 11
 
