@@ -1,21 +1,21 @@
 ---
 # Namespace for Redis Databases - Production
-# Team: Orders
-# Purpose: Production Redis databases
+# Team: Team 2
+# Purpose: Production Redis databases (session)
 
 apiVersion: v1
 kind: Namespace
 metadata:
-  name: redis-orders-prod
+  name: redis-team2-prod
   labels:
     # Team ownership
-    team: orders
+    team: team2
     
     # Environment
     environment: prod
     
     # Cost allocation
-    cost-center: CC-1234
+    cost-center: CC-TEAM2
     
     # Application
     app: redis-enterprise
@@ -31,8 +31,8 @@ metadata:
     pod-security.kubernetes.io/enforce: restricted
   
   annotations:
-    description: "Production Redis databases for Orders team"
-    owner: "orders-team@company.com"
+    description: "Production Redis databases for Team 2 (session)"
+    owner: "team2@company.com"
     created-by: "platform-team"
     quota-profile: "prod"
     backup-required: "true"

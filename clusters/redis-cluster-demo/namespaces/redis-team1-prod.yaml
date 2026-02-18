@@ -1,0 +1,39 @@
+---
+# Namespace for Redis Databases - Production
+# Team: Team 1
+# Purpose: Production Redis databases (cache)
+
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: redis-team1-prod
+  labels:
+    # Team ownership
+    team: team1
+
+    # Environment
+    environment: prod
+
+    # Cost allocation
+    cost-center: CC-TEAM1
+
+    # Application
+    app: redis-enterprise
+
+    # Governance
+    managed-by: platform-team
+    gitops: argocd
+
+    # OpenShift features
+    openshift.io/cluster-monitoring: "true"
+
+    # Production-specific
+    pod-security.kubernetes.io/enforce: restricted
+
+  annotations:
+    description: "Production Redis databases for Team 1 (cache)"
+    owner: "team1@company.com"
+    created-by: "platform-team"
+    quota-profile: "prod"
+    backup-required: "true"
+

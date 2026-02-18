@@ -1,15 +1,16 @@
-# Configuration for Orders Redis Enterprise Cluster
-# This file contains the specific configuration for the orders cluster
+# Configuration for Demo Redis Enterprise Cluster
+# This file contains the configuration for the shared Redis Enterprise cluster
+# This cluster serves multiple teams (team1, team2, etc.)
 
 cluster:
-  name: orders
-  team: orders-team
+  name: demo
+  team: platform-team
   datacenter: dc1
 
-namespace: redis
+namespace: redis-enterprise
 
 redis:
-  clusterName: orders-redis-cluster
+  clusterName: demo-redis-cluster
   nodes: 3
   version: "8.0.10-64"
   
@@ -39,8 +40,8 @@ monitoring:
 labels:
   app.kubernetes.io/managed-by: argocd
   gitops: argocd
-  cluster: orders
+  cluster: demo
 
 annotations:
-  description: "Redis Enterprise Cluster for Orders application"
+  description: "Shared Redis Enterprise Cluster - Demo multi-tenant setup"
 

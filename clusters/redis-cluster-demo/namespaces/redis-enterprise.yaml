@@ -1,0 +1,31 @@
+---
+# Namespace for Redis Enterprise Cluster (Operator + Cluster)
+# Purpose: Shared Redis Enterprise Operator and Cluster resources
+# Note: This cluster serves multiple teams/applications
+
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: redis-enterprise
+  labels:
+    # Environment
+    environment: shared
+
+    # Cost allocation
+    cost-center: CC-PLATFORM
+
+    # Application
+    app: redis-enterprise
+
+    # Governance
+    managed-by: platform-team
+    gitops: argocd
+
+    # OpenShift features
+    openshift.io/cluster-monitoring: "true"
+
+  annotations:
+    description: "Shared Redis Enterprise Cluster namespace"
+    owner: "platform-team@company.com"
+    created-by: "platform-team"
+

@@ -1,10 +1,10 @@
 apiVersion: argoproj.io/v1alpha1
 kind: Application
 metadata:
-  name: redis-cluster-orders
+  name: redis-cluster-demo
   namespace: openshift-gitops
   labels:
-    cluster: orders
+    cluster: demo
     component: infrastructure
     type: redis-cluster
   finalizers:
@@ -18,11 +18,11 @@ spec:
     path: helm-charts/redis-enterprise-cluster
     helm:
       valueFiles:
-        - ../../clusters/orders/cluster.yaml
+        - ../../clusters/redis-cluster-demo/cluster.yaml
   
   destination:
     server: https://kubernetes.default.svc
-    namespace: redis
+    namespace: redis-enterprise
   
   syncPolicy:
     automated:

@@ -8,8 +8,7 @@ cluster:
   datacenter: dc1
 
 # Namespace where cluster will be deployed
-# Format: redis-{cluster.name}-enterprise
-namespace: redis-orders
+namespace: redis-enterprise
 
 # Redis Enterprise Cluster configuration
 redis:
@@ -36,6 +35,26 @@ redis:
     enabled: true
     storageClassName: ocs-external-storagecluster-ceph-rbd
     volumeSize: 50Gi
+
+  # Pod anti-affinity for high availability
+  # Spreads Redis pods across nodes and zones
+  podAntiAffinity:
+    preferredDuringSchedulingIgnoredDuringExecution:
+      # Node-level: Spread across different nodes (HIGH priority)
+      - weight: 100
+        podAffinityTerm:
+          labelSelector:
+            matchLabels:
+              app: redis-enterprise
+          topologyKey: kubernetes.io/hostname
+
+      # Zone-level: Spread across different zones (MEDIUM priority)
+      - weight: 50
+        podAffinityTerm:
+          labelSelector:
+            matchLabels:
+              app: redis-enterprise
+          topologyKey: topology.kubernetes.io/zone
 
 # Routes configuration
 routes:

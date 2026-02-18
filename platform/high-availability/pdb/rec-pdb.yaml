@@ -1,0 +1,79 @@
+---
+# PodDisruptionBudget for Redis Enterprise Cluster
+# Purpose: Ensure cluster quorum is maintained during node maintenance
+# Managed by: Platform Team
+
+apiVersion: policy/v1
+kind: PodDisruptionBudget
+metadata:
+  name: redis-cluster-pdb
+  namespace: redis-enterprise
+  labels:
+    app: redis-enterprise
+    cluster: demo
+    component: high-availability
+    managed-by: argocd
+  annotations:
+    argocd.argoproj.io/sync-wave: "13"
+    description: "Prevents cluster quorum loss during node maintenance"
+spec:
+  # Minimum number of pods that must be available
+  # For 3-node cluster: minAvailable = 2 (quorum)
+  # For 5-node cluster: minAvailable = 3 (quorum)
+  minAvailable: 2
+
+  selector:
+    matchLabels:
+      app: redis-enterprise
+      redis.io/cluster: demo-redis-cluster
+
+# ========================================
+# How This Works
+# ========================================
+# 
+# When a node is drained (e.g., for maintenance):
+# 1. Kubernetes tries to evict pods from the node
+# 2. PDB checks if eviction would violate minAvailable
+# 3. If yes, eviction is blocked until safe
+# 4. Ensures cluster always has quorum (2+ nodes)
+#
+# Example:
+# - 3 Redis pods running on 3 different nodes
+# - Admin drains node-1
+# - PDB allows eviction (2 pods remain = quorum OK)
+# - Admin tries to drain node-2 simultaneously
+# - PDB blocks eviction (would leave only 1 pod = quorum lost)
+# - Admin must wait for node-1 to come back first
+
+# ========================================
+# Testing
+# ========================================
+# 
+# Test PDB protection:
+#   oc adm drain <node-name> --ignore-daemonsets --delete-emptydir-data
+#   # Should succeed for first node
+#   # Should block for second node (violates PDB)
+#
+# Check PDB status:
+#   oc get pdb redis-cluster-pdb -n redis-enterprise
+#   oc describe pdb redis-cluster-pdb -n redis-enterprise
+#
+# Expected output:
+#   Min Available: 2
+#   Current: 3
+#   Allowed Disruptions: 1
+
+# ========================================
+# Customization
+# ========================================
+#
+# For different cluster sizes:
+# - 3 nodes: minAvailable: 2
+# - 5 nodes: minAvailable: 3
+# - 7 nodes: minAvailable: 4
+# Formula: minAvailable = ceil(nodes / 2)
+#
+# For different clusters:
+# - Change namespace to match cluster namespace
+# - Change redis.io/cluster label to match cluster name
+

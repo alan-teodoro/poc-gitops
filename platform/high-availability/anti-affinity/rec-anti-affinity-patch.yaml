@@ -1,0 +1,93 @@
+---
+# Anti-Affinity Patch for Redis Enterprise Cluster
+# Purpose: Spread Redis pods across nodes and zones
+# Managed by: Platform Team
+#
+# Usage:
+#   oc patch rec orders-redis-cluster -n redis-orders \
+#     --type merge \
+#     --patch-file platform/high-availability/anti-affinity/rec-anti-affinity-patch.yaml
+
+spec:
+  # Pod anti-affinity rules
+  podAntiAffinity:
+    # Use "preferred" for flexibility (allows scheduling even if constraint can't be met)
+    # Use "required" for strict enforcement (blocks scheduling if constraint can't be met)
+    preferredDuringSchedulingIgnoredDuringExecution:
+      
+      # Rule 1: Spread across different nodes (HIGH priority)
+      - weight: 100  # Higher weight = higher priority
+        podAffinityTerm:
+          labelSelector:
+            matchLabels:
+              app: redis-enterprise
+          # Spread across different hostnames (physical nodes)
+          topologyKey: kubernetes.io/hostname
+      
+      # Rule 2: Spread across different zones (MEDIUM priority)
+      - weight: 50  # Lower weight than node-level
+        podAffinityTerm:
+          labelSelector:
+            matchLabels:
+              app: redis-enterprise
+          # Spread across different availability zones
+          topologyKey: topology.kubernetes.io/zone
+
+# ========================================
+# How This Works
+# ========================================
+#
+# Scheduler tries to satisfy anti-affinity rules based on weights:
+# 1. First tries to place pods on different nodes (weight 100)
+# 2. Then tries to place pods in different zones (weight 50)
+# 3. If constraints can't be met, still allows scheduling (preferred)
+#
+# Example with 3 nodes in 2 zones:
+# - Pod 1: node-1 (zone-a)
+# - Pod 2: node-2 (zone-b) ✅ Different node AND zone
+# - Pod 3: node-3 (zone-a) ✅ Different node, same zone as Pod 1 (OK)
+
+# ========================================
+# Verification
+# ========================================
+#
+# Check pod distribution:
+#   oc get pods -n redis-orders -o wide
+#
+# Expected: Each pod on different node
+#   orders-redis-cluster-0    worker-1
+#   orders-redis-cluster-1    worker-2
+#   orders-redis-cluster-2    worker-3
+#
+# Check zone distribution:
+#   oc get pods -n redis-orders -o custom-columns=\
+#   NAME:.metadata.name,\
+#   NODE:.spec.nodeName,\
+#   ZONE:.spec.nodeSelector.'topology\.kubernetes\.io/zone'
+
+# ========================================
+# Customization
+# ========================================
+#
+# For strict enforcement (required):
+#   requiredDuringSchedulingIgnoredDuringExecution:
+#     - labelSelector:
+#         matchLabels:
+#           app: redis-enterprise
+#       topologyKey: kubernetes.io/hostname
+#
+# For additional topology keys:
+#   - topology.kubernetes.io/region (multi-region)
+#   - node.kubernetes.io/instance-type (different instance types)
+#   - failure-domain.beta.kubernetes.io/zone (legacy zone label)
+
+# ========================================
+# Prerequisites
+# ========================================
+#
+# 1. Enough nodes (at least 3 for 3-node cluster)
+# 2. Nodes labeled with topology keys:
+#    - kubernetes.io/hostname (automatic)
+#    - topology.kubernetes.io/zone (cloud provider or manual)
+# 3. Sufficient resources on each node
+

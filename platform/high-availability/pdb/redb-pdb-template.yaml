@@ -1,0 +1,131 @@
+---
+# PodDisruptionBudget for Redis Enterprise Database
+# Purpose: Ensure database availability during pod evictions
+# Managed by: Platform Team
+
+apiVersion: policy/v1
+kind: PodDisruptionBudget
+metadata:
+  name: redis-database-pdb
+  namespace: redis-orders-prod
+  labels:
+    app: redis-enterprise-database
+    cluster: orders
+    database: orders-cache
+    env: prod
+    component: high-availability
+    managed-by: argocd
+  annotations:
+    argocd.argoproj.io/sync-wave: "13"
+    description: "Prevents database downtime during node maintenance"
+spec:
+  # Maximum number of pods that can be unavailable
+  # For replicated databases: maxUnavailable = 1 (allows rolling updates)
+  # For sharded databases: maxUnavailable = 1 (one shard at a time)
+  maxUnavailable: 1
+  
+  selector:
+    matchLabels:
+      app: redis-enterprise-database
+      redis.io/database: orders-cache-prod
+
+# ========================================
+# How This Works
+# ========================================
+# 
+# When a node is drained:
+# 1. Kubernetes tries to evict database pods
+# 2. PDB checks if eviction would exceed maxUnavailable
+# 3. If yes, eviction is blocked until safe
+# 4. Ensures at least 1 replica is always available
+#
+# Example (2 replicas):
+# - 2 database pods running (master + replica)
+# - Admin drains node with replica pod
+# - PDB allows eviction (1 pod remains = OK)
+# - Admin tries to drain node with master pod
+# - PDB blocks eviction (would leave 0 pods = database down)
+# - Admin must wait for replica to come back first
+
+# ========================================
+# When to Use minAvailable vs maxUnavailable
+# ========================================
+#
+# Use maxUnavailable when:
+# - You want to allow rolling updates (1 pod at a time)
+# - Database has replication (master + replica)
+# - Flexibility is important
+#
+# Use minAvailable when:
+# - You want to guarantee minimum capacity
+# - Database is critical (must have N replicas always)
+# - Example: minAvailable: 2 (for 3-replica database)
+
+# ========================================
+# Customization for Different Databases
+# ========================================
+#
+# For cache database (dev):
+#   namespace: redis-orders-dev
+#   redis.io/database: orders-cache-dev
+#
+# For session database (prod):
+#   namespace: redis-orders-prod
+#   redis.io/database: session-store-prod
+#
+# For sharded database (4 shards):
+#   maxUnavailable: 1  # Still 1 (one shard at a time)
+#
+# For critical database (must have 2+ replicas):
+#   minAvailable: 2
+#   # Instead of maxUnavailable
+
+# ========================================
+# Testing
+# ========================================
+#
+# Check PDB status:
+#   oc get pdb redis-database-pdb -n redis-orders-prod
+#   oc describe pdb redis-database-pdb -n redis-orders-prod
+#
+# Expected output:
+#   Max Unavailable: 1
+#   Current: 2
+#   Allowed Disruptions: 1
+#
+# Test PDB protection:
+#   oc adm drain <node-name> --ignore-daemonsets --delete-emptydir-data
+#   # Should allow evicting 1 pod
+#   # Should block evicting 2nd pod simultaneously
+
+# ========================================
+# Production Best Practices
+# ========================================
+#
+# 1. Always use PDBs for production databases
+# 2. Set maxUnavailable: 1 for replicated databases
+# 3. Test PDBs regularly (simulate node drains)
+# 4. Monitor PDB violations (alert when blocked)
+# 5. Document PDB settings in runbooks
+#
+# 6. For critical databases:
+#    - Use minAvailable instead of maxUnavailable
+#    - Set higher replica count (3+)
+#    - Enable AOF persistence
+#    - Configure backups
+
+# ========================================
+# ArgoCD Integration
+# ========================================
+#
+# This PDB is deployed via ArgoCD Application:
+#   argocd-apps/07-high-availability.yaml
+#
+# Sync wave: 13 (after databases are created)
+#
+# To apply:
+#   oc apply -f argocd-apps/07-high-availability.yaml
+#
+# Or manually:
+#   oc apply -f platform/high-availability/pdb/redb-pdb-template.yaml
+

@@ -1,20 +1,20 @@
-# Session Store Database - Production Environment
+# Team 2 Session Store Database - Production Environment
 
 database:
-  name: session-store
+  name: team2-session
   env: prod
   type: session
 
 cluster:
-  name: orders
-  team: orders
-  costCenter: CC-1234
+  name: demo
+  team: team2
+  costCenter: CC-TEAM2
   datacenter: dc1
 
-namespace: redis-orders-prod
+namespace: redis-team2-prod
 
 redis:
-  clusterName: orders-redis-cluster
+  clusterName: demo-redis-cluster
   memorySize: 512MB
   replication: false
   persistence: aofEverySecond
@@ -29,12 +29,13 @@ route:
   tlsTermination: passthrough
 
 labels:
-  app: orders-api
+  app: team2-app
   app.kubernetes.io/managed-by: argocd
   gitops: argocd
   component: session
+  team: team2
   env: prod
 
 annotations:
-  description: "Session store database for Orders application - Production"
+  description: "Session store database for Team 2 - Production"
 

@@ -37,3 +37,8 @@ spec:
     imagePullPolicy: IfNotPresent
     versionTag: {{ .Values.redis.version | quote }}
 
+  {{- if .Values.redis.podAntiAffinity }}
+  # Pod anti-affinity rules for high availability
+  podAntiAffinity:
+    {{- toYaml .Values.redis.podAntiAffinity | nindent 4 }}
+  {{- end }}

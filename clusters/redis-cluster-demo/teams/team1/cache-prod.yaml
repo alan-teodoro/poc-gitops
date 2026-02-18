@@ -1,20 +1,20 @@
-# Orders Cache Database - Production Environment
+# Team 1 Cache Database - Production Environment
 
 database:
-  name: orders-cache
+  name: team1-cache
   env: prod
   type: cache
 
 cluster:
-  name: orders
-  team: orders
-  costCenter: CC-1234
+  name: demo
+  team: team1
+  costCenter: CC-TEAM1
   datacenter: dc1
 
-namespace: redis-orders-prod
+namespace: redis-team1-prod
 
 redis:
-  clusterName: orders-redis-cluster
+  clusterName: demo-redis-cluster
   memorySize: 512MB
   replication: false
   persistence: aofEverySecond
@@ -29,12 +29,13 @@ route:
   tlsTermination: passthrough
 
 labels:
-  app: orders-api
+  app: team1-app
   app.kubernetes.io/managed-by: argocd
   gitops: argocd
   component: cache
+  team: team1
   env: prod
 
 annotations:
-  description: "Cache database for Orders application - Production"
+  description: "Cache database for Team 1 - Production"
 

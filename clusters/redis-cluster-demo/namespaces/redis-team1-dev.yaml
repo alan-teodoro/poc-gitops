@@ -1,35 +1,35 @@
 ---
 # Namespace for Redis Databases - Development
-# Team: Orders
-# Purpose: Development Redis databases
+# Team: Team 1
+# Purpose: Development Redis databases (cache)
 
 apiVersion: v1
 kind: Namespace
 metadata:
-  name: redis-orders-dev
+  name: redis-team1-dev
   labels:
     # Team ownership
-    team: orders
-    
+    team: team1
+
     # Environment
     environment: dev
-    
+
     # Cost allocation
-    cost-center: CC-1234
-    
+    cost-center: CC-TEAM1
+
     # Application
     app: redis-enterprise
-    
+
     # Governance
     managed-by: platform-team
     gitops: argocd
-    
+
     # OpenShift features
     openshift.io/cluster-monitoring: "true"
-  
+
   annotations:
-    description: "Development Redis databases for Orders team"
-    owner: "orders-team@company.com"
+    description: "Development Redis databases for Team 1 (cache)"
+    owner: "team1@company.com"
     created-by: "platform-team"
     quota-profile: "dev"
 

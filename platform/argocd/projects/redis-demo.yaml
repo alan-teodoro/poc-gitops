@@ -2,16 +2,17 @@
 apiVersion: argoproj.io/v1alpha1
 kind: AppProject
 metadata:
-  name: team-orders
+  name: redis-demo
   namespace: openshift-gitops
   labels:
-    team: orders
+    project: redis-demo
     managed-by: platform-team
   finalizers:
     - resources-finalizer.argocd.argoproj.io
 spec:
   description: |
-    AppProject for Orders team Redis resources.
+    AppProject for Redis Demo - Multi-tenant setup.
+    Demonstrates shared Redis Enterprise cluster serving multiple teams.
     Provides namespace isolation and resource type restrictions.
   
   # Source repositories allowed for this project
@@ -20,12 +21,18 @@ spec:
   
   # Destination clusters and namespaces
   destinations:
-    # Allow deployment to orders-specific namespaces
-    - namespace: 'redis-orders'
+    # Allow deployment to Redis Enterprise cluster namespace
+    - namespace: 'redis-enterprise'
       server: 'https://kubernetes.default.svc'
-    - namespace: 'redis-orders-dev'
+    # Allow deployment to team1 database namespaces
+    - namespace: 'redis-team1-dev'
       server: 'https://kubernetes.default.svc'
-    - namespace: 'redis-orders-prod'
+    - namespace: 'redis-team1-prod'
+      server: 'https://kubernetes.default.svc'
+    # Allow deployment to team2 database namespaces
+    - namespace: 'redis-team2-dev'
+      server: 'https://kubernetes.default.svc'
+    - namespace: 'redis-team2-prod'
       server: 'https://kubernetes.default.svc'
   
   # Cluster-scoped resources allowed (very restrictive)
@@ -80,34 +87,43 @@ spec:
   
   # RBAC roles for this project
   roles:
-    # Admin role - full control over team resources
+    # Admin role - full control over demo resources
     - name: admin
-      description: Admin privileges for Orders team
+      description: Admin privileges for Redis Demo
       policies:
-        - p, proj:team-orders:admin, applications, *, team-orders/*, allow
-        - p, proj:team-orders:admin, repositories, *, *, allow
+        - p, proj:redis-demo:admin, applications, *, redis-demo/*, allow
+        - p, proj:redis-demo:admin, repositories, *, *, allow
       groups:
-        - orders-team-admins
         - platform-admins
-    
-    # Developer role - can view and sync
-    - name: developer
-      description: Developer privileges for Orders team
+
+    # Team1 role - can manage team1 resources
+    - name: team1
+      description: Team 1 privileges
       policies:
-        - p, proj:team-orders:developer, applications, get, team-orders/*, allow
-        - p, proj:team-orders:developer, applications, sync, team-orders/*, allow
-        - p, proj:team-orders:developer, logs, get, team-orders/*, allow
+        - p, proj:redis-demo:team1, applications, get, redis-demo/*team1*, allow
+        - p, proj:redis-demo:team1, applications, sync, redis-demo/*team1*, allow
+        - p, proj:redis-demo:team1, logs, get, redis-demo/*team1*, allow
       groups:
-        - orders-team-developers
-    
+        - team1-developers
+
+    # Team2 role - can manage team2 resources
+    - name: team2
+      description: Team 2 privileges
+      policies:
+        - p, proj:redis-demo:team2, applications, get, redis-demo/*team2*, allow
+        - p, proj:redis-demo:team2, applications, sync, redis-demo/*team2*, allow
+        - p, proj:redis-demo:team2, logs, get, redis-demo/*team2*, allow
+      groups:
+        - team2-developers
+
     # Read-only role - view only
     - name: readonly
-      description: Read-only access for Orders team
+      description: Read-only access for Redis Demo
       policies:
-        - p, proj:team-orders:readonly, applications, get, team-orders/*, allow
-        - p, proj:team-orders:readonly, logs, get, team-orders/*, allow
+        - p, proj:redis-demo:readonly, applications, get, redis-demo/*, allow
+        - p, proj:redis-demo:readonly, logs, get, redis-demo/*, allow
       groups:
-        - orders-team-viewers
+        - redis-demo-viewers
   
   # Sync windows (optional - can restrict when syncs can happen)
   # syncWindows:

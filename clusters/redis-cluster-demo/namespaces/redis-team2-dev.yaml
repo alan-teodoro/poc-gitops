@@ -1,21 +1,21 @@
 ---
-# Namespace for Redis Enterprise Cluster (Operator + Cluster)
-# Team: Orders
-# Purpose: Redis Enterprise Operator and Cluster resources
+# Namespace for Redis Databases - Development
+# Team: Team 2
+# Purpose: Development Redis databases (session)
 
 apiVersion: v1
 kind: Namespace
 metadata:
-  name: redis-orders
+  name: redis-team2-dev
   labels:
     # Team ownership
-    team: orders
+    team: team2
     
     # Environment
-    environment: shared
+    environment: dev
     
     # Cost allocation
-    cost-center: CC-1234
+    cost-center: CC-TEAM2
     
     # Application
     app: redis-enterprise
@@ -28,7 +28,8 @@ metadata:
     openshift.io/cluster-monitoring: "true"
   
   annotations:
-    description: "Redis Enterprise Cluster for Orders team"
-    owner: "orders-team@company.com"
+    description: "Development Redis databases for Team 2 (session)"
+    owner: "team2@company.com"
     created-by: "platform-team"
+    quota-profile: "dev"
 
