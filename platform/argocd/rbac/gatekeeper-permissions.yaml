@@ -101,6 +101,34 @@ rules:
       - patch
       - delete
 
+  # ServiceAccounts (core API group)
+  - apiGroups:
+      - ""
+    resources:
+      - serviceaccounts
+    verbs:
+      - get
+      - list
+      - watch
+      - create
+      - update
+      - patch
+      - delete
+
+  # Jobs (batch API group)
+  - apiGroups:
+      - batch
+    resources:
+      - jobs
+    verbs:
+      - get
+      - list
+      - watch
+      - create
+      - update
+      - patch
+      - delete
+
   # Redis Enterprise Clusters (app.redislabs.com)
   - apiGroups:
       - app.redislabs.com
