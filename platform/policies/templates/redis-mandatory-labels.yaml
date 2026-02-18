@@ -9,6 +9,7 @@ kind: ConstraintTemplate
 metadata:
   name: redismandatorylabels
   annotations:
+    argocd.argoproj.io/sync-wave: "0"
     description: "Enforces mandatory labels on Redis databases"
     metadata.gatekeeper.sh/title: "Redis Mandatory Labels"
     metadata.gatekeeper.sh/version: "1.0.0"

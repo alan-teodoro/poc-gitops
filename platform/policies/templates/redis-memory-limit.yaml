@@ -9,6 +9,7 @@ kind: ConstraintTemplate
 metadata:
   name: redismemorylimit
   annotations:
+    argocd.argoproj.io/sync-wave: "0"
     description: "Enforces maximum memory size for Redis databases per environment"
     metadata.gatekeeper.sh/title: "Redis Memory Limit"
     metadata.gatekeeper.sh/version: "1.0.0"

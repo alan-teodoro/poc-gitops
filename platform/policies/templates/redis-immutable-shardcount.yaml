@@ -9,6 +9,7 @@ kind: ConstraintTemplate
 metadata:
   name: redisimmutableshardcount
   annotations:
+    argocd.argoproj.io/sync-wave: "0"
     description: "Prevents decreasing shardCount on RedisEnterpriseDatabase (causes data loss)"
     metadata.gatekeeper.sh/title: "Redis Immutable Shard Count"
     metadata.gatekeeper.sh/version: "1.0.0"

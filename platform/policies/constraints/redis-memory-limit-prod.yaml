@@ -7,6 +7,8 @@ apiVersion: constraints.gatekeeper.sh/v1beta1
 kind: RedisMemoryLimit
 metadata:
   name: redis-memory-limit-prod
+  annotations:
+    argocd.argoproj.io/sync-wave: "1"
 spec:
   match:
     kinds:
