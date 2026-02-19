@@ -15,7 +15,7 @@ spec:
   # Persistent storage
   persistentSpec:
     enabled: true
-    storageClassName: "ocs-storagecluster-ceph-rbd"
+    storageClassName: "ocs-external-storagecluster-ceph-rbd"
     volumeSize: 10Gi
 
   # Redis Enterprise version
