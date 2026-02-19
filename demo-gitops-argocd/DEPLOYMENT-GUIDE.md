@@ -14,13 +14,13 @@ Existem 2 opções de deployment:
 
 1. **`argocd-app-cluster.yaml`** - Cria apenas o cluster
 2. **`argocd-app-certificate.yaml`** - Cria apenas o certificado TLS (opcional)
-3. **`argocd-app-databases.yaml`** - Cria apenas os databases
+3. **`argocd-app-databases.yaml`** - Cria apenas o database
 
 ### Opção 2: Deploy Completo
 
 **Vantagem**: Tudo de uma vez
 
-- **`argocd-application.yaml`** - Cria cluster + databases juntos (sem certificado customizado)
+- **`argocd-application.yaml`** - Cria cluster + database juntos (sem certificado customizado)
 
 ---
 
@@ -81,19 +81,18 @@ oc get secret redis-cluster-tls -n redis-demo
 
 ---
 
-### Fase 3: Criar os Databases
+### Fase 3: Criar o Database
 
 ```bash
-# Aplicar o ArgoCD Application dos databases
+# Aplicar o ArgoCD Application do database
 oc apply -f demo-gitops-argocd/argocd-app-databases.yaml
 
-# Aguardar os databases ficarem prontos
+# Aguardar o database ficar pronto
 oc get redb -n redis-demo -w
 ```
 
 **O que será criado:**
 - ✅ Database `customers` (100MB, replication, persistence)
-- ✅ Database `orders` (100MB, replication, persistence)
 
 ---
 
@@ -115,7 +114,6 @@ oc get rec,redb -n redis-demo -w
 **O que será criado:**
 - ✅ Redis Enterprise Cluster `demo-cluster`
 - ✅ Database `customers`
-- ✅ Database `orders`
 
 ---
 
@@ -129,7 +127,7 @@ Consulte o arquivo **`TLS-SETUP.md`** para instruções detalhadas.
 
 ## 🗑️ Limpeza
 
-### Deletar apenas databases:
+### Deletar apenas database:
 
 ```bash
 oc delete application redis-demo-databases -n openshift-gitops
@@ -173,7 +171,7 @@ oc get all,rec,redb -n redis-demo
 # Ver status do cluster
 oc get rec demo-cluster -n redis-demo -o yaml
 
-# Ver status dos databases
+# Ver status do database
 oc get redb -n redis-demo
 ```
 
@@ -183,7 +181,7 @@ oc get redb -n redis-demo
 
 **Use a Opção 1 (Deploy Separado em Fases)** para:
 - ✅ Ter controle sobre quando criar cada componente
-- ✅ Validar que o cluster está funcionando antes de criar databases
+- ✅ Validar que o cluster está funcionando antes de criar o database
 - ✅ Adicionar certificado TLS de forma incremental (opcional)
 - ✅ Demonstrar GitOps de forma incremental
 - ✅ Facilitar troubleshooting
@@ -193,12 +191,12 @@ oc get redb -n redis-demo
 1. **Namespace** → Criar manualmente (pré-requisito)
 2. **Cluster** → Aguardar ficar `Running`
 3. **Certificado** (opcional) → Atualizar cluster para usar o certificado
-4. **Databases** → Aguardar ficarem `active`
+4. **Database** → Aguardar ficar `active`
 
 ## ⚠️ Importante sobre o Namespace
 
 O namespace `redis-demo` **NÃO** é gerenciado pelo ArgoCD porque:
 - ✅ Evita deletar acidentalmente o operador Redis Enterprise instalado na workspace
-- ✅ Permite deletar cluster e databases sem afetar o namespace
+- ✅ Permite deletar cluster e database sem afetar o namespace
 - ✅ Maior segurança: namespace persiste mesmo se deletar todos os ArgoCD Applications
 

@@ -20,9 +20,9 @@ spec:
     repoURL: https://github.com/alan-teodoro/poc-gitops.git
     targetRevision: main
     path: demo-gitops-argocd
-    # Only include database files
+    # Only include database file
     directory:
-      include: '{02-database-*.yaml,03-database-*.yaml}'
+      include: '02-database-customers.yaml'
   
   # Destination: OpenShift cluster
   destination:

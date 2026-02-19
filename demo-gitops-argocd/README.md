@@ -7,12 +7,14 @@ This is a simple demonstration of how to use GitOps and ArgoCD to deploy Redis E
 ```
 demo-gitops-argocd/
 ├── README.md                          # This file
-├── 00-namespace.yaml                  # Namespace for the demo
 ├── 01-redis-cluster.yaml              # Redis Enterprise Cluster
-├── 02-database-customers.yaml         # First database (customers)
-├── 03-database-orders.yaml            # Second database (orders)
+├── 02-database-customers.yaml         # Database (customers)
 ├── 04-custom-certificate.yaml         # Custom domain and TLS certificate
 ├── argocd-application.yaml            # ArgoCD Application to deploy everything
+├── argocd-app-cluster.yaml            # ArgoCD Application for cluster only
+├── argocd-app-certificate.yaml        # ArgoCD Application for certificate only
+├── argocd-app-databases.yaml          # ArgoCD Application for database only
+├── DEPLOYMENT-GUIDE.md                # Complete deployment guide
 ├── DEMO-COMMANDS.md                   # Quick reference commands
 ├── ARCHITECTURE.md                    # Architecture diagrams
 └── tls-setup/                         # Custom certificate generation
@@ -40,22 +42,17 @@ demo-gitops-argocd/
 2. **Watch ArgoCD sync the resources:**
    - Open ArgoCD UI
    - Find the `redis-demo` application
-   - Watch it create: Namespace → Operator → Cluster → Databases
+   - Watch it create: Cluster → Database
 
 3. **Show the sync waves:**
-   - Wave 0: Namespace
-   - Wave 1: Operator
    - Wave 2: Cluster
-   - Wave 3: Databases
+   - Wave 3: Database
 
 ### Option 2: Manual Deployment (for testing)
 
 ```bash
 # Apply in order
-oc apply -f demo-gitops-argocd/00-namespace.yaml
-
-# Wait for namespace to be ready
-sleep 5
+oc create namespace redis-demo
 
 oc apply -f demo-gitops-argocd/01-redis-cluster.yaml
 
@@ -63,7 +60,6 @@ oc apply -f demo-gitops-argocd/01-redis-cluster.yaml
 sleep 60
 
 oc apply -f demo-gitops-argocd/02-database-customers.yaml
-oc apply -f demo-gitops-argocd/03-database-orders.yaml
 
 # Optional: Apply custom certificate
 oc apply -f demo-gitops-argocd/04-custom-certificate.yaml
@@ -102,7 +98,7 @@ See `tls-setup/README.md` for detailed instructions.
 ### 1. Show the Git Repository
 - Show this directory structure
 - Explain: "Everything is defined as code in Git"
-- Highlight: Namespace → Cluster → Databases → Custom Certificate
+- Highlight: Cluster → Database → Custom Certificate
 
 ### 2. Create the ArgoCD Application
 ```bash
@@ -112,10 +108,8 @@ oc apply -f demo-gitops-argocd/argocd-application.yaml
 ### 3. Open ArgoCD UI
 - Show the application being created
 - Show the sync waves (resources created in order):
-  - Wave 0: Namespace
-  - Wave 1: Cluster
-  - Wave 2: Databases
-  - Wave 3: Custom Certificate
+  - Wave 2: Cluster
+  - Wave 3: Database
 - Show the health status
 
 ### 4. Show the Resources Created
@@ -126,7 +120,7 @@ oc get namespace redis-demo
 # Show cluster
 oc get rec -n redis-demo
 
-# Show databases
+# Show database
 oc get redb -n redis-demo
 
 # Show routes
@@ -134,7 +128,7 @@ oc get route -n redis-demo
 ```
 
 ### 5. Make a Change (GitOps in Action)
-Edit `03-database-orders.yaml` and change memory size:
+Edit `02-database-customers.yaml` and change memory size:
 ```yaml
 memorySize: 200MB  # Change from 100MB to 200MB
 ```
@@ -142,7 +136,7 @@ memorySize: 200MB  # Change from 100MB to 200MB
 Commit and push:
 ```bash
 git add .
-git commit -m "Increase orders database memory"
+git commit -m "Increase customers database memory"
 git push
 ```
 
