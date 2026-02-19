@@ -56,7 +56,7 @@ curl -k -u "$ADMIN_USER:$ADMIN_PASS" \
     "memory_size": 104857600,
     "port": 12000,
     "replication": true,
-    "persistence": "aof",
+    "data_persistence": "aof",
     "aof_policy": "appendfsync-every-sec"
   }' | jq .
 

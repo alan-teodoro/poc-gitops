@@ -1,0 +1,37 @@
+---
+apiVersion: route.openshift.io/v1
+kind: Route
+metadata:
+  name: demo-cluster-api
+  namespace: redis-demo
+  labels:
+    app: redis-enterprise
+    component: api
+spec:
+  to:
+    kind: Service
+    name: demo-cluster
+  port:
+    targetPort: 9443
+  tls:
+    termination: passthrough
+    insecureEdgeTerminationPolicy: Redirect
+---
+apiVersion: route.openshift.io/v1
+kind: Route
+metadata:
+  name: demo-cluster-ui
+  namespace: redis-demo
+  labels:
+    app: redis-enterprise
+    component: ui
+spec:
+  to:
+    kind: Service
+    name: demo-cluster-ui
+  port:
+    targetPort: 8443
+  tls:
+    termination: passthrough
+    insecureEdgeTerminationPolicy: Redirect
+

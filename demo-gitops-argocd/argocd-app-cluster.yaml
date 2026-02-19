@@ -20,9 +20,9 @@ spec:
     repoURL: https://github.com/alan-teodoro/poc-gitops.git
     targetRevision: main
     path: demo-gitops-argocd
-    # Only include cluster file
+    # Include cluster and routes
     directory:
-      include: '01-redis-cluster.yaml'
+      include: '{01-redis-cluster.yaml,05-cluster-routes.yaml}'
   
   # Destination: OpenShift cluster
   destination:
