@@ -26,7 +26,12 @@ sleep 10
 oc apply -f platform/observability/logging/loki/grafana-datasource-loki.yaml
 sleep 15
 
-# Step 6: Verify everything
+# Step 6: Apply Loki dashboards
+oc apply -f platform/observability/logging/loki/grafana-dashboards-loki.yaml
+oc apply -f platform/observability/logging/loki/grafana-dashboards-loki-crs.yaml
+sleep 10
+
+# Step 7: Verify everything
 echo "=== LokiStack Components ==="
 oc get pods -n openshift-logging | grep loki
 
@@ -38,6 +43,9 @@ oc get clusterrolebinding | grep grafana-loki
 
 echo -e "\n=== Grafana Datasource ==="
 oc get grafanadatasource -n openshift-monitoring
+
+echo -e "\n=== Grafana Dashboards ==="
+oc get grafanadashboard -n openshift-monitoring | grep logs
 
 echo -e "\n=== Grafana URL ==="
 GRAFANA_URL=$(oc get route grafana-redis-monitoring -n openshift-monitoring -o jsonpath='{.spec.host}')
@@ -81,9 +89,26 @@ loki-redis-logs     30s
 prometheus-redis    5h
 ```
 
+### Grafana Dashboards
+```
+NAME                    AGE
+redis-logs-overview     10s
+redis-logs-errors       10s
+```
+
 ## 🧪 Test in Grafana
 
+### Option 1: Use Dashboards (Recommended)
+
 1. Open Grafana URL (from output above)
+2. Login: `admin` / `admin`
+3. Go to **Dashboards** → **Redis Enterprise Logs** folder
+4. Open **Redis Logs Overview** or **Redis Logs Errors**
+5. Should see logs and metrics automatically
+
+### Option 2: Use Explore
+
+1. Open Grafana URL
 2. Login: `admin` / `admin`
 3. Click **Explore** (compass icon)
 4. Select datasource: **"Loki (Redis Logs)"**

@@ -1,0 +1,56 @@
+---
+# GrafanaDashboard CRs for Loki Dashboards
+# Purpose: Deploy Loki log dashboards using Grafana Operator
+# These CRs reference the ConfigMaps created in grafana-dashboards-loki.yaml
+# Managed by: Platform Team
+# Sync Wave: 13 - After Loki datasource (wave 12)
+
+apiVersion: grafana.integreatly.org/v1beta1
+kind: GrafanaDashboard
+metadata:
+  name: redis-logs-overview
+  namespace: openshift-monitoring
+  labels:
+    app: grafana
+    component: dashboard
+    datasource: loki
+  annotations:
+    argocd.argoproj.io/sync-wave: "13"
+    description: "Redis Enterprise logs overview dashboard with volume metrics and log viewer"
+spec:
+  instanceSelector:
+    matchLabels:
+      dashboards: "grafana"
+  folder: "Redis Enterprise Logs"
+  datasources:
+    - inputName: "datasource"
+      datasourceName: "Loki (Redis Logs)"
+  configMapRef:
+    name: grafana-dashboard-redis-logs-overview
+    key: redis-logs-overview.json
+
+---
+apiVersion: grafana.integreatly.org/v1beta1
+kind: GrafanaDashboard
+metadata:
+  name: redis-logs-errors
+  namespace: openshift-monitoring
+  labels:
+    app: grafana
+    component: dashboard
+    datasource: loki
+  annotations:
+    argocd.argoproj.io/sync-wave: "13"
+    description: "Redis Enterprise error and warning logs dashboard"
+spec:
+  instanceSelector:
+    matchLabels:
+      dashboards: "grafana"
+  folder: "Redis Enterprise Logs"
+  datasources:
+    - inputName: "datasource"
+      datasourceName: "Loki (Redis Logs)"
+  configMapRef:
+    name: grafana-dashboard-redis-logs-errors
+    key: redis-logs-errors.json
+

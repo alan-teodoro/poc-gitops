@@ -20,8 +20,17 @@ platform/observability/
 │   ├── redis-cluster-dashboard.json
 │   ├── redis-database-dashboard.json
 │   ├── redis-node-dashboard.json
-│   └── redis-shard-dashboard.json
-└── logging/                 # Logging stack (optional)
+│   ├── redis-shard-dashboard.json
+│   ├── redis-logs-overview.json
+│   └── redis-logs-errors.json
+└── logging/                 # Logging stack (Wave 6 - optional)
+    └── loki/
+        ├── lokistack-instance.yaml
+        ├── clusterlogforwarder.yaml
+        ├── grafana-datasource-loki.yaml
+        ├── grafana-dashboards-loki.yaml
+        ├── grafana-dashboards-loki-crs.yaml
+        └── ...
 ```
 
 ## 🚀 ArgoCD Applications
@@ -35,14 +44,20 @@ This observability stack is deployed via **2 separate ArgoCD Applications**:
 
 2. **`redis-observability-grafana`** (Wave 5)
    - **Namespace**: `openshift-monitoring`
-   - **Components**: Grafana instance, datasources, dashboards, RBAC
+   - **Components**: Grafana instance, Prometheus datasource, Prometheus dashboards, RBAC
    - **Path**: `platform/observability/grafana`
 
+3. **`redis-logging`** (Wave 6 - Optional)
+   - **Namespace**: `openshift-logging` and `openshift-monitoring`
+   - **Components**: LokiStack, ClusterLogForwarder, Loki datasource, Loki dashboards
+   - **Path**: `platform/observability/logging`
+
 **Why separate?**
-- ✅ Independent deployment (can deploy Prometheus without Grafana)
+- ✅ Independent deployment (can deploy Prometheus without Grafana, Grafana without Loki)
 - ✅ Easier troubleshooting
 - ✅ Better modularity
 - ✅ Can disable Grafana but keep alerts
+- ✅ Can disable logging but keep metrics
 
 ---
 
@@ -81,12 +96,18 @@ oc apply -f platform/observability/grafana-dashboards-configmaps.yaml
 See [`docs/GRAFANA_DASHBOARDS.md`](../../docs/GRAFANA_DASHBOARDS.md) for details.
 
 **Available Dashboards**:
+
+**Prometheus Metrics Dashboards**:
 - **Cluster Dashboard** - Overall cluster health and status
 - **Database Dashboard** - Database-level metrics and performance
 - **Node Dashboard** - Node-level resource monitoring
 - **Shard Dashboard** - Shard-level performance and health
 - **Active-Active Dashboard** - CRDB replication monitoring (optional)
 - **Synchronization Overview** - Replication monitoring (optional)
+
+**Loki Logs Dashboards**:
+- **Redis Logs Overview** - Log volume metrics and log viewer
+- **Redis Logs Errors** - Error and warning detection dashboard
 
 **Source**: [Redis Enterprise Observability Repository](https://github.com/redis-field-engineering/redis-enterprise-observability)
 

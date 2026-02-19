@@ -748,23 +748,20 @@ oc get servicemonitor -n redis-enterprise | grep redis
 
 **Application 2: `redis-observability-grafana`** (Wave 5)
 - **Namespace**: `openshift-monitoring`
+- **Path**: `platform/observability/grafana`
 - **Grafana Instance**: Monitoring UI
 - **Grafana DataSource**: Prometheus/Thanos Querier connection
-- **Grafana Dashboards**: 4 official Redis Enterprise dashboards
-  - redis-cluster-dashboard
-  - redis-database-dashboard
-  - redis-node-dashboard
-  - redis-shard-dashboard
+- **Grafana Dashboards**: 4 Prometheus dashboards (cluster, database, node, shard)
 - **Grafana RBAC**: ServiceAccount, ClusterRole, ClusterRoleBinding
 - **Grafana Route**: External access to UI
 
-**Why 2 Applications?**
+**Why separate Applications?**
 - ✅ Independent deployment (can deploy Prometheus without Grafana)
 - ✅ Easier troubleshooting
 - ✅ Better modularity
 - ✅ Can disable Grafana but keep alerts
 
-**✅ Success**: Both Applications synced, observability stack deployed in `openshift-monitoring`
+**✅ Success**: Both Applications synced, Prometheus + Grafana deployed in `openshift-monitoring`
 
 **⏭️ Next**: Continue to Step 17 (or skip to Step 19 if not using logging)
 
@@ -787,15 +784,52 @@ oc get pods -n openshift-logging -w
 # Verify all components
 oc get lokistack -n openshift-logging
 oc get clusterlogforwarder -n openshift-logging
-oc get grafanadatasource -n redis-enterprise | grep loki
+oc get grafanadatasource -n openshift-monitoring | grep loki
+oc get grafanadashboard -n openshift-monitoring | grep logs
 ```
 
-**What this deploys**:
-- **LokiStack**: Log aggregation backend
-- **ClusterLogForwarder**: Forwards Redis logs to Loki
-- **Grafana DataSource**: Loki connection for Grafana
+**What gets deployed**:
 
-**✅ Success**: ArgoCD Application synced, logging stack deployed
+**Application: `redis-logging`** (Wave 6)
+- **Path**: `platform/observability/logging` (recurse: true, excludes splunk/)
+- **LokiStack** (Wave 10): Log aggregation backend in `openshift-logging`
+- **ClusterLogForwarder** (Wave 11): Forwards Redis logs to Loki
+- **Grafana DataSource** (Wave 12): Loki connection in `openshift-monitoring`
+- **Grafana Dashboards** (Wave 13): 2 Loki dashboards in `openshift-monitoring`
+  - Redis Logs Overview - Log volume metrics and viewer
+  - Redis Logs Errors - Error and warning detection
+- **Grafana RBAC**: ServiceAccount, ClusterRoleBindings for Loki access
+
+**Why separate from Grafana Application?**
+- ✅ Logging is optional - can deploy Grafana without Loki
+- ✅ All Loki-related resources in one place
+- ✅ Easier to enable/disable logging independently
+- ✅ Dashboards only created when datasource exists
+
+**✅ Success**: ArgoCD Application synced, logging stack with dashboards deployed
+
+### 🧪 Test Loki Dashboards
+
+```bash
+# Get Grafana URL
+GRAFANA_URL=$(oc get route grafana-redis-monitoring -n openshift-monitoring -o jsonpath='{.spec.host}')
+echo "https://$GRAFANA_URL"
+
+# Verify dashboards are deployed
+oc get grafanadashboard -n openshift-monitoring | grep logs
+# Expected:
+# redis-logs-overview
+# redis-logs-errors
+```
+
+**Access Dashboards**:
+1. Open Grafana URL (from output above)
+2. Login: `admin` / `admin`
+3. Go to **Dashboards** → **Redis Enterprise Logs** folder
+4. Open **Redis Logs Overview** or **Redis Logs Errors**
+5. Should see logs from Redis namespaces automatically
+
+**📖 See**: [`docs/LOKI_QUICK_START.md`](LOKI_QUICK_START.md) for complete Loki setup guide
 
 **⏭️ Next**: Continue to Step 18
 
@@ -872,8 +906,8 @@ Your Redis Enterprise multi-tenant platform is now fully deployed!
   - Team 2: `team2-session-dev` and `team2-session-prod`
 - ✅ **5 Namespaces** with complete isolation
 - ✅ **Governance** (Gatekeeper policies, quotas, RBAC)
-- ✅ **Observability** (Grafana + 40+ alerts + 4 dashboards) - if enabled
-- ✅ **Logging** (Loki + log forwarding) - if enabled
+- ✅ **Observability** (Grafana + 40+ alerts + 4 Prometheus dashboards) - if enabled
+- ✅ **Logging** (Loki + log forwarding + 2 Loki dashboards) - if enabled
 - ✅ **High Availability** (PDBs + anti-affinity) - if enabled
 
 ### 🔗 Access Points
