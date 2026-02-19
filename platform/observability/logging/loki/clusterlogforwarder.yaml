@@ -69,12 +69,12 @@ spec:
   - name: redis-logs
     type: application
     application:
-      namespaces:
-      - redis-enterprise
-      - redis-team1-dev
-      - redis-team1-prod
-      - redis-team2-dev
-      - redis-team2-prod
+      includes:
+      - namespace: redis-enterprise
+      - namespace: redis-team1-dev
+      - namespace: redis-team1-prod
+      - namespace: redis-team2-dev
+      - namespace: redis-team2-prod
 
   # Outputs: Where to send logs
   outputs:
