@@ -1,5 +1,6 @@
 ---
-# Redis Enterprise Cluster
+# Redis Enterprise Cluster WITH TLS Certificate
+# This is the version to apply AFTER creating the certificate
 apiVersion: app.redislabs.com/v1
 kind: RedisEnterpriseCluster
 metadata:
@@ -30,11 +31,10 @@ spec:
   # UI Service
   uiServiceType: ClusterIP
 
+  # Custom TLS Certificate for API and UI
+  certificates:
+    apiCertificateSecretName: redis-cluster-tls
+
   # License (uses default trial license)
   # For production, add your license key here
-
-  # TLS Certificate Configuration
-  # Uncomment the lines below after creating the certificate:
-  # certificates:
-  #   apiCertificateSecretName: redis-cluster-tls
 
