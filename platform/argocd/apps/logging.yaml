@@ -44,4 +44,11 @@ spec:
       kind: LokiStack
       jsonPointers:
         - /status
+    # Ignore fields managed by the ClusterLogForwarder operator
+    - group: observability.openshift.io
+      kind: ClusterLogForwarder
+      jsonPointers:
+        - /spec/managementState
+        - /spec/pipelines/0/labels
+        - /status
 
