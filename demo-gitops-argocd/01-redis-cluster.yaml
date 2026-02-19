@@ -1,0 +1,40 @@
+---
+# Redis Enterprise Cluster
+apiVersion: app.redislabs.com/v1
+kind: RedisEnterpriseCluster
+metadata:
+  name: demo-cluster
+  namespace: redis-demo
+  annotations:
+    argocd.argoproj.io/sync-wave: "2"
+    argocd.argoproj.io/sync-options: SkipDryRunOnMissingResource=true
+spec:
+  # Small cluster for demo - 3 nodes
+  nodes: 3
+
+  # Persistent storage
+  persistentSpec:
+    enabled: true
+    storageClassName: "ocs-storagecluster-ceph-rbd"
+    volumeSize: 10Gi
+
+  # Redis Enterprise version
+  redisEnterpriseNodeResources:
+    limits:
+      cpu: "2000m"
+      memory: 4Gi
+    requests:
+      cpu: "1000m"
+      memory: 2Gi
+
+  # UI Service
+  uiServiceType: ClusterIP
+
+  # Custom TLS Certificate for API and UI
+  # This uses the certificate created in wave 1
+  certificates:
+    apiCertificateSecretName: redis-cluster-tls
+
+  # License (uses default trial license)
+  # For production, add your license key here
+

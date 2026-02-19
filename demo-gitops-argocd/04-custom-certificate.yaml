@@ -1,0 +1,59 @@
+---
+# Custom TLS Certificate Secret for Redis Enterprise Cluster
+# This certificate will be used by the Redis Enterprise Cluster for API and UI
+# Generate the certificate using: cd tls-setup && ./generate-certs.sh
+apiVersion: v1
+kind: Secret
+metadata:
+  name: redis-cluster-tls
+  namespace: redis-demo
+  annotations:
+    argocd.argoproj.io/sync-wave: "1"
+  labels:
+    app: redis-demo
+    component: tls-certificate
+type: kubernetes.io/tls
+stringData:
+  # IMPORTANT: Replace these with actual certificate content
+  # After running: cd tls-setup && ./generate-certs.sh
+  # Use the content from: certs/redis-ui.crt and certs/redis-ui.key
+  tls.crt: |
+    -----BEGIN CERTIFICATE-----
+    REPLACE_WITH_CERTIFICATE_CONTENT_FROM_certs/redis-ui.crt
+    -----END CERTIFICATE-----
+  tls.key: |
+    -----BEGIN PRIVATE KEY-----
+    REPLACE_WITH_KEY_CONTENT_FROM_certs/redis-ui.key
+    -----END PRIVATE KEY-----
+
+---
+# Route with custom domain using TLS passthrough
+# The Redis Enterprise Cluster handles the TLS termination using the certificate above
+apiVersion: route.openshift.io/v1
+kind: Route
+metadata:
+  name: redis-ui-custom
+  namespace: redis-demo
+  annotations:
+    argocd.argoproj.io/sync-wave: "4"
+  labels:
+    app: redis-demo
+    component: custom-route
+spec:
+  # Custom hostname - add this to /etc/hosts pointing to OpenShift router IP
+  host: redis.mycompany.local
+  
+  # Target service (Redis Enterprise UI)
+  to:
+    kind: Service
+    name: demo-cluster-ui
+    weight: 100
+  
+  # TLS passthrough - let Redis Enterprise handle TLS with its certificate
+  tls:
+    termination: passthrough
+    insecureEdgeTerminationPolicy: Redirect
+  
+  port:
+    targetPort: https
+
