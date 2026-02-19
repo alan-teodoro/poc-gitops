@@ -85,8 +85,6 @@ spec:
     loki:
       # URL to LokiStack gateway
       url: https://logging-loki-gateway-http.openshift-logging.svc:8080/api/logs/v1/application
-      # Tenant mode
-      tenantKey: kubernetes.namespace_name
       # Authentication using ServiceAccount token
       authentication:
         token:
