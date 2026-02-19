@@ -102,8 +102,6 @@ spec:
     - redis-logs
     outputRefs:
     - loki-redis
-    labels:
-      log_type: "redis-enterprise"
 
 ---
 # Alternative: Simpler configuration without filters
