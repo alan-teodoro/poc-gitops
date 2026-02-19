@@ -1,0 +1,59 @@
+---
+# ArgoCD Application to deploy ONLY the Redis Databases
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: redis-demo-databases
+  namespace: openshift-gitops
+  labels:
+    app: redis-demo
+    demo: gitops
+    component: databases
+  finalizers:
+    - resources-finalizer.argocd.argoproj.io
+spec:
+  # Project
+  project: default
+  
+  # Source: Git repository
+  source:
+    repoURL: https://github.com/alan-teodoro/poc-gitops.git
+    targetRevision: main
+    path: demo-gitops-argocd
+    # Only include database files
+    directory:
+      include: '{02-database-*.yaml,03-database-*.yaml}'
+  
+  # Destination: OpenShift cluster
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: redis-demo
+  
+  # Sync Policy
+  syncPolicy:
+    # Automated sync
+    automated:
+      prune: true        # Delete resources that are no longer in Git
+      selfHeal: true     # Automatically sync when cluster state differs from Git
+      allowEmpty: false
+    
+    # Sync options
+    syncOptions:
+      - PruneLast=true          # Prune resources last (after sync)
+      - RespectIgnoreDifferences=true
+    
+    # Retry policy
+    retry:
+      limit: 5
+      backoff:
+        duration: 5s
+        factor: 2
+        maxDuration: 3m
+  
+  # Ignore differences in operator-managed fields
+  ignoreDifferences:
+    - group: app.redislabs.com
+      kind: RedisEnterpriseDatabase
+      jsonPointers:
+        - /status
+
