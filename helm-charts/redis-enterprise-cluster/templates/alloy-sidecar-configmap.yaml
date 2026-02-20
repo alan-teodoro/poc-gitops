@@ -65,9 +65,6 @@ data:
         tls_config {
           insecure_skip_verify = true
         }
-        headers = {
-          "X-Scope-OrgID" = "application",
-        }
       }
       external_labels = {
         cluster = env("CLUSTER_NAME"),

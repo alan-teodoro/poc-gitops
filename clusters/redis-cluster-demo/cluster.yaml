@@ -41,7 +41,7 @@ logging:
   sidecar:
     enabled: true
     image: "grafana/alloy:latest"
-    lokiEndpoint: "https://logging-loki-gateway-http.openshift-logging.svc:8080/api/logs/v1/application"
+    lokiEndpoint: "https://logging-loki-gateway-http.openshift-logging.svc:8080/loki/api/v1/push"
     resources:
       requests:
         cpu: "100m"
