@@ -12,7 +12,7 @@ namespace: redis-enterprise
 redis:
   clusterName: demo-redis-cluster
   nodes: 3
-  version: "8.0.10-64"
+  version: "8.0.10-76"
   
   resources:
     requests:
