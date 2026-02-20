@@ -11,7 +11,7 @@ metadata:
 data:
   redis-internal-logs.json: |
     {
-      "title": "Redis Enterprise - Internal Logs",
+      "title": "Redis Enterprise - Logs",
       "uid": "redis-internal-logs",
       "editable": true,
       "panels": [
@@ -20,7 +20,7 @@ data:
           "title": "Redis Internal Logs",
           "datasource": {"type": "loki", "uid": "${datasource}"},
           "gridPos": {"h": 20, "w": 24, "x": 0, "y": 0},
-          "targets": [{"expr": "{job=\"integrations/redis-enterprise-internal\"}", "refId": "A"}],
+          "targets": [{"expr": "{kubernetes_namespace_name=~\"redis-.*\"}", "refId": "A"}],
           "options": {"showTime": true, "showLabels": true, "wrapLogMessage": true}
         }
       ],
