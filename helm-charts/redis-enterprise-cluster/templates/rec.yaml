@@ -91,4 +91,10 @@ spec:
         capabilities:
           drop:
             - ALL
+
+  # Additional volumes for sidecar containers
+  volumes:
+    - name: alloy-config
+      configMap:
+        name: alloy-sidecar-config
   {{- end }}
