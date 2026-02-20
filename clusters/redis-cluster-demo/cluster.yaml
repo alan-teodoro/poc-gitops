@@ -37,6 +37,19 @@ monitoring:
   scrapeInterval: 30s
   scrapeTimeout: 10s
 
+logging:
+  sidecar:
+    enabled: true
+    image: "grafana/alloy:latest"
+    lokiEndpoint: "https://logging-loki-gateway-http.openshift-logging.svc:8080/api/logs/v1/application"
+    resources:
+      requests:
+        cpu: "100m"
+        memory: "128Mi"
+      limits:
+        cpu: "200m"
+        memory: "256Mi"
+
 labels:
   app.kubernetes.io/managed-by: argocd
   gitops: argocd

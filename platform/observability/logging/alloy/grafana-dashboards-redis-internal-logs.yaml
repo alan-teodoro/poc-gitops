@@ -20,7 +20,7 @@ data:
           "title": "Redis Internal Logs",
           "datasource": {"type": "loki", "uid": "${datasource}"},
           "gridPos": {"h": 20, "w": 24, "x": 0, "y": 0},
-          "targets": [{"expr": "{kubernetes_namespace_name=~\"redis-.*\"}", "refId": "A"}],
+          "targets": [{"expr": "{job=\"redis-enterprise-internal\"}", "refId": "A"}],
           "options": {"showTime": true, "showLabels": true, "wrapLogMessage": true}
         }
       ],

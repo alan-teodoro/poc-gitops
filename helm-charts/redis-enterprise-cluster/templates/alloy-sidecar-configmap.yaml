@@ -1,0 +1,77 @@
+{{- if .Values.logging.sidecar.enabled }}
+---
+# Grafana Alloy Sidecar Configuration for Redis Enterprise Internal Logs
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: alloy-sidecar-config
+  namespace: {{ .Values.namespace }}
+  labels:
+    app: redis-enterprise
+    component: logging
+    cluster: {{ .Values.cluster.name }}
+data:
+  config.alloy: |
+    // Grafana Alloy configuration for Redis Enterprise internal logs
+    
+    // Discover log files
+    local.file_match "redis_internal_logs" {
+      path_targets = [
+        {
+          __path__    = "/var/opt/redislabs/log/*.log",
+          job         = "redis-enterprise-internal",
+          log_type    = "internal",
+        },
+      ]
+    }
+    
+    // Read log files
+    loki.source.file "redis_logs" {
+      targets    = local.file_match.redis_internal_logs.targets
+      forward_to = [loki.process.redis_logs.receiver]
+      tail_from_end = true
+    }
+    
+    // Process logs and add labels
+    loki.process "redis_logs" {
+      forward_to = [loki.write.loki_gateway.receiver]
+      
+      stage.regex {
+        expression = "/var/opt/redislabs/log/(?P<log_file>.*)\\.log"
+        source     = "filename"
+      }
+      
+      stage.labels {
+        values = {
+          log_file = null,
+        }
+      }
+      
+      stage.static_labels {
+        values = {
+          cluster     = env("CLUSTER_NAME"),
+          namespace   = env("NAMESPACE"),
+          pod         = env("POD_NAME"),
+          node        = env("NODE_NAME"),
+        }
+      }
+    }
+    
+    // Write to Loki gateway
+    loki.write "loki_gateway" {
+      endpoint {
+        url = "{{ .Values.logging.sidecar.lokiEndpoint }}"
+        bearer_token_file = "/var/run/secrets/kubernetes.io/serviceaccount/token"
+        tls_config {
+          insecure_skip_verify = true
+        }
+        headers = {
+          "X-Scope-OrgID" = "application"
+        }
+      }
+      external_labels = {
+        cluster = env("CLUSTER_NAME"),
+      }
+    }
+{{- end }}
+
