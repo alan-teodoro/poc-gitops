@@ -85,8 +85,7 @@ spec:
           cpu: {{ .Values.logging.sidecar.resources.limits.cpu | quote }}
           memory: {{ .Values.logging.sidecar.resources.limits.memory | quote }}
       securityContext:
-        runAsUser: 0
-        runAsGroup: 0
+        runAsNonRoot: true
         allowPrivilegeEscalation: false
         capabilities:
           drop:

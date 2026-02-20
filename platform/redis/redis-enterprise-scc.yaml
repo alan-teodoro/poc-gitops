@@ -25,11 +25,11 @@ readOnlyRootFilesystem: false
 requiredDropCapabilities:
   - ALL
 runAsUser:
-  type: MustRunAsRange
-  uidRangeMin: 0
-  uidRangeMax: 65535
+  type: RunAsAny
 seLinuxContext:
   type: MustRunAs
+seccompProfiles:
+  - '*'
 supplementalGroups:
   type: RunAsAny
 volumes:
@@ -40,5 +40,5 @@ volumes:
   - projected
   - secret
 users:
-  - system:serviceaccount:redis-enterprise:redis-enterprise-sa
+  - system:serviceaccount:redis-enterprise:demo-redis-cluster
 
