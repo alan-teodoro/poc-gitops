@@ -250,12 +250,17 @@ oc get appproject -n openshift-gitops
 # ArgoCD needs permissions to manage platform resources (Gatekeeper, Quotas, Redis, Monitoring, etc.)
 oc apply -f platform/argocd/rbac/platform-permissions.yaml
 
+# ArgoCD needs permissions to manage SecurityContextConstraints (for Grafana Alloy)
+oc apply -f platform/argocd/rbac/argocd-scc-permissions.yaml
+
 # Verify permissions
 oc get clusterrole argocd-platform-manager
 oc get clusterrolebinding argocd-platform-manager
+oc get clusterrole argocd-scc-manager
+oc get clusterrolebinding argocd-scc-manager
 ```
 
-**✅ Success**: ClusterRole and ClusterRoleBinding created
+**✅ Success**: ClusterRoles and ClusterRoleBindings created
 
 ### 7.2: Deploy Gatekeeper Instance (GitOps)
 
