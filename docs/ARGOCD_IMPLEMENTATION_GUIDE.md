@@ -812,7 +812,8 @@ oc get grafanadashboard -n openshift-monitoring | grep logs
 - **ClusterLogForwarder** (Wave 11): Forwards Kubernetes logs to Loki
 - **Grafana DataSource** (Wave 12): Loki connection in `openshift-monitoring`
 
-**Grafana Alloy** (Waves 13-16) - **Official Redis Enterprise Approach**:
+**Grafana Alloy** (Waves 12-16) - **Official Redis Enterprise Approach**:
+- **SecurityContextConstraint** (Wave 12): SCC to allow hostPath volumes and privileged mode
 - **RBAC** (Wave 13): ServiceAccount, ClusterRole, ClusterRoleBinding
 - **ConfigMap** (Wave 14): Alloy configuration with `loki.source.file`
 - **DaemonSet** (Wave 15): Alloy pods on every node
@@ -871,6 +872,23 @@ oc get pods -n openshift-logging -l app=grafana-alloy
 
 # Check Alloy logs
 oc logs -n openshift-logging -l app=grafana-alloy --tail=20
+
+# Verify SCC is applied
+oc get scc grafana-alloy-scc
+```
+
+**⚠️ Troubleshooting Alloy DaemonSet**:
+
+If DaemonSet shows `DESIRED` but `CURRENT=0`:
+```bash
+# Check events
+oc describe daemonset grafana-alloy -n openshift-logging
+
+# Common issue: SCC not applied
+# Error: "unable to validate against any security context constraint"
+# Solution: Verify SCC exists and is bound to ServiceAccount
+oc get scc grafana-alloy-scc
+oc adm policy who-can use scc grafana-alloy-scc
 ```
 
 **Access Dashboards**:

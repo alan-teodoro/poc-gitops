@@ -1,0 +1,44 @@
+---
+# SecurityContextConstraint for Grafana Alloy
+# Allows Alloy to read host logs and run as root
+apiVersion: security.openshift.io/v1
+kind: SecurityContextConstraints
+metadata:
+  name: grafana-alloy-scc
+  annotations:
+    argocd.argoproj.io/sync-wave: "12"
+    kubernetes.io/description: |
+      SCC for Grafana Alloy DaemonSet to collect logs from host filesystem.
+      Allows hostPath volumes, privileged mode, and root user.
+allowHostDirVolumePlugin: true
+allowHostIPC: false
+allowHostNetwork: false
+allowHostPID: false
+allowHostPorts: false
+allowPrivilegedContainer: true
+allowedCapabilities:
+- SYS_ADMIN
+defaultAddCapabilities: null
+fsGroup:
+  type: RunAsAny
+groups: []
+priority: null
+readOnlyRootFilesystem: false
+requiredDropCapabilities: null
+runAsUser:
+  type: RunAsAny
+seLinuxContext:
+  type: RunAsAny
+supplementalGroups:
+  type: RunAsAny
+users:
+- system:serviceaccount:openshift-logging:grafana-alloy
+volumes:
+- configMap
+- downwardAPI
+- emptyDir
+- hostPath
+- persistentVolumeClaim
+- projected
+- secret
+
