@@ -1,0 +1,93 @@
+---
+# ServiceAccount for Grafana Alloy
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: grafana-alloy
+  namespace: openshift-logging
+  annotations:
+    argocd.argoproj.io/sync-wave: "13"
+
+---
+# ClusterRole for Grafana Alloy
+# Permissions needed to:
+# - Discover pods and nodes
+# - Read logs from pods
+# - Access Loki API
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: grafana-alloy
+  annotations:
+    argocd.argoproj.io/sync-wave: "13"
+rules:
+# Pod and Node discovery
+- apiGroups: [""]
+  resources:
+    - nodes
+    - nodes/proxy
+    - nodes/metrics
+    - services
+    - endpoints
+    - pods
+  verbs: ["get", "list", "watch"]
+
+# Namespace discovery
+- apiGroups: [""]
+  resources:
+    - namespaces
+  verbs: ["get", "list", "watch"]
+
+# ConfigMap and Secret access (for configuration)
+- apiGroups: [""]
+  resources:
+    - configmaps
+    - secrets
+  verbs: ["get", "list", "watch"]
+
+# Events (for monitoring)
+- apiGroups: [""]
+  resources:
+    - events
+  verbs: ["get", "list", "watch"]
+
+# Ingress (for service discovery)
+- apiGroups: ["networking.k8s.io"]
+  resources:
+    - ingresses
+  verbs: ["get", "list", "watch"]
+
+---
+# ClusterRoleBinding for Grafana Alloy
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: grafana-alloy
+  annotations:
+    argocd.argoproj.io/sync-wave: "13"
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: grafana-alloy
+subjects:
+- kind: ServiceAccount
+  name: grafana-alloy
+  namespace: openshift-logging
+
+---
+# ClusterRoleBinding: Allow Alloy to write logs to Loki
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: grafana-alloy-loki-writer
+  annotations:
+    argocd.argoproj.io/sync-wave: "13"
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: cluster-logging-write-application-logs
+subjects:
+- kind: ServiceAccount
+  name: grafana-alloy
+  namespace: openshift-logging
+

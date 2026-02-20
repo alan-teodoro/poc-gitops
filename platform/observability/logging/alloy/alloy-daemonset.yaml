@@ -1,0 +1,166 @@
+---
+# Grafana Alloy DaemonSet
+# Deploys Alloy on every node to collect Redis Enterprise internal logs
+# Based on official Grafana documentation for Redis Enterprise
+apiVersion: apps/v1
+kind: DaemonSet
+metadata:
+  name: grafana-alloy
+  namespace: openshift-logging
+  labels:
+    app: grafana-alloy
+    app.kubernetes.io/name: grafana-alloy
+    app.kubernetes.io/component: log-collector
+  annotations:
+    argocd.argoproj.io/sync-wave: "15"
+spec:
+  selector:
+    matchLabels:
+      app: grafana-alloy
+  
+  updateStrategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxUnavailable: 1
+  
+  template:
+    metadata:
+      labels:
+        app: grafana-alloy
+        app.kubernetes.io/name: grafana-alloy
+        app.kubernetes.io/component: log-collector
+      annotations:
+        # Force pod restart when config changes
+        checksum/config: "{{ .Values.config | sha256sum }}"
+    
+    spec:
+      serviceAccountName: grafana-alloy
+      
+      # Host network for better performance
+      hostNetwork: false
+      hostPID: false
+      
+      # DNS policy
+      dnsPolicy: ClusterFirst
+      
+      # Tolerations to run on all nodes
+      tolerations:
+      - effect: NoSchedule
+        operator: Exists
+      - effect: NoExecute
+        operator: Exists
+      
+      # Priority
+      priorityClassName: system-node-critical
+      
+      containers:
+      - name: alloy
+        image: grafana/alloy:latest
+        imagePullPolicy: IfNotPresent
+        
+        args:
+        - run
+        - /etc/alloy/config.alloy
+        - --storage.path=/var/lib/alloy/data
+        - --server.http.listen-addr=0.0.0.0:12345
+        - --cluster.enabled=false
+        - --stability.level=generally-available
+        
+        ports:
+        - name: http-metrics
+          containerPort: 12345
+          protocol: TCP
+        
+        env:
+        - name: HOSTNAME
+          valueFrom:
+            fieldRef:
+              fieldPath: spec.nodeName
+        - name: ALLOY_DEPLOY_MODE
+          value: "daemonset"
+        
+        # Security context
+        securityContext:
+          privileged: true
+          runAsUser: 0
+          capabilities:
+            add:
+            - SYS_ADMIN
+            drop:
+            - ALL
+        
+        # Resource limits
+        resources:
+          requests:
+            cpu: 100m
+            memory: 128Mi
+          limits:
+            cpu: 500m
+            memory: 512Mi
+        
+        # Volume mounts
+        volumeMounts:
+        # Alloy configuration
+        - name: config
+          mountPath: /etc/alloy
+          readOnly: true
+        
+        # Alloy data directory
+        - name: alloy-data
+          mountPath: /var/lib/alloy/data
+        
+        # Host log directory (where Kubernetes stores pod logs)
+        - name: varlog
+          mountPath: /var/log
+          readOnly: true
+        
+        # Pod logs directory
+        - name: varlibdockercontainers
+          mountPath: /var/lib/docker/containers
+          readOnly: true
+        
+        # Liveness probe
+        livenessProbe:
+          httpGet:
+            path: /-/healthy
+            port: 12345
+            scheme: HTTP
+          initialDelaySeconds: 30
+          periodSeconds: 30
+          timeoutSeconds: 5
+          failureThreshold: 3
+        
+        # Readiness probe
+        readinessProbe:
+          httpGet:
+            path: /-/ready
+            port: 12345
+            scheme: HTTP
+          initialDelaySeconds: 10
+          periodSeconds: 10
+          timeoutSeconds: 5
+          failureThreshold: 3
+      
+      # Volumes
+      volumes:
+      # Alloy configuration from ConfigMap
+      - name: config
+        configMap:
+          name: grafana-alloy-config
+      
+      # Alloy data directory (emptyDir for temporary storage)
+      - name: alloy-data
+        emptyDir: {}
+      
+      # Host /var/log directory
+      - name: varlog
+        hostPath:
+          path: /var/log
+          type: Directory
+      
+      # Host /var/lib/docker/containers directory
+      - name: varlibdockercontainers
+        hostPath:
+          path: /var/lib/docker/containers
+          type: DirectoryOrCreate
+

@@ -41,3 +41,5 @@ test-output/
 Thumbs.db
 
 docs/*
+
+demo-gitops-argocd*/**/*

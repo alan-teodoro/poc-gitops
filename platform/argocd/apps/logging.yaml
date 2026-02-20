@@ -20,7 +20,7 @@ spec:
     path: platform/observability/logging
     directory:
       recurse: true
-      exclude: '{splunk/**,README.md}'
+      exclude: '{splunk/**,**/README.md}'
   
   destination:
     server: https://kubernetes.default.svc

@@ -200,7 +200,52 @@ oc get csv -A | grep gatekeeper
 5. Click **Install**
 6. Wait 2-3 minutes for installation
 
-**Grant ArgoCD Permissions to Manage Platform Resources**:
+**Verify**:
+```bash
+# Check operator status
+oc get csv -n openshift-operators | grep gatekeeper
+# Expected: gatekeeper-operator.vX.X.X   Succeeded
+```
+
+**✅ Success**: Gatekeeper operator shows `Succeeded`
+
+**⏭️ Next**: Continue to Step 6
+
+---
+
+## Step 6: Create AppProjects
+
+**IMPORTANT**: AppProjects must be created **BEFORE** any ArgoCD Applications because Applications reference them.
+
+```bash
+# Create platform team AppProject
+oc apply -f platform/argocd/projects/platform-team.yaml
+
+# Create team1 AppProject (cache databases)
+oc apply -f platform/argocd/projects/app-team1.yaml
+
+# Create team2 AppProject (session databases)
+oc apply -f platform/argocd/projects/app-team2.yaml
+
+# Verify
+oc get appproject -n openshift-gitops
+```
+
+**Expected output**:
+- `platform-team` AppProject (platform infrastructure)
+- `app-team1` AppProject (team1 cache databases)
+- `app-team2` AppProject (team2 session databases)
+
+**✅ Success**: 3 AppProjects created with complete isolation
+
+**⏭️ Next**: Continue to Step 7
+
+---
+
+## Step 7: Grant ArgoCD Permissions & Deploy Gatekeeper Instance
+
+### 7.1: Grant ArgoCD Permissions
+
 ```bash
 # ArgoCD needs permissions to manage platform resources (Gatekeeper, Quotas, Redis, Monitoring, etc.)
 oc apply -f platform/argocd/rbac/platform-permissions.yaml
@@ -210,7 +255,10 @@ oc get clusterrole argocd-platform-manager
 oc get clusterrolebinding argocd-platform-manager
 ```
 
-**Create Gatekeeper Instance (GitOps)**:
+**✅ Success**: ClusterRole and ClusterRoleBinding created
+
+### 7.2: Deploy Gatekeeper Instance (GitOps)
+
 ```bash
 # Deploy Gatekeeper instance via ArgoCD
 oc apply -f platform/argocd/apps/gatekeeper-instance.yaml
@@ -229,11 +277,11 @@ oc get crd | grep gatekeeper
 
 **✅ Success**: ArgoCD Application synced, Gatekeeper pods Running, CRDs created
 
-**⏭️ Next**: Continue to Step 6
+**⏭️ Next**: Continue to Step 8
 
 ---
 
-## Step 6: Install Grafana Operator (Optional)
+## Step 8: Install Grafana Operator (Optional)
 
 **Skip if**: Not using observability OR Grafana already installed
 
@@ -263,11 +311,11 @@ oc get csv -n openshift-operators | grep grafana
 
 **✅ Success**: Grafana operator shows `Succeeded`
 
-**⏭️ Next**: Continue to Step 7 (or skip to Step 8 if not using logging)
+**⏭️ Next**: Continue to Step 9 (or skip to Step 10 if not using logging)
 
 ---
 
-## Step 7: Install Loki & Logging Operators (Optional)
+## Step 9: Install Loki & Logging Operators (Optional)
 
 **Skip if**: Not using logging OR operators already installed
 
@@ -310,38 +358,11 @@ oc get csv -n openshift-logging | grep logging
 
 **✅ Success**: Both operators show `Succeeded`
 
-**⏭️ Next**: Continue to Step 8
+**⏭️ Next**: Continue to Step 10
 
 ---
 
-## Step 8: Create AppProjects
-
-```bash
-# Create platform team AppProject
-oc apply -f platform/argocd/projects/platform-team.yaml
-
-# Create team1 AppProject (cache databases)
-oc apply -f platform/argocd/projects/app-team1.yaml
-
-# Create team2 AppProject (session databases)
-oc apply -f platform/argocd/projects/app-team2.yaml
-
-# Verify
-oc get appproject -n openshift-gitops
-```
-
-**Expected output**:
-- `platform-team` AppProject (platform infrastructure)
-- `app-team1` AppProject (team1 cache databases)
-- `app-team2` AppProject (team2 session databases)
-
-**✅ Success**: 3 AppProjects created with complete isolation
-
-**⏭️ Next**: Continue to Step 9
-
----
-
-## Step 9: Create Namespaces (GitOps)
+## Step 10: Create Namespaces (GitOps)
 
 ```bash
 # Deploy namespaces via ArgoCD
@@ -361,11 +382,11 @@ oc get namespaces | grep redis
 
 **✅ Success**: ArgoCD Application synced, 5 namespaces created
 
-**⏭️ Next**: Continue to Step 10
+**⏭️ Next**: Continue to Step 11
 
 ---
 
-## Step 10: Deploy Gatekeeper ConstraintTemplates (GitOps)
+## Step 11: Deploy Gatekeeper ConstraintTemplates (GitOps)
 
 **Skip if**: Not using Gatekeeper policies
 
@@ -395,11 +416,11 @@ oc get crd | grep -E "(redisimmutable|redismandatory|redismemory)"
 
 **✅ Success**: ArgoCD Application synced, 3 ConstraintTemplates created, 3 CRDs available
 
-**⏭️ Next**: Continue to Step 10.5
+**⏭️ Next**: Continue to Step 12
 
 ---
 
-## Step 10.5: Deploy Gatekeeper Constraints (GitOps)
+## Step 12: Deploy Gatekeeper Constraints (GitOps)
 
 **Prerequisites**: Step 10 completed (ConstraintTemplates and CRDs exist)
 
@@ -429,11 +450,11 @@ oc get constraints -A
 
 **✅ Success**: ArgoCD Application synced, 4 Constraints active, policies enforced
 
-**⏭️ Next**: Continue to Step 11
+**⏭️ Next**: Continue to Step 13
 
 ---
 
-## Step 11: Apply ResourceQuotas & LimitRanges (GitOps)
+## Step 13: Apply ResourceQuotas & LimitRanges (GitOps)
 
 ```bash
 # Deploy quotas and limitranges via ArgoCD
@@ -474,11 +495,11 @@ oc get limitrange -A | grep redis
 
 **✅ Success**: ArgoCD Application synced, quotas and limitranges applied to all 5 namespaces
 
-**⏭️ Next**: Continue to Step 12
+**⏭️ Next**: Continue to Step 14
 
 ---
 
-## Step 12: Deploy Network Policies (Security - Optional)
+## Step 14: Deploy Network Policies (Security - Optional)
 
 **Purpose:** Implement network-level security using Kubernetes Network Policies.
 
@@ -589,11 +610,11 @@ oc get pods -n redis-enterprise -l app=redis-enterprise
 
 See `platform/security/network-policies/README.md` for complete documentation.
 
-**⏭️ Next**: Continue to Step 13
+**⏭️ Next**: Continue to Step 15
 
 ---
 
-## Step 13: Deploy Redis Enterprise Cluster
+## Step 15: Deploy Redis Enterprise Cluster
 
 ```bash
 # Apply ArgoCD Application for demo cluster
@@ -613,11 +634,11 @@ oc get pods -n redis-enterprise
 
 **✅ Success**: Cluster shows `Running` with 3 pods
 
-**⏭️ Next**: Continue to Step 14
+**⏭️ Next**: Continue to Step 16
 
 ---
 
-## Step 14: Deploy Multi-Namespace RBAC
+## Step 16: Deploy Multi-Namespace RBAC
 
 ```bash
 # Apply RBAC ArgoCD Application
@@ -644,11 +665,11 @@ oc get configmap operator-environment-config -n redis-enterprise
 
 **✅ Success**: Roles and RoleBindings created in all team namespaces (team1 and team2)
 
-**⏭️ Next**: Continue to Step 15
+**⏭️ Next**: Continue to Step 17
 
 ---
 
-## Step 15: Deploy Redis Databases
+## Step 17: Deploy Redis Databases
 
 ```bash
 # Apply team1 databases (cache)
@@ -678,29 +699,19 @@ oc get redb -A
 
 **✅ Success**: All 4 databases show `active`
 
-**⏭️ Next**: Continue to Step 16 (or skip to Step 19 if not using observability)
+**⏭️ Next**: Continue to Step 18 (or skip to Step 21 if not using observability)
 
 ---
 
-## Step 16: Deploy Observability Stack (GitOps - Optional)
+## Step 18: Deploy Observability Stack (GitOps - Optional)
 
 **Skip if**: Not using observability
 
-### 15.1: Update RBAC Permissions (if not done in Step 8)
+**Prerequisites**:
+- Step 7 completed (ArgoCD permissions already granted)
+- Grafana Operator installed (Step 8)
 
-```bash
-# Apply RBAC permissions for all platform resources
-# (This should already be done in Step 8, but verify it includes Grafana permissions)
-oc apply -f platform/argocd/rbac/platform-permissions.yaml
-
-# Verify permissions
-oc describe clusterrole argocd-platform-manager | grep -A5 "monitoring.coreos.com"
-oc describe clusterrole argocd-platform-manager | grep -A5 "grafana.integreatly.org"
-```
-
-**Note**: RBAC is currently managed **manually** (not via ArgoCD) to avoid chicken-and-egg problem. The `platform-permissions.yaml` file contains all permissions needed for the entire platform deployment.
-
-### 15.2: Deploy Observability Applications
+### Deploy Observability Applications
 
 The observability stack is split into **2 separate Applications** for better modularity:
 
@@ -722,7 +733,7 @@ oc get pods -n openshift-monitoring -w
 oc get route -n openshift-monitoring | grep grafana
 ```
 
-### 15.3: Verify Deployment
+### 18.3: Verify Deployment
 
 ```bash
 # Check Applications
@@ -763,16 +774,16 @@ oc get servicemonitor -n redis-enterprise | grep redis
 
 **✅ Success**: Both Applications synced, Prometheus + Grafana deployed in `openshift-monitoring`
 
-**⏭️ Next**: Continue to Step 17 (or skip to Step 19 if not using logging)
+**⏭️ Next**: Continue to Step 19 (or skip to Step 21 if not using logging)
 
 ---
 
-## Step 17: Deploy Logging Stack (GitOps - Optional)
+## Step 19: Deploy Logging Stack (GitOps - Optional)
 
 **Skip if**: Not using logging
 
 ```bash
-# Deploy logging via ArgoCD (LokiStack, ClusterLogForwarder, Grafana datasource)
+# Deploy logging via ArgoCD (LokiStack, ClusterLogForwarder, Grafana Alloy, Grafana datasource)
 oc apply -f platform/argocd/apps/logging.yaml
 
 # Watch ArgoCD sync (3-5 minutes)
@@ -784,6 +795,7 @@ oc get pods -n openshift-logging -w
 # Verify all components
 oc get lokistack -n openshift-logging
 oc get clusterlogforwarder -n openshift-logging
+oc get daemonset grafana-alloy -n openshift-logging
 oc get grafanadatasource -n openshift-monitoring | grep loki
 oc get grafanadashboard -n openshift-monitoring | grep logs
 ```
@@ -792,13 +804,24 @@ oc get grafanadashboard -n openshift-monitoring | grep logs
 
 **Application: `redis-logging`** (Wave 6)
 - **Path**: `platform/observability/logging` (recurse: true, excludes splunk/)
+
+**Loki Stack** (Waves 8-12):
+- **ObjectBucketClaim** (Wave 8): S3 bucket for Loki storage (NooBaa)
+- **Secret Sync Job** (Wave 9): Copies S3 credentials to Loki secret
 - **LokiStack** (Wave 10): Log aggregation backend in `openshift-logging`
-- **ClusterLogForwarder** (Wave 11): Forwards Redis logs to Loki
+- **ClusterLogForwarder** (Wave 11): Forwards Kubernetes logs to Loki
 - **Grafana DataSource** (Wave 12): Loki connection in `openshift-monitoring`
-- **Grafana Dashboards** (Wave 13): 2 Loki dashboards in `openshift-monitoring`
-  - Redis Logs Overview - Log volume metrics and viewer
-  - Redis Logs Errors - Error and warning detection
-- **Grafana RBAC**: ServiceAccount, ClusterRoleBindings for Loki access
+
+**Grafana Alloy** (Waves 13-16) - **Official Redis Enterprise Approach**:
+- **RBAC** (Wave 13): ServiceAccount, ClusterRole, ClusterRoleBinding
+- **ConfigMap** (Wave 14): Alloy configuration with `loki.source.file`
+- **DaemonSet** (Wave 15): Alloy pods on every node
+- **Purpose**: Collects **Redis Enterprise internal logs** from `/var/opt/redislabs/log/`
+
+**Grafana Dashboards** (Wave 16):
+- **Redis Logs Overview** - Kubernetes logs (stdout/stderr)
+- **Redis Logs Errors** - Error and warning detection
+- **Redis Internal Logs** - Redis Enterprise internal logs (cluster, node, database)
 
 **Why separate from Grafana Application?**
 - ✅ Logging is optional - can deploy Grafana without Loki
@@ -807,6 +830,26 @@ oc get grafanadashboard -n openshift-monitoring | grep logs
 - ✅ Dashboards only created when datasource exists
 
 **✅ Success**: ArgoCD Application synced, logging stack with dashboards deployed
+
+### 📋 Understanding Log Collection
+
+This deployment collects **TWO types of logs**:
+
+#### 1. **Kubernetes Logs** (stdout/stderr)
+- **Collector**: ClusterLogForwarder (OpenShift Logging Operator)
+- **Source**: Container stdout/stderr streams
+- **Namespaces**: `redis-enterprise`, `redis-team1-dev`, `redis-team1-prod`, `redis-team2-dev`, `redis-team2-prod`
+- **Use case**: Application logs, operator logs, general container output
+
+#### 2. **Redis Enterprise Internal Logs** (files)
+- **Collector**: Grafana Alloy (official approach from Grafana)
+- **Source**: `/var/opt/redislabs/log/` inside Redis pods
+  - `redis-*.log` - Database logs
+  - `node-*.log` - Node logs
+  - `cluster-*.log` - Cluster logs
+- **Use case**: Detailed Redis Enterprise diagnostics, internal operations
+
+**Reference**: [Grafana Redis Enterprise Integration](https://grafana.com/docs/grafana-cloud/monitor-infrastructure/integrations/integration-reference/integration-redis-enterprise/)
 
 ### 🧪 Test Loki Dashboards
 
@@ -820,22 +863,51 @@ oc get grafanadashboard -n openshift-monitoring | grep logs
 # Expected:
 # redis-logs-overview
 # redis-logs-errors
+# redis-internal-logs
+
+# Verify Grafana Alloy is running
+oc get daemonset grafana-alloy -n openshift-logging
+oc get pods -n openshift-logging -l app=grafana-alloy
+
+# Check Alloy logs
+oc logs -n openshift-logging -l app=grafana-alloy --tail=20
 ```
 
 **Access Dashboards**:
 1. Open Grafana URL (from output above)
 2. Login: `admin` / `admin`
-3. Go to **Dashboards** → **Redis Enterprise Logs** folder
-4. Open **Redis Logs Overview** or **Redis Logs Errors**
+3. Go to **Dashboards** → **Redis Enterprise** folder
+4. Open dashboards:
+   - **Redis Logs Overview** - Kubernetes logs (stdout/stderr)
+   - **Redis Logs Errors** - Error detection
+   - **Redis Internal Logs** - Redis Enterprise internal logs
 5. Should see logs from Redis namespaces automatically
 
-**📖 See**: [`docs/LOKI_QUICK_START.md`](LOKI_QUICK_START.md) for complete Loki setup guide
+**Query Examples in Grafana Explore**:
 
-**⏭️ Next**: Continue to Step 18
+```logql
+# Kubernetes logs (ClusterLogForwarder)
+{kubernetes_namespace_name="redis-enterprise"}
+
+# Redis internal logs (Grafana Alloy)
+{job="integrations/redis-enterprise-internal"}
+
+# Filter by pod
+{job="integrations/redis-enterprise-internal", pod="demo-redis-cluster-0"}
+
+# Search for errors
+{job="integrations/redis-enterprise-internal"} |~ "(?i)error|fail|exception"
+```
+
+**📖 See**:
+- [`docs/LOKI_QUICK_START.md`](LOKI_QUICK_START.md) - Complete Loki setup guide
+- [`platform/observability/logging/alloy/README.md`](../platform/observability/logging/alloy/README.md) - Grafana Alloy details
+
+**⏭️ Next**: Continue to Step 20
 
 ---
 
-## Step 18: Deploy High Availability (GitOps - Optional)
+## Step 20: Deploy High Availability (GitOps - Optional)
 
 **Skip if**: Not using HA features
 
@@ -863,11 +935,11 @@ oc describe pdb redis-cluster-pdb -n redis-enterprise
 
 **✅ Success**: ArgoCD Application synced, PDB protecting demo-redis-cluster
 
-**⏭️ Next**: Continue to Step 19
+**⏭️ Next**: Continue to Step 21
 
 ---
 
-## Step 19: Validation
+## Step 21: Validation
 
 ```bash
 # Check all components
