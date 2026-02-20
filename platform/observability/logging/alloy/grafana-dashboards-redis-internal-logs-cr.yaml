@@ -1,0 +1,31 @@
+---
+# GrafanaDashboard CR for Redis Enterprise Internal Logs
+# Purpose: Deploy Redis internal logs dashboard using Grafana Operator
+# References the ConfigMap created in grafana-dashboards-redis-internal-logs.yaml
+# Managed by: Platform Team
+# Sync Wave: 17 - After dashboard ConfigMap (wave 16)
+
+apiVersion: grafana.integreatly.org/v1beta1
+kind: GrafanaDashboard
+metadata:
+  name: redis-internal-logs
+  namespace: openshift-monitoring
+  labels:
+    app: grafana
+    component: dashboard
+    datasource: loki
+  annotations:
+    argocd.argoproj.io/sync-wave: "17"
+    description: "Redis Enterprise internal logs dashboard (cluster, node, database logs from /var/opt/redislabs/log/)"
+spec:
+  instanceSelector:
+    matchLabels:
+      dashboards: "grafana"
+  folder: "Redis Enterprise Logs"
+  datasources:
+    - inputName: "datasource"
+      datasourceName: "Loki (Redis Logs)"
+  configMapRef:
+    name: grafana-dashboard-redis-internal-logs
+    key: redis-internal-logs.json
+
