@@ -41,6 +41,9 @@ data:
           insecure_skip_verify = true
         }
       }
+
+      // ESSENTIAL for OpenShift Logging/Observatorium multi-tenant gateway
+      tenant_id = "application"
     }
 {{- end }}
 
