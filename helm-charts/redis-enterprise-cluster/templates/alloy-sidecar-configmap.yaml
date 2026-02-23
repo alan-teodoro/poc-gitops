@@ -43,7 +43,7 @@ data:
 
         // ESSENTIAL for OpenShift Logging/Observatorium multi-tenant gateway
         headers = {
-          "X-Scope-OrgID" = "application"
+          "X-Scope-OrgID" = "application",
         }
       }
     }
