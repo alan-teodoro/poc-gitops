@@ -35,20 +35,10 @@ data:
     // Process logs and add labels
     loki.process "redis_logs" {
       forward_to = [loki.write.loki_gateway.receiver]
-      
-      stage.regex {
-        expression = "/var/opt/redislabs/log/(?P<log_file>.*)\\.log"
-        source     = "filename"
-      }
-      
-      stage.labels {
-        values = {
-          log_file = null,
-        }
-      }
-      
+
       stage.static_labels {
         values = {
+          job         = "redis-enterprise-internal",
           cluster     = env("CLUSTER_NAME"),
           namespace   = env("NAMESPACE"),
           pod         = env("POD_NAME"),
