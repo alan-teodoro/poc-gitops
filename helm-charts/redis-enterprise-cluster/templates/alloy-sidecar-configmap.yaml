@@ -40,10 +40,12 @@ data:
         tls_config {
           insecure_skip_verify = true
         }
-      }
 
-      // ESSENTIAL for OpenShift Logging/Observatorium multi-tenant gateway
-      tenant_id = "application"
+        // ESSENTIAL for OpenShift Logging/Observatorium multi-tenant gateway
+        headers = {
+          "X-Scope-OrgID" = "application"
+        }
+      }
     }
 {{- end }}
 
