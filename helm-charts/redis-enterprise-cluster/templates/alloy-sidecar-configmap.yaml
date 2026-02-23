@@ -13,21 +13,21 @@ metadata:
 data:
   config.alloy: |
     // Grafana Alloy configuration for Redis Enterprise internal logs
-    // SIMPLIFIED CONFIG TO TEST BASIC INGESTION
+    // ULTRA-DETERMINISTIC TEST CONFIG
 
-    // Discover log files (glob expansion)
-    local.file_match "redis_logs" {
+    // Test with a simple file
+    local.file_match "test" {
       path_targets = [
         {
-          __path__ = "/var/opt/redislabs/log/*.log",
-          job      = "redis-enterprise-internal",
+          __path__ = "/tmp/alloy-test.log",
+          job      = "alloy-test",
         },
       ]
     }
 
-    // Read log files
-    loki.source.file "redis_logs" {
-      targets       = local.file_match.redis_logs.targets
+    // Read test file
+    loki.source.file "test" {
+      targets       = local.file_match.test.targets
       forward_to    = [loki.write.loki_gateway.receiver]
       tail_from_end = false
     }
