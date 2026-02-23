@@ -5,7 +5,7 @@
 # Uses Thanos Querier which provides unified access to Prometheus metrics
 # Managed by: Platform Team
 # Note: This datasource uses valuesFrom to reference the Secret with the Bearer token
-# Sync Wave: 1 - Must be created AFTER Job (wave 0) creates the Secret
+# Sync Wave: 2 - Must be created AFTER Grafana instance (wave 1) and Job (wave 0)
 
 apiVersion: grafana.integreatly.org/v1beta1
 kind: GrafanaDatasource
@@ -16,7 +16,7 @@ metadata:
     app: grafana
     component: datasource
   annotations:
-    argocd.argoproj.io/sync-wave: "1"
+    argocd.argoproj.io/sync-wave: "2"
 spec:
   instanceSelector:
     matchLabels:
