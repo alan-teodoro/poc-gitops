@@ -50,7 +50,7 @@ data:
     // Write to Loki gateway
     loki.write "loki_gateway" {
       endpoint {
-        url = "https://logging-loki-gateway-http.openshift-logging.svc:8080/loki/api/v1/push"
+        url = "https://logging-loki-gateway-http.openshift-logging.svc:8080/api/logs/v1/application/loki/api/v1/push"
         bearer_token_file = "/var/run/secrets/kubernetes.io/serviceaccount/token"
         tls_config {
           insecure_skip_verify = true
