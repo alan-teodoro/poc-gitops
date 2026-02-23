@@ -47,10 +47,11 @@ spec:
   # Uses ODF Ceph RBD for persistent storage (external mode)
   storageClassName: ocs-external-storagecluster-ceph-rbd
   
-  # Tenant mode: openshift-logging
-  # Integrates with OpenShift logging infrastructure
+  # Tenant mode: openshift-network
+  # Allows ServiceAccount token authentication (RBAC-based)
+  # This enables Alloy and other apps to push logs using SA tokens
   tenants:
-    mode: openshift-logging
+    mode: openshift-network
   
   # Resource limits (optional - can be customized)
   limits:
