@@ -15,14 +15,19 @@ data:
     // Grafana Alloy configuration for Redis Enterprise internal logs
     // SIMPLIFIED CONFIG TO TEST BASIC INGESTION
 
-    // Read log files directly
-    loki.source.file "redis_logs" {
-      targets = [
+    // Discover log files (glob expansion)
+    local.file_match "redis_logs" {
+      path_targets = [
         {
           __path__ = "/var/opt/redislabs/log/*.log",
           job      = "redis-enterprise-internal",
         },
       ]
+    }
+
+    // Read log files
+    loki.source.file "redis_logs" {
+      targets    = local.file_match.redis_logs.targets
       forward_to = [loki.write.loki_gateway.receiver]
     }
 
