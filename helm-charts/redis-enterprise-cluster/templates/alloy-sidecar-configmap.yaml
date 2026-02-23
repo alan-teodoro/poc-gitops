@@ -13,39 +13,19 @@ metadata:
 data:
   config.alloy: |
     // Grafana Alloy configuration for Redis Enterprise internal logs
-    
-    // Discover log files
-    local.file_match "redis_internal_logs" {
-      path_targets = [
+    // SIMPLIFIED CONFIG TO TEST BASIC INGESTION
+
+    // Read log files directly
+    loki.source.file "redis_logs" {
+      targets = [
         {
-          __path__    = "/var/opt/redislabs/log/*.log",
-          job         = "redis-enterprise-internal",
-          log_type    = "internal",
+          __path__ = "/var/opt/redislabs/log/*.log",
+          job      = "redis-enterprise-internal",
         },
       ]
-    }
-    
-    // Read log files
-    loki.source.file "redis_logs" {
-      targets    = local.file_match.redis_internal_logs.targets
-      forward_to = [loki.process.redis_logs.receiver]
-    }
-    
-    // Process logs and add labels
-    loki.process "redis_logs" {
       forward_to = [loki.write.loki_gateway.receiver]
-
-      stage.static_labels {
-        values = {
-          job         = "redis-enterprise-internal",
-          cluster     = env("CLUSTER_NAME"),
-          namespace   = env("NAMESPACE"),
-          pod         = env("POD_NAME"),
-          node        = env("NODE_NAME"),
-        }
-      }
     }
-    
+
     // Write to Loki gateway
     loki.write "loki_gateway" {
       endpoint {
@@ -54,9 +34,6 @@ data:
         tls_config {
           insecure_skip_verify = true
         }
-      }
-      external_labels = {
-        cluster = env("CLUSTER_NAME"),
       }
     }
 {{- end }}
