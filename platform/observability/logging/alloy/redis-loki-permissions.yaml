@@ -7,8 +7,8 @@ metadata:
     argocd.argoproj.io/sync-wave: "14"
 rules:
   - apiGroups: ["loki.grafana.com"]
-    resources: ["application"]
     resourceNames: ["logs"]
+    resources: ["application"]
     verbs: ["create"]
 ---
 apiVersion: rbac.authorization.k8s.io/v1
