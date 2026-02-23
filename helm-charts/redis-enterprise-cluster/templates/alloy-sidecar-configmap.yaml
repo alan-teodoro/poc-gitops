@@ -29,7 +29,6 @@ data:
     loki.source.file "redis_logs" {
       targets    = local.file_match.redis_internal_logs.targets
       forward_to = [loki.process.redis_logs.receiver]
-      tail_from_end = true
     }
     
     // Process logs and add labels
