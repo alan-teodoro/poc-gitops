@@ -156,6 +156,20 @@ rules:
       - patch
       - delete
 
+  # DaemonSets (apps API group) - needed for Grafana Alloy
+  - apiGroups:
+      - apps
+    resources:
+      - daemonsets
+    verbs:
+      - get
+      - list
+      - watch
+      - create
+      - update
+      - patch
+      - delete
+
   # Redis Enterprise Clusters (app.redislabs.com)
   - apiGroups:
       - app.redislabs.com
