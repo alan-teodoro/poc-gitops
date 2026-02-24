@@ -36,6 +36,9 @@ subjects:
 - kind: ServiceAccount
   name: grafana-loki-reader
   namespace: openshift-monitoring
+- kind: ServiceAccount
+  name: grafana-serviceaccount
+  namespace: openshift-monitoring
 
 ---
 # ClusterRole to read application logs from Loki
@@ -56,7 +59,7 @@ rules:
   - get
 
 ---
-# ClusterRoleBinding for Grafana ServiceAccount to read application logs
+# ClusterRoleBinding for Grafana ServiceAccounts to read application logs
 apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRoleBinding
 metadata:
@@ -70,6 +73,9 @@ roleRef:
 subjects:
 - kind: ServiceAccount
   name: grafana-loki-reader
+  namespace: openshift-monitoring
+- kind: ServiceAccount
+  name: grafana-serviceaccount
   namespace: openshift-monitoring
 
 ---
@@ -88,4 +94,6 @@ subjects:
 - kind: ServiceAccount
   name: grafana-loki-reader
   namespace: openshift-monitoring
-
+- kind: ServiceAccount
+  name: grafana-serviceaccount
+  namespace: openshift-monitoring
