@@ -12,25 +12,38 @@ metadata:
     cluster: {{ .Values.cluster.name }}
 data:
   config.alloy: |
-    // SIMPLIFIED TEST: Only one specific test file
-    // Testing basic Alloy -> Loki pipeline
+    // Redis Enterprise Internal Logs Collection
+    // Collects logs from /var/opt/redislabs/log/ and sends to Loki
 
-    // Read ONLY the test file
-    loki.source.file "test_file" {
+    // Read Redis Enterprise dmcproxy log (proxy layer - important for debugging)
+    loki.source.file "dmcproxy" {
       targets = [
         {
-          __path__ = "/tmp/alloy-simple-test.log",
-          job      = "alloy-simple-test",
+          __path__ = "/var/opt/redislabs/log/dmcproxy.log",
+          job      = "redis-enterprise",
+          log_type = "dmcproxy",
         },
       ]
-      forward_to    = [loki.write.loki_gateway.receiver]
-      tail_from_end = false  // Read from beginning
+      forward_to    = [loki.process.add_labels.receiver]
+      tail_from_end = true
+    }
+
+    // Add cluster metadata labels
+    loki.process "add_labels" {
+      forward_to = [loki.write.loki_gateway.receiver]
+
+      stage.static_labels {
+        values = {
+          cluster   = "{{ .Values.cluster.name }}",
+          namespace = "{{ .Values.namespace }}",
+        }
+      }
     }
 
     // Write to Loki gateway
     loki.write "loki_gateway" {
       endpoint {
-        url = "https://logging-loki-gateway-http.openshift-logging.svc:8080/api/logs/v1/application/loki/api/v1/push"
+        url = "{{ .Values.logging.sidecar.lokiEndpoint }}"
         bearer_token_file = "/var/run/secrets/kubernetes.io/serviceaccount/token"
         tls_config {
           insecure_skip_verify = true
