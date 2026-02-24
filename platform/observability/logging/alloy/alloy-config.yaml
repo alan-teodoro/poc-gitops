@@ -118,7 +118,7 @@ data:
     
     loki.write "loki_endpoint" {
       endpoint {
-        url = "https://logging-loki-gateway-http.openshift-logging.svc:8080/api/logs/v1/application"
+        url = "https://logging-loki-gateway-http.openshift-logging.svc:8080/api/logs/v1/application/loki/api/v1/push"
         
         // TLS configuration
         tls_config {
@@ -127,6 +127,11 @@ data:
         
         // Authentication using ServiceAccount token
         bearer_token_file = "/var/run/secrets/kubernetes.io/serviceaccount/token"
+
+        // Required by OpenShift Logging multi-tenant gateway
+        headers = {
+          "X-Scope-OrgID" = "application",
+        }
       }
       
       // External labels (applied to all logs)
@@ -135,4 +140,3 @@ data:
         source  = "grafana-alloy",
       }
     }
-
