@@ -13,7 +13,7 @@ metadata:
     - resources-finalizer.argocd.argoproj.io
 spec:
   project: platform-team
-  
+
   source:
     repoURL: https://github.com/alan-teodoro/poc-gitops.git
     targetRevision: main
@@ -21,11 +21,11 @@ spec:
     helm:
       valueFiles:
         - ../../clusters/redis-cluster-demo/cluster.yaml
-  
+
   destination:
     server: https://kubernetes.default.svc
     namespace: redis-enterprise
-  
+
   syncPolicy:
     automated:
       prune: true
@@ -41,10 +41,9 @@ spec:
         duration: 5s
         factor: 2
         maxDuration: 3m
-  
+
   ignoreDifferences:
     - group: apps
       kind: StatefulSet
       jsonPointers:
         - /spec/volumeClaimTemplates
-

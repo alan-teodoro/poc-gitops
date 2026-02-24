@@ -20,20 +20,20 @@ data:
       targets = [
         {
           __path__ = "/var/opt/redislabs/log/dmcproxy.log",
-          job      = "redis-enterprise",
-          log_type = "dmcproxy",
         },
       ]
       forward_to    = [loki.process.add_labels.receiver]
       tail_from_end = true
     }
 
-    // Add cluster metadata labels
+    // Add log metadata labels (job/log_type) and cluster/namespace labels
     loki.process "add_labels" {
       forward_to = [loki.write.loki_gateway.receiver]
 
       stage.static_labels {
         values = {
+          job       = "redis-enterprise",
+          log_type  = "dmcproxy",
           cluster   = "{{ .Values.cluster.name }}",
           namespace = "{{ .Values.namespace }}",
         }
