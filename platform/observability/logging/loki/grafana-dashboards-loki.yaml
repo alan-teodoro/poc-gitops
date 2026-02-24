@@ -49,44 +49,14 @@ data:
                 "mode": "palette-classic"
               },
               "custom": {
-                "axisCenteredZero": false,
-                "axisColorMode": "text",
-                "axisLabel": "",
-                "axisPlacement": "auto",
-                "barAlignment": 0,
-                "drawStyle": "bars",
-                "fillOpacity": 100,
-                "gradientMode": "none",
-                "hideFrom": {
-                  "tooltip": false,
-                  "viz": false,
-                  "legend": false
-                },
-                "lineInterpolation": "linear",
-                "lineWidth": 1,
-                "pointSize": 5,
-                "scaleDistribution": {
-                  "type": "linear"
-                },
-                "showPoints": "auto",
-                "spanNulls": false,
+                "drawStyle": "line",
+                "lineWidth": 2,
+                "fillOpacity": 15,
+                "showPoints": "never",
                 "stacking": {
-                  "group": "A",
-                  "mode": "normal"
-                },
-                "thresholdsStyle": {
-                  "mode": "off"
+                  "mode": "normal",
+                  "group": "A"
                 }
-              },
-              "mappings": [],
-              "thresholds": {
-                "mode": "absolute",
-                "steps": [
-                  {
-                    "color": "green",
-                    "value": null
-                  }
-                ]
               },
               "unit": "short"
             },
@@ -94,15 +64,14 @@ data:
           },
           "gridPos": {
             "h": 8,
-            "w": 24,
+            "w": 12,
             "x": 0,
             "y": 0
           },
           "id": 1,
           "options": {
             "legend": {
-              "calcs": [],
-              "displayMode": "list",
+              "displayMode": "table",
               "placement": "bottom",
               "showLegend": true
             },
@@ -118,50 +87,13 @@ data:
                 "uid": "${datasource}"
               },
               "editorMode": "code",
-              "expr": "sum by (kubernetes_namespace_name) (count_over_time({kubernetes_namespace_name=~\"$namespace\"}[$__interval]))",
+              "expr": "sum by (filename) (count_over_time({job=\"redis-enterprise\", kubernetes_namespace_name=~\"$namespace\", filename=~\"$file\"} |~ \"$severity\" |~ \"$search\" [$__interval]))",
               "queryType": "range",
               "refId": "A"
             }
           ],
-          "title": "Log Volume by Namespace",
+          "title": "Log Volume by File",
           "type": "timeseries"
-        },
-        {
-          "datasource": {
-            "type": "loki",
-            "uid": "${datasource}"
-          },
-          "gridPos": {
-            "h": 12,
-            "w": 24,
-            "x": 0,
-            "y": 8
-          },
-          "id": 2,
-          "options": {
-            "dedupStrategy": "none",
-            "enableLogDetails": true,
-            "prettifyLogMessage": false,
-            "showCommonLabels": false,
-            "showLabels": false,
-            "showTime": true,
-            "sortOrder": "Descending",
-            "wrapLogMessage": false
-          },
-          "targets": [
-            {
-              "datasource": {
-                "type": "loki",
-                "uid": "${datasource}"
-              },
-              "editorMode": "code",
-              "expr": "{kubernetes_namespace_name=~\"$namespace\", kubernetes_pod_name=~\"$pod\"} |~ \"$search\"",
-              "queryType": "range",
-              "refId": "A"
-            }
-          ],
-          "title": "Redis Enterprise Logs",
-          "type": "logs"
         },
         {
           "datasource": {
@@ -174,44 +106,14 @@ data:
                 "mode": "palette-classic"
               },
               "custom": {
-                "axisCenteredZero": false,
-                "axisColorMode": "text",
-                "axisLabel": "",
-                "axisPlacement": "auto",
-                "barAlignment": 0,
-                "drawStyle": "bars",
-                "fillOpacity": 100,
-                "gradientMode": "none",
-                "hideFrom": {
-                  "tooltip": false,
-                  "viz": false,
-                  "legend": false
-                },
-                "lineInterpolation": "linear",
-                "lineWidth": 1,
-                "pointSize": 5,
-                "scaleDistribution": {
-                  "type": "linear"
-                },
-                "showPoints": "auto",
-                "spanNulls": false,
+                "drawStyle": "line",
+                "lineWidth": 2,
+                "fillOpacity": 15,
+                "showPoints": "never",
                 "stacking": {
-                  "group": "A",
-                  "mode": "normal"
-                },
-                "thresholdsStyle": {
-                  "mode": "off"
+                  "mode": "none",
+                  "group": "A"
                 }
-              },
-              "mappings": [],
-              "thresholds": {
-                "mode": "absolute",
-                "steps": [
-                  {
-                    "color": "green",
-                    "value": null
-                  }
-                ]
               },
               "unit": "short"
             },
@@ -220,14 +122,13 @@ data:
           "gridPos": {
             "h": 8,
             "w": 12,
-            "x": 0,
-            "y": 20
+            "x": 12,
+            "y": 0
           },
-          "id": 3,
+          "id": 2,
           "options": {
             "legend": {
-              "calcs": [],
-              "displayMode": "list",
+              "displayMode": "table",
               "placement": "bottom",
               "showLegend": true
             },
@@ -243,7 +144,7 @@ data:
                 "uid": "${datasource}"
               },
               "editorMode": "code",
-              "expr": "sum by (kubernetes_pod_name) (count_over_time({kubernetes_namespace_name=~\"$namespace\"}[$__interval]))",
+              "expr": "sum by (kubernetes_pod_name) (count_over_time({job=\"redis-enterprise\", kubernetes_namespace_name=~\"$namespace\", filename=~\"$file\"} |~ \"$severity\" |~ \"$search\" [$__interval]))",
               "queryType": "range",
               "refId": "A"
             }
@@ -258,9 +159,6 @@ data:
           },
           "fieldConfig": {
             "defaults": {
-              "color": {
-                "mode": "thresholds"
-              },
               "mappings": [],
               "thresholds": {
                 "mode": "absolute",
@@ -270,12 +168,12 @@ data:
                     "value": null
                   },
                   {
-                    "color": "yellow",
-                    "value": 1000
+                    "color": "orange",
+                    "value": 50
                   },
                   {
                     "color": "red",
-                    "value": 5000
+                    "value": 150
                   }
                 ]
               },
@@ -284,25 +182,26 @@ data:
             "overrides": []
           },
           "gridPos": {
-            "h": 8,
-            "w": 12,
-            "x": 12,
-            "y": 20
+            "h": 6,
+            "w": 6,
+            "x": 0,
+            "y": 8
           },
-          "id": 4,
+          "id": 3,
           "options": {
+            "colorMode": "value",
+            "graphMode": "area",
+            "justifyMode": "auto",
             "orientation": "auto",
             "reduceOptions": {
-              "values": false,
               "calcs": [
                 "lastNotNull"
               ],
-              "fields": ""
+              "fields": "",
+              "values": false
             },
-            "showThresholdLabels": false,
-            "showThresholdMarkers": true
+            "textMode": "auto"
           },
-          "pluginVersion": "9.5.3",
           "targets": [
             {
               "datasource": {
@@ -310,144 +209,349 @@ data:
                 "uid": "${datasource}"
               },
               "editorMode": "code",
-              "expr": "sum(count_over_time({kubernetes_namespace_name=~\"$namespace\"}[$__interval]))",
+              "expr": "sum(count_over_time({job=\"redis-enterprise\", kubernetes_namespace_name=~\"$namespace\", filename=~\"$file\"} |~ \"(?i)(error|fatal|panic|critical)\" [5m]))",
+              "instant": true,
+              "queryType": "instant",
+              "refId": "A"
+            }
+          ],
+          "title": "Errors in Last 5m",
+          "type": "stat"
+        },
+        {
+          "datasource": {
+            "type": "loki",
+            "uid": "${datasource}"
+          },
+          "fieldConfig": {
+            "defaults": {
+              "mappings": [],
+              "thresholds": {
+                "mode": "absolute",
+                "steps": [
+                  {
+                    "color": "green",
+                    "value": null
+                  },
+                  {
+                    "color": "orange",
+                    "value": 50
+                  },
+                  {
+                    "color": "red",
+                    "value": 150
+                  }
+                ]
+              },
+              "unit": "short"
+            },
+            "overrides": []
+          },
+          "gridPos": {
+            "h": 6,
+            "w": 6,
+            "x": 6,
+            "y": 8
+          },
+          "id": 4,
+          "options": {
+            "colorMode": "value",
+            "graphMode": "area",
+            "justifyMode": "auto",
+            "orientation": "auto",
+            "reduceOptions": {
+              "calcs": [
+                "lastNotNull"
+              ],
+              "fields": "",
+              "values": false
+            },
+            "textMode": "auto"
+          },
+          "targets": [
+            {
+              "datasource": {
+                "type": "loki",
+                "uid": "${datasource}"
+              },
+              "editorMode": "code",
+              "expr": "sum(count_over_time({job=\"redis-enterprise\", kubernetes_namespace_name=~\"$namespace\", filename=~\"$file\"} |~ \"(?i)(warn|warning)\" [5m]))",
+              "instant": true,
+              "queryType": "instant",
+              "refId": "A"
+            }
+          ],
+          "title": "Warnings in Last 5m",
+          "type": "stat"
+        },
+        {
+          "datasource": {
+            "type": "loki",
+            "uid": "${datasource}"
+          },
+          "fieldConfig": {
+            "defaults": {
+              "mappings": [],
+              "thresholds": {
+                "mode": "absolute",
+                "steps": [
+                  {
+                    "color": "green",
+                    "value": null
+                  }
+                ]
+              },
+              "unit": "short"
+            },
+            "overrides": []
+          },
+          "gridPos": {
+            "h": 6,
+            "w": 6,
+            "x": 12,
+            "y": 8
+          },
+          "id": 5,
+          "options": {
+            "colorMode": "value",
+            "graphMode": "none",
+            "justifyMode": "auto",
+            "orientation": "auto",
+            "reduceOptions": {
+              "calcs": [
+                "lastNotNull"
+              ],
+              "fields": "",
+              "values": false
+            },
+            "textMode": "auto"
+          },
+          "targets": [
+            {
+              "datasource": {
+                "type": "loki",
+                "uid": "${datasource}"
+              },
+              "editorMode": "code",
+              "expr": "count(sum by (filename) (count_over_time({job=\"redis-enterprise\", kubernetes_namespace_name=~\"$namespace\"} [5m])))",
+              "instant": true,
+              "queryType": "instant",
+              "refId": "A"
+            }
+          ],
+          "title": "Active Log Files (5m)",
+          "type": "stat"
+        },
+        {
+          "datasource": {
+            "type": "loki",
+            "uid": "${datasource}"
+          },
+          "fieldConfig": {
+            "defaults": {
+              "custom": {
+                "align": "auto",
+                "cellOptions": {
+                  "type": "auto"
+                },
+                "inspect": false
+              },
+              "mappings": [],
+              "thresholds": {
+                "mode": "absolute",
+                "steps": [
+                  {
+                    "color": "green",
+                    "value": null
+                  }
+                ]
+              }
+            },
+            "overrides": []
+          },
+          "gridPos": {
+            "h": 6,
+            "w": 6,
+            "x": 18,
+            "y": 8
+          },
+          "id": 6,
+          "options": {
+            "cellHeight": "sm",
+            "footer": {
+              "countRows": false,
+              "fields": "",
+              "reducer": [
+                "sum"
+              ],
+              "show": false
+            },
+            "showHeader": true,
+            "sortBy": [
+              {
+                "desc": true,
+                "displayName": "Value"
+              }
+            ]
+          },
+          "targets": [
+            {
+              "datasource": {
+                "type": "loki",
+                "uid": "${datasource}"
+              },
+              "editorMode": "code",
+              "expr": "topk(10, sum by (filename) (count_over_time({job=\"redis-enterprise\", kubernetes_namespace_name=~\"$namespace\"}[$__range])))",
+              "instant": true,
+              "queryType": "instant",
+              "refId": "A"
+            }
+          ],
+          "title": "Top Files by Volume",
+          "type": "table"
+        },
+        {
+          "datasource": {
+            "type": "loki",
+            "uid": "${datasource}"
+          },
+          "gridPos": {
+            "h": 12,
+            "w": 24,
+            "x": 0,
+            "y": 14
+          },
+          "id": 7,
+          "options": {
+            "dedupStrategy": "none",
+            "enableLogDetails": true,
+            "prettifyLogMessage": false,
+            "showCommonLabels": false,
+            "showLabels": true,
+            "showTime": true,
+            "sortOrder": "Descending",
+            "wrapLogMessage": true
+          },
+          "targets": [
+            {
+              "datasource": {
+                "type": "loki",
+                "uid": "${datasource}"
+              },
+              "editorMode": "code",
+              "expr": "{job=\"redis-enterprise\", kubernetes_namespace_name=~\"$namespace\", kubernetes_pod_name=~\"$pod\", filename=~\"$file\"} |~ \"$severity\" |~ \"$search\"",
               "queryType": "range",
               "refId": "A"
             }
           ],
-          "title": "Total Log Lines",
-          "type": "gauge"
+          "title": "Redis Enterprise Internal Logs",
+          "type": "logs"
         }
-
       ],
       "refresh": "10s",
-      "schemaVersion": 38,
+      "schemaVersion": 39,
       "style": "dark",
       "tags": [
         "redis",
+        "redis-enterprise",
         "logs",
-        "loki"
+        "loki",
+        "operations"
       ],
       "templating": {
         "list": [
           {
-            "current": {
-              "selected": false,
-              "text": "Loki (Redis Logs)",
-              "value": "Loki (Redis Logs)"
-            },
-            "hide": 0,
-            "includeAll": false,
-            "label": "Datasource",
-            "multi": false,
-            "name": "datasource",
-            "options": [],
-            "query": "loki",
-            "refresh": 1,
-            "regex": "",
-            "skipUrlSync": false,
-            "type": "datasource"
-          },
-          {
-            "current": {
-              "selected": true,
-              "text": [
-                "All"
-              ],
-              "value": [
-                "$__all"
-              ]
-            },
-            "datasource": {
-              "type": "loki",
-              "uid": "${datasource}"
-            },
-            "definition": "",
-            "hide": 0,
-            "includeAll": true,
-            "label": "Namespace",
-            "multi": true,
             "name": "namespace",
-            "options": [],
-            "query": {
-              "label": "kubernetes_namespace_name",
-              "refId": "LokiVariableQueryEditor-VariableQuery",
-              "stream": "",
-              "type": 1
-            },
-            "refresh": 2,
-            "regex": "redis.*",
-            "skipUrlSync": false,
-            "sort": 1,
-            "type": "query"
-          },
-          {
-            "current": {
-              "selected": true,
-              "text": [
-                "All"
-              ],
-              "value": [
-                "$__all"
-              ]
-            },
+            "label": "Namespace",
+            "type": "query",
             "datasource": {
               "type": "loki",
               "uid": "${datasource}"
             },
-            "definition": "",
-            "hide": 0,
+            "query": "label_values({job=\"redis-enterprise\"}, kubernetes_namespace_name)",
             "includeAll": true,
-            "label": "Pod",
+            "allValue": ".*",
             "multi": true,
-            "name": "pod",
-            "options": [],
-            "query": {
-              "label": "kubernetes_pod_name",
-              "refId": "LokiVariableQueryEditor-VariableQuery",
-              "stream": "{kubernetes_namespace_name=~\"$namespace\"}",
-              "type": 1
-            },
             "refresh": 2,
-            "regex": "",
-            "skipUrlSync": false,
-            "sort": 1,
-            "type": "query"
-          },
-          {
             "current": {
               "selected": false,
-              "text": "",
-              "value": ""
+              "text": "All",
+              "value": ".*"
+            }
+          },
+          {
+            "name": "pod",
+            "label": "Pod",
+            "type": "query",
+            "datasource": {
+              "type": "loki",
+              "uid": "${datasource}"
             },
-            "hide": 0,
-            "label": "Search",
+            "query": "label_values({job=\"redis-enterprise\", kubernetes_namespace_name=~\"$namespace\"}, kubernetes_pod_name)",
+            "includeAll": true,
+            "allValue": ".*",
+            "multi": true,
+            "refresh": 2,
+            "current": {
+              "selected": false,
+              "text": "All",
+              "value": ".*"
+            }
+          },
+          {
+            "name": "file",
+            "label": "Log File",
+            "type": "query",
+            "datasource": {
+              "type": "loki",
+              "uid": "${datasource}"
+            },
+            "query": "label_values({job=\"redis-enterprise\", kubernetes_namespace_name=~\"$namespace\"}, filename)",
+            "includeAll": true,
+            "allValue": ".*",
+            "multi": true,
+            "refresh": 2,
+            "current": {
+              "selected": false,
+              "text": "All",
+              "value": ".*"
+            }
+          },
+          {
+            "name": "severity",
+            "label": "Severity Filter",
+            "type": "custom",
+            "query": ".*,(?i)(error|fatal|panic|critical),(?i)(warn|warning),(?i)(error|fatal|panic|critical|warn|warning)",
+            "current": {
+              "selected": true,
+              "text": "All",
+              "value": ".*"
+            }
+          },
+          {
             "name": "search",
-            "options": [
-              {
-                "selected": true,
-                "text": "",
-                "value": ""
-              }
-            ],
-            "query": "",
-            "skipUrlSync": false,
-            "type": "textbox"
+            "label": "Text Search",
+            "type": "textbox",
+            "query": ".*",
+            "current": {
+              "selected": true,
+              "text": ".*",
+              "value": ".*"
+            }
           }
         ]
       },
       "time": {
-        "from": "now-6h",
+        "from": "now-1h",
         "to": "now"
       },
       "timepicker": {},
       "timezone": "",
-      "title": "Redis Enterprise - Logs Overview",
+      "title": "Redis Enterprise Logs - Operations Overview",
       "uid": "redis-logs-overview",
-      "version": 1,
+      "version": 2,
       "weekStart": ""
     }
-
 ---
 apiVersion: v1
 kind: ConfigMap
@@ -495,48 +599,14 @@ data:
                 "mode": "palette-classic"
               },
               "custom": {
-                "axisCenteredZero": false,
-                "axisColorMode": "text",
-                "axisLabel": "",
-                "axisPlacement": "auto",
-                "barAlignment": 0,
-                "drawStyle": "bars",
-                "fillOpacity": 100,
-                "gradientMode": "none",
-                "hideFrom": {
-                  "tooltip": false,
-                  "viz": false,
-                  "legend": false
-                },
-                "lineInterpolation": "linear",
-                "lineWidth": 1,
-                "pointSize": 5,
-                "scaleDistribution": {
-                  "type": "linear"
-                },
-                "showPoints": "auto",
-                "spanNulls": false,
+                "drawStyle": "line",
+                "lineWidth": 2,
+                "fillOpacity": 15,
+                "showPoints": "never",
                 "stacking": {
-                  "group": "A",
-                  "mode": "normal"
-                },
-                "thresholdsStyle": {
-                  "mode": "off"
+                  "mode": "normal",
+                  "group": "A"
                 }
-              },
-              "mappings": [],
-              "thresholds": {
-                "mode": "absolute",
-                "steps": [
-                  {
-                    "color": "green",
-                    "value": null
-                  },
-                  {
-                    "color": "red",
-                    "value": 1
-                  }
-                ]
               },
               "unit": "short"
             },
@@ -551,8 +621,7 @@ data:
           "id": 1,
           "options": {
             "legend": {
-              "calcs": [],
-              "displayMode": "list",
+              "displayMode": "table",
               "placement": "bottom",
               "showLegend": true
             },
@@ -568,12 +637,12 @@ data:
                 "uid": "${datasource}"
               },
               "editorMode": "code",
-              "expr": "sum by (kubernetes_namespace_name) (count_over_time({kubernetes_namespace_name=~\"$namespace\"} |~ \"(?i)(error|fail|exception|fatal)\" [$__interval]))",
+              "expr": "sum by (filename) (count_over_time({job=\"redis-enterprise\", kubernetes_namespace_name=~\"$namespace\", filename=~\"$file\"} |~ \"(?i)(error|fatal|panic|critical|fail|exception|timeout|denied|oom|unhealthy)\" [$__interval]))",
               "queryType": "range",
               "refId": "A"
             }
           ],
-          "title": "Errors by Namespace",
+          "title": "Critical/Error Patterns by File",
           "type": "timeseries"
         },
         {
@@ -587,46 +656,18 @@ data:
                 "mode": "palette-classic"
               },
               "custom": {
-                "axisCenteredZero": false,
-                "axisColorMode": "text",
-                "axisLabel": "",
-                "axisPlacement": "auto",
-                "barAlignment": 0,
-                "drawStyle": "bars",
-                "fillOpacity": 100,
-                "gradientMode": "none",
-                "hideFrom": {
-                  "tooltip": false,
-                  "viz": false,
-                  "legend": false
-                },
-                "lineInterpolation": "linear",
-                "lineWidth": 1,
-                "pointSize": 5,
-                "scaleDistribution": {
-                  "type": "linear"
-                },
-                "showPoints": "auto",
-                "spanNulls": false,
+                "drawStyle": "line",
+                "lineWidth": 2,
+                "fillOpacity": 15,
+                "showPoints": "never",
                 "stacking": {
-                  "group": "A",
-                  "mode": "normal"
-                },
-                "thresholdsStyle": {
-                  "mode": "off"
+                  "mode": "none",
+                  "group": "A"
                 }
               },
-              "mappings": [],
-              "thresholds": {
-                "mode": "absolute",
-                "steps": [
-                  {
-                    "color": "green",
-                    "value": null
-                  }
-                ]
-              }
-            }
+              "unit": "short"
+            },
+            "overrides": []
           },
           "gridPos": {
             "h": 8,
@@ -637,8 +678,7 @@ data:
           "id": 2,
           "options": {
             "legend": {
-              "calcs": [],
-              "displayMode": "list",
+              "displayMode": "table",
               "placement": "bottom",
               "showLegend": true
             },
@@ -654,12 +694,12 @@ data:
                 "uid": "${datasource}"
               },
               "editorMode": "code",
-              "expr": "sum by (kubernetes_pod_name) (count_over_time({kubernetes_namespace_name=~\"$namespace\"} |~ \"(?i)(error|fail|exception|fatal)\" [$__interval]))",
+              "expr": "sum by (kubernetes_pod_name) (count_over_time({job=\"redis-enterprise\", kubernetes_namespace_name=~\"$namespace\", filename=~\"$file\"} |~ \"(?i)(error|fatal|panic|critical|fail|exception|timeout|denied|oom|unhealthy)\" [$__interval]))",
               "queryType": "range",
               "refId": "A"
             }
           ],
-          "title": "Errors by Pod",
+          "title": "Critical/Error Patterns by Pod",
           "type": "timeseries"
         },
         {
@@ -667,22 +707,50 @@ data:
             "type": "loki",
             "uid": "${datasource}"
           },
+          "fieldConfig": {
+            "defaults": {
+              "mappings": [],
+              "thresholds": {
+                "mode": "absolute",
+                "steps": [
+                  {
+                    "color": "green",
+                    "value": null
+                  },
+                  {
+                    "color": "yellow",
+                    "value": 20
+                  },
+                  {
+                    "color": "red",
+                    "value": 50
+                  }
+                ]
+              },
+              "unit": "short"
+            },
+            "overrides": []
+          },
           "gridPos": {
-            "h": 12,
-            "w": 24,
+            "h": 6,
+            "w": 8,
             "x": 0,
             "y": 8
           },
           "id": 3,
           "options": {
-            "dedupStrategy": "none",
-            "enableLogDetails": true,
-            "prettifyLogMessage": false,
-            "showCommonLabels": false,
-            "showLabels": false,
-            "showTime": true,
-            "sortOrder": "Descending",
-            "wrapLogMessage": false
+            "colorMode": "value",
+            "graphMode": "area",
+            "justifyMode": "auto",
+            "orientation": "auto",
+            "reduceOptions": {
+              "calcs": [
+                "lastNotNull"
+              ],
+              "fields": "",
+              "values": false
+            },
+            "textMode": "auto"
           },
           "targets": [
             {
@@ -691,13 +759,137 @@ data:
                 "uid": "${datasource}"
               },
               "editorMode": "code",
-              "expr": "{kubernetes_namespace_name=~\"$namespace\"} |~ \"(?i)(error|fail|exception|fatal)\"",
-              "queryType": "range",
+              "expr": "sum(count_over_time({job=\"redis-enterprise\", kubernetes_namespace_name=~\"$namespace\", filename=~\"$file\"} |~ \"(?i)(error|fatal|panic|critical|fail|exception|timeout|denied|oom|unhealthy)\" [5m]))",
+              "instant": true,
+              "queryType": "instant",
               "refId": "A"
             }
           ],
-          "title": "Error Logs",
-          "type": "logs"
+          "title": "Critical/Error Events (5m)",
+          "type": "stat"
+        },
+        {
+          "datasource": {
+            "type": "loki",
+            "uid": "${datasource}"
+          },
+          "fieldConfig": {
+            "defaults": {
+              "mappings": [],
+              "thresholds": {
+                "mode": "absolute",
+                "steps": [
+                  {
+                    "color": "green",
+                    "value": null
+                  },
+                  {
+                    "color": "yellow",
+                    "value": 20
+                  },
+                  {
+                    "color": "red",
+                    "value": 50
+                  }
+                ]
+              },
+              "unit": "short"
+            },
+            "overrides": []
+          },
+          "gridPos": {
+            "h": 6,
+            "w": 8,
+            "x": 8,
+            "y": 8
+          },
+          "id": 4,
+          "options": {
+            "colorMode": "value",
+            "graphMode": "area",
+            "justifyMode": "auto",
+            "orientation": "auto",
+            "reduceOptions": {
+              "calcs": [
+                "lastNotNull"
+              ],
+              "fields": "",
+              "values": false
+            },
+            "textMode": "auto"
+          },
+          "targets": [
+            {
+              "datasource": {
+                "type": "loki",
+                "uid": "${datasource}"
+              },
+              "editorMode": "code",
+              "expr": "sum(count_over_time({job=\"redis-enterprise\", kubernetes_namespace_name=~\"$namespace\", filename=~\"$file\"} |~ \"(?i)(warn|warning)\" [5m]))",
+              "instant": true,
+              "queryType": "instant",
+              "refId": "A"
+            }
+          ],
+          "title": "Warnings (5m)",
+          "type": "stat"
+        },
+        {
+          "datasource": {
+            "type": "loki",
+            "uid": "${datasource}"
+          },
+          "fieldConfig": {
+            "defaults": {
+              "custom": {
+                "align": "auto",
+                "cellOptions": {
+                  "type": "auto"
+                }
+              }
+            },
+            "overrides": []
+          },
+          "gridPos": {
+            "h": 6,
+            "w": 8,
+            "x": 16,
+            "y": 8
+          },
+          "id": 5,
+          "options": {
+            "cellHeight": "sm",
+            "footer": {
+              "countRows": false,
+              "fields": "",
+              "reducer": [
+                "sum"
+              ],
+              "show": false
+            },
+            "showHeader": true,
+            "sortBy": [
+              {
+                "desc": true,
+                "displayName": "Value"
+              }
+            ]
+          },
+          "targets": [
+            {
+              "datasource": {
+                "type": "loki",
+                "uid": "${datasource}"
+              },
+              "editorMode": "code",
+              "expr": "topk(10, sum by (filename) (count_over_time({job=\"redis-enterprise\", kubernetes_namespace_name=~\"$namespace\"} |~ \"(?i)(error|fatal|panic|critical|fail|exception|timeout|denied|oom|unhealthy)\"[$__range])))",
+              "instant": true,
+              "queryType": "instant",
+              "refId": "A"
+            }
+          ],
+          "title": "Top Error Sources",
+          "type": "table"
         },
         {
           "datasource": {
@@ -705,21 +897,21 @@ data:
             "uid": "${datasource}"
           },
           "gridPos": {
-            "h": 12,
+            "h": 13,
             "w": 24,
             "x": 0,
-            "y": 20
+            "y": 14
           },
-          "id": 4,
+          "id": 6,
           "options": {
             "dedupStrategy": "none",
             "enableLogDetails": true,
             "prettifyLogMessage": false,
             "showCommonLabels": false,
-            "showLabels": false,
+            "showLabels": true,
             "showTime": true,
             "sortOrder": "Descending",
-            "wrapLogMessage": false
+            "wrapLogMessage": true
           },
           "targets": [
             {
@@ -728,76 +920,94 @@ data:
                 "uid": "${datasource}"
               },
               "editorMode": "code",
-              "expr": "{kubernetes_namespace_name=~\"$namespace\"} |~ \"(?i)(warn|warning)\"",
+              "expr": "{job=\"redis-enterprise\", kubernetes_namespace_name=~\"$namespace\", kubernetes_pod_name=~\"$pod\", filename=~\"$file\"} |~ \"(?i)(error|fatal|panic|critical|fail|exception|timeout|denied|oom|unhealthy|warn|warning)\" |~ \"$search\"",
               "queryType": "range",
               "refId": "A"
             }
           ],
-          "title": "Warning Logs",
+          "title": "Critical/Error/Warning Log Stream",
           "type": "logs"
         }
       ],
-      "refresh": "30s",
-      "schemaVersion": 38,
+      "refresh": "10s",
+      "schemaVersion": 39,
       "style": "dark",
       "tags": [
         "redis",
+        "redis-enterprise",
         "logs",
         "errors",
-        "loki"
+        "operations"
       ],
       "templating": {
         "list": [
           {
-            "current": {
-              "selected": false,
-              "text": "Loki (Redis Logs)",
-              "value": "Loki (Redis Logs)"
-            },
-            "hide": 0,
-            "includeAll": false,
-            "label": "Datasource",
-            "multi": false,
-            "name": "datasource",
-            "options": [],
-            "query": "loki",
-            "refresh": 1,
-            "regex": "",
-            "skipUrlSync": false,
-            "type": "datasource"
-          },
-          {
-            "current": {
-              "selected": true,
-              "text": [
-                "All"
-              ],
-              "value": [
-                "$__all"
-              ]
-            },
+            "name": "namespace",
+            "label": "Namespace",
+            "type": "query",
             "datasource": {
               "type": "loki",
               "uid": "${datasource}"
             },
-            "definition": "",
-            "hide": 0,
+            "query": "label_values({job=\"redis-enterprise\"}, kubernetes_namespace_name)",
             "includeAll": true,
-            "label": "Namespace",
+            "allValue": ".*",
             "multi": true,
-            "name": "namespace",
-            "options": [],
-            "query": {
-              "label": "kubernetes_namespace_name",
-              "refId": "LokiVariableQueryEditor-VariableQuery",
-              "stream": "",
-              "type": 1
-            },
             "refresh": 2,
-            "regex": "redis.*",
-            "skipUrlSync": false,
-            "sort": 1,
-            "type": "query"
+            "current": {
+              "selected": false,
+              "text": "All",
+              "value": ".*"
+            }
+          },
+          {
+            "name": "pod",
+            "label": "Pod",
+            "type": "query",
+            "datasource": {
+              "type": "loki",
+              "uid": "${datasource}"
+            },
+            "query": "label_values({job=\"redis-enterprise\", kubernetes_namespace_name=~\"$namespace\"}, kubernetes_pod_name)",
+            "includeAll": true,
+            "allValue": ".*",
+            "multi": true,
+            "refresh": 2,
+            "current": {
+              "selected": false,
+              "text": "All",
+              "value": ".*"
+            }
+          },
+          {
+            "name": "file",
+            "label": "Log File",
+            "type": "query",
+            "datasource": {
+              "type": "loki",
+              "uid": "${datasource}"
+            },
+            "query": "label_values({job=\"redis-enterprise\", kubernetes_namespace_name=~\"$namespace\"}, filename)",
+            "includeAll": true,
+            "allValue": ".*",
+            "multi": true,
+            "refresh": 2,
+            "current": {
+              "selected": false,
+              "text": "All",
+              "value": ".*"
+            }
+          },
+          {
+            "name": "search",
+            "label": "Text Search",
+            "type": "textbox",
+            "query": ".*",
+            "current": {
+              "selected": true,
+              "text": ".*",
+              "value": ".*"
+            }
           }
         ]
       },
@@ -807,9 +1017,416 @@ data:
       },
       "timepicker": {},
       "timezone": "",
-      "title": "Redis Enterprise - Error Logs",
+      "title": "Redis Enterprise Logs - Errors & Triage",
       "uid": "redis-logs-errors",
-      "version": 1,
+      "version": 2,
       "weekStart": ""
     }
-
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: grafana-dashboard-redis-internal-logs
+  namespace: openshift-monitoring
+  labels:
+    grafana_dashboard: '1'
+  annotations:
+    description: Redis Enterprise Internal Logs Dashboard
+data:
+  redis-internal-logs.json: |
+    {
+      "annotations": {
+        "list": [
+          {
+            "builtIn": 1,
+            "datasource": {
+              "type": "grafana",
+              "uid": "-- Grafana --"
+            },
+            "enable": true,
+            "hide": true,
+            "iconColor": "rgba(0, 211, 255, 1)",
+            "name": "Annotations & Alerts",
+            "type": "dashboard"
+          }
+        ]
+      },
+      "editable": true,
+      "fiscalYearStartMonth": 0,
+      "graphTooltip": 0,
+      "id": null,
+      "links": [],
+      "liveNow": false,
+      "panels": [
+        {
+          "datasource": {
+            "type": "loki",
+            "uid": "${datasource}"
+          },
+          "fieldConfig": {
+            "defaults": {
+              "thresholds": {
+                "mode": "absolute",
+                "steps": [
+                  {
+                    "color": "green",
+                    "value": null
+                  },
+                  {
+                    "color": "orange",
+                    "value": 20
+                  },
+                  {
+                    "color": "red",
+                    "value": 50
+                  }
+                ]
+              }
+            },
+            "overrides": []
+          },
+          "gridPos": {
+            "h": 5,
+            "w": 8,
+            "x": 0,
+            "y": 0
+          },
+          "id": 1,
+          "options": {
+            "colorMode": "value",
+            "graphMode": "area",
+            "justifyMode": "auto",
+            "orientation": "auto",
+            "reduceOptions": {
+              "calcs": [
+                "lastNotNull"
+              ],
+              "fields": "",
+              "values": false
+            },
+            "textMode": "auto"
+          },
+          "targets": [
+            {
+              "datasource": {
+                "type": "loki",
+                "uid": "${datasource}"
+              },
+              "editorMode": "code",
+              "expr": "sum(count_over_time({job=\"redis-enterprise\", kubernetes_namespace_name=~\"$namespace\", filename=~\"$file\"} |~ \"(?i)($severity)\" [5m]))",
+              "instant": true,
+              "queryType": "instant",
+              "refId": "A"
+            }
+          ],
+          "title": "Internal Errors (5m)",
+          "type": "stat"
+        },
+        {
+          "datasource": {
+            "type": "loki",
+            "uid": "${datasource}"
+          },
+          "fieldConfig": {
+            "defaults": {
+              "thresholds": {
+                "mode": "absolute",
+                "steps": [
+                  {
+                    "color": "green",
+                    "value": null
+                  },
+                  {
+                    "color": "orange",
+                    "value": 20
+                  },
+                  {
+                    "color": "red",
+                    "value": 50
+                  }
+                ]
+              }
+            },
+            "overrides": []
+          },
+          "gridPos": {
+            "h": 5,
+            "w": 8,
+            "x": 8,
+            "y": 0
+          },
+          "id": 2,
+          "options": {
+            "colorMode": "value",
+            "graphMode": "area",
+            "justifyMode": "auto",
+            "orientation": "auto",
+            "reduceOptions": {
+              "calcs": [
+                "lastNotNull"
+              ],
+              "fields": "",
+              "values": false
+            },
+            "textMode": "auto"
+          },
+          "targets": [
+            {
+              "datasource": {
+                "type": "loki",
+                "uid": "${datasource}"
+              },
+              "editorMode": "code",
+              "expr": "sum(count_over_time({kubernetes_namespace_name=~\"$namespace\", kubernetes_pod_name=~\"$pod\", kubernetes_container_name=~\"$container\"} |~ \"(?i)($severity)\" [5m]))",
+              "instant": true,
+              "queryType": "instant",
+              "refId": "A"
+            }
+          ],
+          "title": "Pod Errors (5m)",
+          "type": "stat"
+        },
+        {
+          "datasource": {
+            "type": "loki",
+            "uid": "${datasource}"
+          },
+          "fieldConfig": {
+            "defaults": {
+              "unit": "short"
+            },
+            "overrides": []
+          },
+          "gridPos": {
+            "h": 5,
+            "w": 8,
+            "x": 16,
+            "y": 0
+          },
+          "id": 3,
+          "options": {
+            "cellHeight": "sm",
+            "footer": {
+              "countRows": false,
+              "fields": "",
+              "reducer": [
+                "sum"
+              ],
+              "show": false
+            },
+            "showHeader": true
+          },
+          "targets": [
+            {
+              "datasource": {
+                "type": "loki",
+                "uid": "${datasource}"
+              },
+              "editorMode": "code",
+              "expr": "topk(10, sum by (kubernetes_pod_name) (count_over_time({kubernetes_namespace_name=~\"$namespace\", kubernetes_pod_name=~\"$pod\", kubernetes_container_name=~\"$container\"} |~ \"(?i)($severity)\"[$__range])))",
+              "instant": true,
+              "queryType": "instant",
+              "refId": "A"
+            }
+          ],
+          "title": "Top Noisy Pods",
+          "type": "table"
+        },
+        {
+          "datasource": {
+            "type": "loki",
+            "uid": "${datasource}"
+          },
+          "gridPos": {
+            "h": 12,
+            "w": 24,
+            "x": 0,
+            "y": 5
+          },
+          "id": 4,
+          "options": {
+            "dedupStrategy": "none",
+            "enableLogDetails": true,
+            "prettifyLogMessage": false,
+            "showCommonLabels": false,
+            "showLabels": true,
+            "showTime": true,
+            "sortOrder": "Descending",
+            "wrapLogMessage": true
+          },
+          "targets": [
+            {
+              "datasource": {
+                "type": "loki",
+                "uid": "${datasource}"
+              },
+              "editorMode": "code",
+              "expr": "{job=\"redis-enterprise\", kubernetes_namespace_name=~\"$namespace\", filename=~\"$file\"} |~ \"(?i)($severity)\" |~ \"$search\"",
+              "queryType": "range",
+              "refId": "A"
+            }
+          ],
+          "title": "Redis Internal Logs",
+          "type": "logs"
+        },
+        {
+          "datasource": {
+            "type": "loki",
+            "uid": "${datasource}"
+          },
+          "gridPos": {
+            "h": 12,
+            "w": 24,
+            "x": 0,
+            "y": 17
+          },
+          "id": 5,
+          "options": {
+            "dedupStrategy": "none",
+            "enableLogDetails": true,
+            "prettifyLogMessage": false,
+            "showCommonLabels": false,
+            "showLabels": true,
+            "showTime": true,
+            "sortOrder": "Descending",
+            "wrapLogMessage": true
+          },
+          "targets": [
+            {
+              "datasource": {
+                "type": "loki",
+                "uid": "${datasource}"
+              },
+              "editorMode": "code",
+              "expr": "{kubernetes_namespace_name=~\"$namespace\", kubernetes_pod_name=~\"$pod\", kubernetes_container_name=~\"$container\"} |~ \"(?i)($severity)\" |~ \"$search\"",
+              "queryType": "range",
+              "refId": "A"
+            }
+          ],
+          "title": "Redis Pod / Workload Logs",
+          "type": "logs"
+        }
+      ],
+      "refresh": "10s",
+      "schemaVersion": 39,
+      "style": "dark",
+      "tags": [
+        "redis",
+        "logs",
+        "internal",
+        "workloads",
+        "loki"
+      ],
+      "templating": {
+        "list": [
+          {
+            "name": "namespace",
+            "label": "Namespace",
+            "type": "query",
+            "datasource": {
+              "type": "loki",
+              "uid": "${datasource}"
+            },
+            "query": "label_values({kubernetes_namespace_name=~\".+\"}, kubernetes_namespace_name)",
+            "includeAll": true,
+            "allValue": ".*",
+            "multi": true,
+            "refresh": 2,
+            "current": {
+              "selected": false,
+              "text": "All",
+              "value": ".*"
+            }
+          },
+          {
+            "name": "pod",
+            "label": "Pod",
+            "type": "query",
+            "datasource": {
+              "type": "loki",
+              "uid": "${datasource}"
+            },
+            "query": "label_values({kubernetes_namespace_name=~\"$namespace\"}, kubernetes_pod_name)",
+            "includeAll": true,
+            "allValue": ".*",
+            "multi": true,
+            "refresh": 2,
+            "current": {
+              "selected": false,
+              "text": "All",
+              "value": ".*"
+            }
+          },
+          {
+            "name": "container",
+            "label": "Container",
+            "type": "query",
+            "datasource": {
+              "type": "loki",
+              "uid": "${datasource}"
+            },
+            "query": "label_values({kubernetes_namespace_name=~\"$namespace\", kubernetes_pod_name=~\"$pod\"}, kubernetes_container_name)",
+            "includeAll": true,
+            "allValue": ".*",
+            "multi": true,
+            "refresh": 2,
+            "current": {
+              "selected": false,
+              "text": "All",
+              "value": ".*"
+            }
+          },
+          {
+            "name": "file",
+            "label": "Log File",
+            "type": "query",
+            "datasource": {
+              "type": "loki",
+              "uid": "${datasource}"
+            },
+            "query": "label_values({job=\"redis-enterprise\", kubernetes_namespace_name=~\"$namespace\"}, filename)",
+            "includeAll": true,
+            "allValue": ".*",
+            "multi": true,
+            "refresh": 2,
+            "current": {
+              "selected": false,
+              "text": "All",
+              "value": ".*"
+            }
+          },
+          {
+            "name": "severity",
+            "label": "Severity",
+            "type": "custom",
+            "query": "error|fatal|panic|critical|fail|exception|timeout|denied|oom|unhealthy,warn|warning,error|fatal|panic|critical|fail|exception|timeout|denied|oom|unhealthy|warn|warning,.*",
+            "current": {
+              "selected": true,
+              "text": "error|fatal|panic|critical|fail|exception|timeout|denied|oom|unhealthy|warn|warning",
+              "value": "error|fatal|panic|critical|fail|exception|timeout|denied|oom|unhealthy|warn|warning"
+            }
+          },
+          {
+            "name": "search",
+            "label": "Text Search",
+            "type": "textbox",
+            "query": ".*",
+            "current": {
+              "selected": true,
+              "text": ".*",
+              "value": ".*"
+            }
+          }
+        ]
+      },
+      "time": {
+        "from": "now-1h",
+        "to": "now"
+      },
+      "timepicker": {},
+      "timezone": "",
+      "title": "Redis Enterprise - Logs Cockpit",
+      "uid": "redis-internal-logs",
+      "version": 4,
+      "weekStart": ""
+    }

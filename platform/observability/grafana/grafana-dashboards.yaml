@@ -82,4 +82,47 @@ spec:
   configMapRef:
     name: grafana-dashboard-redis-shard-dashboard
     key: redis-shard-dashboard.json
-
+---
+apiVersion: grafana.integreatly.org/v1beta1
+kind: GrafanaDashboard
+metadata:
+  name: redis-executive-slo
+  namespace: openshift-monitoring
+  labels:
+    app: grafana
+    tier: enterprise
+  annotations:
+    argocd.argoproj.io/sync-wave: "3"
+spec:
+  instanceSelector:
+    matchLabels:
+      dashboards: "grafana"
+  folder: "Redis Enterprise"
+  datasources:
+    - inputName: "DS_PROMETHEUS"
+      datasourceName: "Prometheus (Redis Enterprise)"
+  configMapRef:
+    name: grafana-dashboard-redis-executive-slo
+    key: redis-executive-slo.json
+---
+apiVersion: grafana.integreatly.org/v1beta1
+kind: GrafanaDashboard
+metadata:
+  name: redis-capacity-performance
+  namespace: openshift-monitoring
+  labels:
+    app: grafana
+    tier: enterprise
+  annotations:
+    argocd.argoproj.io/sync-wave: "3"
+spec:
+  instanceSelector:
+    matchLabels:
+      dashboards: "grafana"
+  folder: "Redis Enterprise"
+  datasources:
+    - inputName: "DS_PROMETHEUS"
+      datasourceName: "Prometheus (Redis Enterprise)"
+  configMapRef:
+    name: grafana-dashboard-redis-capacity-performance
+    key: redis-capacity-performance.json

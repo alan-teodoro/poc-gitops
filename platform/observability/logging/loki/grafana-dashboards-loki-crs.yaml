@@ -54,3 +54,27 @@ spec:
     name: grafana-dashboard-redis-logs-errors
     key: redis-logs-errors.json
 
+---
+apiVersion: grafana.integreatly.org/v1beta1
+kind: GrafanaDashboard
+metadata:
+  name: redis-internal-logs
+  namespace: openshift-monitoring
+  labels:
+    app: grafana
+    component: dashboard
+    datasource: loki
+  annotations:
+    argocd.argoproj.io/sync-wave: "13"
+    description: "Redis Enterprise internal logs dashboard"
+spec:
+  instanceSelector:
+    matchLabels:
+      dashboards: "grafana"
+  folder: "Redis Enterprise Logs"
+  datasources:
+    - inputName: "datasource"
+      datasourceName: "Loki (Redis Logs)"
+  configMapRef:
+    name: grafana-dashboard-redis-internal-logs
+    key: redis-internal-logs.json

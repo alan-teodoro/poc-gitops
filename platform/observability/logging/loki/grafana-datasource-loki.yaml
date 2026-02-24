@@ -58,7 +58,7 @@ spec:
     # Secure JSON data (token from secret)
     secureJsonData:
       # Bearer token for authentication
-      httpHeaderValue1: "Bearer ${token}"
+      httpHeaderValue1: "${token}"
     
     # Default datasource for logs
     isDefault: false
@@ -91,4 +91,3 @@ spec:
 #    - {kubernetes_namespace_name="redis"}
 #    - {kubernetes_namespace_name="redis-orders-dev"}
 #    - {kubernetes_namespace_name=~"redis.*"} |= "error"
-

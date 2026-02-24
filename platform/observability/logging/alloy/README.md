@@ -82,12 +82,9 @@ Deploys Alloy on every node to collect logs:
 ServiceAccount, ClusterRole, ClusterRoleBinding for Alloy.
 
 ### 4. Grafana Dashboards
-**File**: `grafana-dashboards-redis-internal-logs.yaml`
-
-Dashboards to visualize Redis internal logs:
-- Redis Cluster Logs Dashboard
-- Redis Node Logs Dashboard
-- Redis Database Logs Dashboard
+Redis log dashboards are now managed from the Loki bundle:
+- `platform/observability/logging/loki/grafana-dashboards-loki.yaml`
+- `platform/observability/logging/loki/grafana-dashboards-loki-crs.yaml`
 
 ## Deployment Order (Sync Waves)
 
@@ -95,7 +92,7 @@ Dashboards to visualize Redis internal logs:
 Wave 13: RBAC (ServiceAccount, ClusterRole, ClusterRoleBinding)
 Wave 14: ConfigMap (Alloy configuration)
 Wave 15: DaemonSet (Alloy pods)
-Wave 16: Dashboards (Grafana dashboards)
+Wave 16: Logs flowing to Loki
 ```
 
 ## Installation
@@ -155,4 +152,3 @@ oc get pod -n openshift-logging -l app=grafana-alloy -o jsonpath='{.items[0].spe
 - [Grafana Alloy Documentation](https://grafana.com/docs/alloy/latest/)
 - [Grafana Redis Enterprise Integration](https://grafana.com/docs/grafana-cloud/monitor-infrastructure/integrations/integration-reference/integration-redis-enterprise/)
 - [Loki Source File Component](https://grafana.com/docs/alloy/latest/reference/components/loki.source.file/)
-

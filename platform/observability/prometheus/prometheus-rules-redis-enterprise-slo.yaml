@@ -1,0 +1,151 @@
+---
+# Enterprise SLO-focused alert pack for Redis workloads
+# Purpose: High-signal alerts for critical production operations
+# Managed by: Platform Team
+
+apiVersion: monitoring.coreos.com/v1
+kind: PrometheusRule
+metadata:
+  name: redis-enterprise-slo-alerts
+  namespace: openshift-monitoring
+  labels:
+    prometheus: k8s
+    role: alert-rules
+    alert-pack: redis-enterprise-slo
+spec:
+  groups:
+    - name: redis-enterprise-slo
+      interval: 30s
+      rules:
+        - alert: RedisEntShardAvailabilitySLOBreach
+          expr: |
+            (100 * avg(redis_server_up{cluster=~".+",db=~".+"})) < 99
+          for: 5m
+          labels:
+            severity: critical
+            component: redis-enterprise
+            category: availability
+          annotations:
+            summary: "Redis Enterprise shard availability below SLO"
+            description: "Shard availability is {{ $value }}%, below 99% SLO for 5m."
+            dashboard: "Redis Enterprise - Executive SLO"
+
+        - alert: RedisEntRequestLatencyHigh
+          expr: |
+            ((sum(irate(endpoint_read_requests_latency_histogram_sum{cluster=~".+",db=~".+"}[1m])) + sum(irate(endpoint_write_requests_latency_histogram_sum{cluster=~".+",db=~".+"}[1m])) + sum(irate(endpoint_other_requests_latency_histogram_sum{cluster=~".+",db=~".+"}[1m]))) / (sum(irate(endpoint_read_requests{cluster=~".+",db=~".+"}[1m])) + sum(irate(endpoint_write_requests{cluster=~".+",db=~".+"}[1m])) + sum(irate(endpoint_other_requests{cluster=~".+",db=~".+"}[1m])))) / 1000 > 20
+          for: 5m
+          labels:
+            severity: warning
+            component: redis-enterprise
+            category: latency
+          annotations:
+            summary: "Redis Enterprise request latency high"
+            description: "Average latency is {{ $value }} ms for 5m."
+            dashboard: "Redis Enterprise - Executive SLO"
+
+        - alert: RedisEntMemorySaturationHigh
+          expr: |
+            (100 * sum(redis_server_used_memory{cluster=~".+",db=~".+"}) / sum(redis_server_maxmemory{cluster=~".+",db=~".+"})) > 85
+          for: 10m
+          labels:
+            severity: warning
+            component: redis-enterprise
+            category: capacity
+          annotations:
+            summary: "Redis Enterprise memory saturation above 85%"
+            description: "Global memory utilization is {{ $value }}% for 10m."
+            dashboard: "Redis Enterprise - Capacity & Performance"
+
+        - alert: RedisEntMemorySaturationCritical
+          expr: |
+            (100 * sum(redis_server_used_memory{cluster=~".+",db=~".+"}) / sum(redis_server_maxmemory{cluster=~".+",db=~".+"})) > 92
+          for: 5m
+          labels:
+            severity: critical
+            component: redis-enterprise
+            category: capacity
+          annotations:
+            summary: "Redis Enterprise memory saturation above 92%"
+            description: "Global memory utilization is {{ $value }}% for 5m."
+            dashboard: "Redis Enterprise - Capacity & Performance"
+
+        - alert: RedisEntEvictionsDetected
+          expr: |
+            sum(irate(redis_server_evicted_keys{role="master",cluster=~".+",db=~".+"}[5m])) > 0
+          for: 10m
+          labels:
+            severity: warning
+            component: redis-enterprise
+            category: reliability
+          annotations:
+            summary: "Redis Enterprise key evictions detected"
+            description: "Eviction rate is {{ $value }} keys/s for 10m."
+            dashboard: "Redis Enterprise - Capacity & Performance"
+
+        - alert: RedisEntFragmentationHigh
+          expr: |
+            avg(redis_server_mem_fragmentation_ratio{cluster=~".+",db=~".+"}) > 1.6
+          for: 15m
+          labels:
+            severity: warning
+            component: redis-enterprise
+            category: efficiency
+          annotations:
+            summary: "Redis Enterprise memory fragmentation high"
+            description: "Average fragmentation ratio is {{ $value }} for 15m."
+            dashboard: "Redis Enterprise - Capacity & Performance"
+
+        - alert: RedisEntReplicationLagHigh
+          expr: |
+            max(database_syncer_lag_ms{syncer_type="replicaof",cluster=~".+"}) > 1000
+          for: 10m
+          labels:
+            severity: warning
+            component: redis-enterprise
+            category: replication
+          annotations:
+            summary: "Redis Enterprise replication lag high"
+            description: "Maximum replication lag is {{ $value }} ms for 10m."
+            dashboard: "Redis Enterprise - Executive SLO"
+
+    - name: redis-workload-slo
+      interval: 30s
+      rules:
+        - alert: RedisWorkloadPodsCrashLooping
+          expr: |
+            sum by (namespace, pod) (increase(kube_pod_container_status_restarts_total{namespace="redis-enterprise"}[10m])) > 3
+          for: 5m
+          labels:
+            severity: warning
+            component: redis-workload
+            category: stability
+          annotations:
+            summary: "Redis workload pod restart storm"
+            description: "Pod {{ $labels.pod }} restarted more than 3 times in 10m."
+            dashboard: "Redis Enterprise - Logs Cockpit"
+
+        - alert: RedisWorkloadPodsNotReady
+          expr: |
+            max by (namespace, pod) (kube_pod_status_ready{namespace="redis-enterprise",condition="true"}) == 0
+          for: 10m
+          labels:
+            severity: critical
+            component: redis-workload
+            category: availability
+          annotations:
+            summary: "Redis workload pod not ready"
+            description: "Pod {{ $labels.pod }} has been NotReady for 10m."
+            dashboard: "Redis Enterprise - Logs Cockpit"
+
+        - alert: RedisWorkloadContainerWaiting
+          expr: |
+            max by (namespace, pod, container) (kube_pod_container_status_waiting_reason{namespace="redis-enterprise",reason=~"CrashLoopBackOff|ImagePullBackOff|ErrImagePull|CreateContainerError"}) > 0
+          for: 5m
+          labels:
+            severity: critical
+            component: redis-workload
+            category: startup
+          annotations:
+            summary: "Redis workload container stuck in waiting state"
+            description: "Container {{ $labels.container }} in pod {{ $labels.pod }} is in {{ $labels.reason }} for 5m."
+            dashboard: "Redis Enterprise - Logs Cockpit"
