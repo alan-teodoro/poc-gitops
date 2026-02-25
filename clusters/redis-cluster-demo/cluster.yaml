@@ -14,9 +14,14 @@ redis:
   nodes: 3
   version: "8.0.10-76"
   certificates:
-    # Optional: custom REC proxy certificate secret for non-default Route domains.
-    # Secret must exist in redis-enterprise namespace with keys: certificate, key, name=proxy
+    # Optional: custom REC certificate secrets.
+    # Each secret must exist in redis-enterprise namespace with keys: certificate, key, and name
+    # name must match endpoint type: proxy, api, cm, syncer, metrics_exporter
     proxyCertificateSecretName: "proxy-cert-secret"
+    apiCertificateSecretName: "api-cert-secret"
+    cmCertificateSecretName: "cm-cert-secret"
+    syncerCertificateSecretName: "syncer-cert-secret"
+    metricsExporterCertificateSecretName: "metrics-exporter-cert-secret"
   servicesRiggerSpec:
     # Optional: set true to create predictable DB services by database name (bdb_name).
     # Recommended when exposing databases via custom Route hosts.

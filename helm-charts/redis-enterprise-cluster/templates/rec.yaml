@@ -19,9 +19,24 @@ metadata:
 spec:
   nodes: {{ .Values.redis.nodes }}
 
-  {{- if .Values.redis.certificates.proxyCertificateSecretName }}
+  {{- $certs := .Values.redis.certificates }}
+  {{- if or $certs.proxyCertificateSecretName $certs.apiCertificateSecretName $certs.cmCertificateSecretName $certs.syncerCertificateSecretName $certs.metricsExporterCertificateSecretName }}
   certificates:
-    proxyCertificateSecretName: {{ .Values.redis.certificates.proxyCertificateSecretName | quote }}
+    {{- if $certs.proxyCertificateSecretName }}
+    proxyCertificateSecretName: {{ $certs.proxyCertificateSecretName | quote }}
+    {{- end }}
+    {{- if $certs.apiCertificateSecretName }}
+    apiCertificateSecretName: {{ $certs.apiCertificateSecretName | quote }}
+    {{- end }}
+    {{- if $certs.cmCertificateSecretName }}
+    cmCertificateSecretName: {{ $certs.cmCertificateSecretName | quote }}
+    {{- end }}
+    {{- if $certs.syncerCertificateSecretName }}
+    syncerCertificateSecretName: {{ $certs.syncerCertificateSecretName | quote }}
+    {{- end }}
+    {{- if $certs.metricsExporterCertificateSecretName }}
+    metricsExporterCertificateSecretName: {{ $certs.metricsExporterCertificateSecretName | quote }}
+    {{- end }}
   {{- end }}
   
   redisEnterpriseNodeResources:
