@@ -31,11 +31,18 @@ redis:
   tlsMode: disabled
   evictionPolicy: volatile-lru
   shardCount: 1
+  # Optional mTLS trust list (secret names in database namespace).
+  # Each secret must include key: cert
+  clientAuthenticationCertificates: []
 
 # Route configuration
 route:
   enabled: true
   tlsTermination: passthrough
+  # Optional custom hostname for Route (for example: cache-dev.example.com)
+  host: ""
+  # Optional explicit backend service. If empty, defaults to redis-<databasePort>.
+  serviceName: ""
 
 # Labels applied to all resources
 labels:
@@ -44,4 +51,3 @@ labels:
 
 # Annotations applied to all resources
 annotations: {}
-

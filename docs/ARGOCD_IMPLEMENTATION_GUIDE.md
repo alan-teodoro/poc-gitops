@@ -60,6 +60,11 @@
 **Sync Wave 7**: High Availability
 - PodDisruptionBudgets for Redis cluster
 
+### Phase 5: TLS Security Hardening (Step 21) - Optional
+- Custom Redis proxy certificate (REC)
+- Custom Route hostnames (non-default OpenShift domain)
+- Mutual TLS (mTLS) for database clients
+
 ---
 
 # 🚀 DEPLOYMENT STEPS
@@ -704,7 +709,7 @@ oc get redb -A
 
 **✅ Success**: All 4 databases show `active`
 
-**⏭️ Next**: Continue to Step 18 (or skip to Step 21 if not using observability)
+**⏭️ Next**: Continue to Step 18 (or skip to Step 20 if not using observability)
 
 ---
 
@@ -779,7 +784,7 @@ oc get servicemonitor -n redis-enterprise | grep redis
 
 **✅ Success**: Both Applications synced, Prometheus + Grafana deployed in `openshift-monitoring`
 
-**⏭️ Next**: Continue to Step 19 (or skip to Step 21 if not using logging)
+**⏭️ Next**: Continue to Step 19 (or skip to Step 20 if not using logging)
 
 ---
 
@@ -958,11 +963,107 @@ oc describe pdb redis-cluster-pdb -n redis-enterprise
 
 **✅ Success**: ArgoCD Application synced, PDB protecting demo-redis-cluster
 
-**⏭️ Next**: Continue to Step 21
+**⏭️ Next**: Continue to Step 21 (optional TLS/mTLS) or Step 22 (validation)
 
 ---
 
-## Step 21: Validation
+## Step 21: Optional - Custom Domain TLS + mTLS for Redis Databases
+
+**Skip if**: You do not need custom Redis certificates, custom Route hosts, or mutual TLS.
+
+Use this step when you want:
+- Your own DNS name (not OpenShift default domain), for example: `team1-cache-dev.redis-demo.example.com`
+- TLS certificate presented by Redis Enterprise proxy for that hostname
+- Optional client-certificate authentication (mTLS)
+
+### 21.1 Generate CA and Certificates
+
+Follow [`docs/tls.md`](tls.md):
+- Section 3: create CA and proxy certificate with SAN for your Route host.
+- Section 6: create client certificate for mTLS.
+
+### 21.2 Create Kubernetes Secrets
+
+Create REC proxy cert secret in `redis-enterprise` namespace:
+
+```bash
+oc -n redis-enterprise create secret generic proxy-cert-secret \
+  --from-file=certificate=proxy.crt \
+  --from-file=key=proxy.key \
+  --from-literal=name=proxy
+```
+
+Create mTLS client trust secret in each database namespace that requires mTLS:
+
+```bash
+oc -n redis-team1-dev create secret generic team1-cache-client-ca \
+  --from-file=cert=client.crt
+```
+
+### 21.3 Enable REC and REDB GitOps Settings
+
+1. In [`clusters/redis-cluster-demo/cluster.yaml`](../clusters/redis-cluster-demo/cluster.yaml), set:
+- `redis.certificates.proxyCertificateSecretName: proxy-cert-secret`
+- `redis.servicesRiggerSpec.enabled: true`
+- `redis.servicesRiggerSpec.serviceNaming: bdb_name`
+
+2. In each team database values file (for example [`clusters/redis-cluster-demo/teams/team1/cache-dev.yaml`](../clusters/redis-cluster-demo/teams/team1/cache-dev.yaml)), set:
+- `route.host` to your custom domain
+- `route.serviceName` to the REDB service name when using `bdb_name` (for example `team1-cache-dev`)
+- `redis.clientAuthenticationCertificates` with the secret name(s), for example:
+
+```yaml
+redis:
+  clientAuthenticationCertificates:
+    - team1-cache-client-ca
+route:
+  host: team1-cache-dev.redis-demo.example.com
+  serviceName: team1-cache-dev
+```
+
+### 21.4 Sync via Argo CD
+
+```bash
+# Apply REC changes
+argocd app sync redis-cluster-demo
+
+# Apply REDB changes (example)
+argocd app sync redb-team1-cache-dev
+```
+
+### 21.5 Simulate DNS in Lab
+
+Map your custom hostname to OpenShift ingress external IP in `/etc/hosts`:
+
+```bash
+oc -n openshift-ingress get svc router-default
+sudo vi /etc/hosts
+# <ROUTER_EXTERNAL_IP> team1-cache-dev.redis-demo.example.com
+```
+
+### 21.6 Validate TLS and mTLS
+
+```bash
+# Inspect certificate presented by Redis through Route passthrough
+openssl s_client \
+  -connect team1-cache-dev.redis-demo.example.com:443 \
+  -servername team1-cache-dev.redis-demo.example.com \
+  -CAfile demo-ca.crt </dev/null
+
+# TLS + mTLS client connection
+redis-cli \
+  -h team1-cache-dev.redis-demo.example.com \
+  -p 443 \
+  --tls \
+  --cacert demo-ca.crt \
+  --sni team1-cache-dev.redis-demo.example.com \
+  --cert client.crt \
+  --key client.key
+```
+
+---
+
+## Step 22: Validation
 
 ```bash
 # Check all components
@@ -1028,4 +1129,3 @@ oc get route demo-redis-cluster-ui -n redis-enterprise -o jsonpath='{.spec.host}
 ---
 
 **Last Updated**: 2024-02-18
-

@@ -18,6 +18,11 @@ metadata:
     {{- end }}
 spec:
   nodes: {{ .Values.redis.nodes }}
+
+  {{- if .Values.redis.certificates.proxyCertificateSecretName }}
+  certificates:
+    proxyCertificateSecretName: {{ .Values.redis.certificates.proxyCertificateSecretName | quote }}
+  {{- end }}
   
   redisEnterpriseNodeResources:
     requests:
@@ -38,6 +43,12 @@ spec:
   redisEnterpriseImageSpec:
     imagePullPolicy: IfNotPresent
     versionTag: {{ .Values.redis.version | quote }}
+
+  {{- if .Values.redis.servicesRiggerSpec.enabled }}
+  servicesRiggerSpec:
+    databaseServiceType: {{ .Values.redis.servicesRiggerSpec.databaseServiceType | quote }}
+    serviceNaming: {{ .Values.redis.servicesRiggerSpec.serviceNaming | quote }}
+  {{- end }}
 
   {{- if .Values.redis.podAntiAffinity }}
   # Pod anti-affinity rules for high availability

@@ -13,6 +13,16 @@ redis:
   clusterName: demo-redis-cluster
   nodes: 3
   version: "8.0.10-76"
+  certificates:
+    # Optional: custom REC proxy certificate secret for non-default Route domains.
+    # Secret must exist in redis-enterprise namespace with keys: certificate, key, name=proxy
+    proxyCertificateSecretName: "proxy-cert-secret"
+  servicesRiggerSpec:
+    # Optional: set true to create predictable DB services by database name (bdb_name).
+    # Recommended when exposing databases via custom Route hosts.
+    enabled: true
+    databaseServiceType: "cluster_ip"
+    serviceNaming: "bdb_name"
   
   resources:
     requests:
@@ -57,4 +67,3 @@ labels:
 
 annotations:
   description: "Shared Redis Enterprise Cluster - Demo multi-tenant setup"
-

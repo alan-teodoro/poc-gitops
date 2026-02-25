@@ -20,6 +20,11 @@ redis:
   
   # Redis Enterprise version
   version: "8.0.6-54"
+
+  # Optional REC certificate configuration
+  # Use to install a custom proxy certificate for external Route hostnames.
+  certificates:
+    proxyCertificateSecretName: ""
   
   # Node resources
   resources:
@@ -35,6 +40,13 @@ redis:
     enabled: true
     storageClassName: ocs-external-storagecluster-ceph-rbd
     volumeSize: 50Gi
+
+  # Optional Service Rigger settings
+  # Enable this to get stable database service names (for example: bdb_name).
+  servicesRiggerSpec:
+    enabled: false
+    databaseServiceType: "cluster_ip"
+    serviceNaming: "bdb_name"
 
   # Pod anti-affinity for high availability
   # Spreads Redis pods across nodes and zones
@@ -80,4 +92,3 @@ labels:
 
 # Annotations applied to all resources
 annotations: {}
-

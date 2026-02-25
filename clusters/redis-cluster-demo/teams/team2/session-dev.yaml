@@ -20,6 +20,9 @@ redis:
   persistence: disabled
   databasePort: 12001
   tlsMode: enabled
+  # Optional mTLS trust store secret names in this namespace.
+  # Each secret must contain key: cert
+  clientAuthenticationCertificates: []
   evictionPolicy: volatile-ttl
   shardCount: 1
   type: redis
@@ -27,6 +30,10 @@ redis:
 route:
   enabled: true
   tlsTermination: passthrough
+  # Optional custom Route host (for example: team2-session-dev.redis-demo.example.com)
+  host: ""
+  # Optional backend service override. Keep empty unless REC serviceNaming=bdb_name is enabled.
+  serviceName: ""
 
 labels:
   app: team2-app
@@ -37,4 +44,3 @@ labels:
 
 annotations:
   description: "Session store database for Team 2 - Development"
-

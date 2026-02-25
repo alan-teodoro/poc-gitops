@@ -20,6 +20,9 @@ redis:
   persistence: aofEverySecond
   databasePort: 12002
   tlsMode: enabled
+  # Optional mTLS trust store secret names in this namespace.
+  # Each secret must contain key: cert
+  clientAuthenticationCertificates: []
   evictionPolicy: volatile-lru
   shardCount: 1
   type: redis
@@ -27,6 +30,10 @@ redis:
 route:
   enabled: true
   tlsTermination: passthrough
+  # Optional custom Route host (for example: team1-cache-prod.redis-demo.example.com)
+  host: ""
+  # Optional backend service override. Keep empty unless REC serviceNaming=bdb_name is enabled.
+  serviceName: ""
 
 labels:
   app: team1-app
@@ -38,4 +45,3 @@ labels:
 
 annotations:
   description: "Cache database for Team 1 - Production"
-

@@ -35,8 +35,12 @@ spec:
   tlsMode: {{ .Values.redis.tlsMode }}
   type: {{ .Values.redis.type | default "redis" }}
   evictionPolicy: {{ .Values.redis.evictionPolicy }}
+
+  {{- if .Values.redis.clientAuthenticationCertificates }}
+  clientAuthenticationCertificates:
+    {{- toYaml .Values.redis.clientAuthenticationCertificates | nindent 4 }}
+  {{- end }}
   
   {{- if gt (int .Values.redis.shardCount) 1 }}
   shardCount: {{ .Values.redis.shardCount }}
   {{- end }}
-

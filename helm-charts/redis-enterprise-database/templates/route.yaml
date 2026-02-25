@@ -18,13 +18,15 @@ metadata:
     {{- toYaml . | nindent 4 }}
   {{- end }}
 spec:
+  {{- if .Values.route.host }}
+  host: {{ .Values.route.host | quote }}
+  {{- end }}
   to:
     kind: Service
-    name: redis-{{ .Values.redis.databasePort }}
+    name: {{ .Values.route.serviceName | default (printf "redis-%v" .Values.redis.databasePort) }}
   port:
     targetPort: {{ .Values.redis.databasePort }}
   tls:
     termination: {{ .Values.route.tlsTermination }}
     insecureEdgeTerminationPolicy: Redirect
 {{- end }}
-
