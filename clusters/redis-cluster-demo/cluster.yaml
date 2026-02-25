@@ -17,6 +17,73 @@ redis:
     # Optional: custom REC certificate secrets.
     # Each secret must exist in redis-enterprise namespace with keys: certificate, key, and name
     # name must match endpoint type: proxy, api, cm, syncer, metrics_exporter
+    createSecrets: true
+    certificate: |
+      -----BEGIN CERTIFICATE-----
+      MIIGSTCCBDGgAwIBAgIUQZaFRHu04a7zsxizW7KzYStLVQkwDQYJKoZIhvcNAQEL
+      BQAwZzELMAkGA1UEBhMCQlIxCzAJBgNVBAgMAlNQMRIwEAYDVQQHDAlTYW8gUGF1
+      bG8xEjAQBgNVBAoMCURlbW9SZWRpczELMAkGA1UECwwCUFMxFjAUBgNVBAMMDWRl
+      bW8tcmVkaXMtY2EwHhcNMjYwMjI1MTk0MDAzWhcNMjcwMjI1MTk0MDAzWjBjMQsw
+      CQYDVQQGEwJCUjELMAkGA1UECAwCU1AxEjAQBgNVBAcMCVNhbyBQYXVsbzESMBAG
+      A1UECgwJRGVtb1JlZGlzMR8wHQYDVQQDDBZyZWRpcy1kZW1vLmV4YW1wbGUuY29t
+      MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAwkxvt2LMYR5TyrWEJTXQ
+      /HkYD97hm4SbWpOlrOTIK0g3Ll5bMhX9cOKpX80P4/kz+/n/txLsq2aO7YTXlfF5
+      sz1t2X9X16nJAsnTBVwL4TyiA3SGKjXSd2ms54hfQdKIyNzts8tBBPOkFqWKADsX
+      XnoVGLJr7ofuB2u9nLk7b4Rgov+22gFOkx5IT5FcG8x5ekYf5Lk6avq3kKCpXfws
+      oJd3qzPYx2sIYYrkzokNkg6w0Wj/pzkT/V0DPFb5BGpfzpOW7ub+6AfMGMsmrFXS
+      LFt934kuhYxgbv1C8nXot9aTAHeqSlSYWEqwLhAkEf8rwbCIyK8F7OvShUhSt7Df
+      1QIDAQABo4IB7zCCAeswCQYDVR0TBAIwADAOBgNVHQ8BAf8EBAMCBaAwEwYDVR0l
+      BAwwCgYIKwYBBQUHAwEwggF3BgNVHREEggFuMIIBaoIWcmVkaXMtZGVtby5leGFt
+      cGxlLmNvbYIYKi5yZWRpcy1kZW1vLmV4YW1wbGUuY29tgiQqLnJlZGlzLWVudGVy
+      cHJpc2Uuc3ZjLmNsdXN0ZXIubG9jYWyCIyoucmVkaXMtdGVhbTEtZGV2LnN2Yy5j
+      bHVzdGVyLmxvY2FsgiQqLnJlZGlzLXRlYW0xLXByb2Quc3ZjLmNsdXN0ZXIubG9j
+      YWyCIyoucmVkaXMtdGVhbTItZGV2LnN2Yy5jbHVzdGVyLmxvY2FsgiQqLnJlZGlz
+      LXRlYW0yLXByb2Quc3ZjLmNsdXN0ZXIubG9jYWyCFioucmVkaXMtZW50ZXJwcmlz
+      ZS5zdmOCFSoucmVkaXMtdGVhbTEtZGV2LnN2Y4IWKi5yZWRpcy10ZWFtMS1wcm9k
+      LnN2Y4IVKi5yZWRpcy10ZWFtMi1kZXYuc3ZjghYqLnJlZGlzLXRlYW0yLXByb2Qu
+      c3ZjhwR/AAABMB0GA1UdDgQWBBTbm2yhqdnThcg4/4+080XahJDrgDAfBgNVHSME
+      GDAWgBRlUam3fmzfwWKAYYeHw6F5LDHzmTANBgkqhkiG9w0BAQsFAAOCAgEAdwDC
+      qvuU2/pHFVFe1qk5vGsAgcEsQ+35VinLJu+HZUybcccdpyX3ChtWjD0fYwtMzCVa
+      C+V/jjkzvEdU/v25NnMJMzO2dOGR8zRIThPR2UgZjREbsK3D8McyYqhN5aVT88gB
+      NndC0833VYyN9m2il7cQzLsdN4kw6sipEEroPqrrpEuHdcQzle78/QK86muBYcvL
+      pv4LQRK0NkbZhaHU8i+445cailWaT/ei+gFaMBXK5WhDu1toDzoUREikTugm5+UI
+      gTnR2z0z0CjmcXEOJ3PTgnmFxzc52zCqNFLn2Ual913Q1Eejsb6EXEc6vlWnqhTg
+      cb7BojW3t7bnig5VpcoCFlu/UZc75BT2lMWPzqNJFbNWFzK+zFtuufRi4v9hvIH2
+      DV2O5geTVW8KZAK9FrKySXk5GdDF3C1oH+VpJ25K4OvahkZIw+8SD/ol6MKJL+iW
+      UDHxiRtxt+pavmwJPPoZPs8yMz9u9ZwK4V+RHcE76682JYWSNMa8ofcAcXkZeijN
+      o6HlR7ktQqqEa4Rl/fvOxNrkkDWm966Uq+uhPHlyE3n6POshF4LXJlGCdDemndZm
+      FNtRRXXniK3WSKe8zNpbGMlGVzvW1E24PIsm36CaKcAhIZ93Y4yY6vBo3IW2fO+g
+      4oMtVSVmtCuN0STvi3w0N2Vgt2yG3LTQjGLYRoQ=
+      -----END CERTIFICATE-----
+    key: |
+      -----BEGIN PRIVATE KEY-----
+      MIIEvQIBADANBgkqhkiG9w0BAQEFAASCBKcwggSjAgEAAoIBAQDCTG+3YsxhHlPK
+      tYQlNdD8eRgP3uGbhJtak6Ws5MgrSDcuXlsyFf1w4qlfzQ/j+TP7+f+3EuyrZo7t
+      hNeV8XmzPW3Zf1fXqckCydMFXAvhPKIDdIYqNdJ3aazniF9B0ojI3O2zy0EE86QW
+      pYoAOxdeehUYsmvuh+4Ha72cuTtvhGCi/7baAU6THkhPkVwbzHl6Rh/kuTpq+reQ
+      oKld/Cygl3erM9jHawhhiuTOiQ2SDrDRaP+nORP9XQM8VvkEal/Ok5bu5v7oB8wY
+      yyasVdIsW33fiS6FjGBu/ULydei31pMAd6pKVJhYSrAuECQR/yvBsIjIrwXs69KF
+      SFK3sN/VAgMBAAECggEACSYL4pYn1RuA9Yaregxj0pIpxGGJvPFhq+z6Jum/f8OO
+      5EOJcWfLVFvlKWogk+rsJt1ZduImEQIAu9qpQ1mokdHUJiK9XPMVJb5MDdtiLHus
+      OJPC13eg+SzEI+4YvM2FfEkOy4xH+6GJ5I5shjXsvpmVUbbg/HfGXkS/8QJgc+Uy
+      NwCfnKywLxlyhe5e6PW/PVfhSfangrzR+WCapPT/ONcXp+hskrcSNnCBmD5CBBPx
+      v2qpaWtcvVrmFt/+L37KqTSmsYrbXX56zgYiITtjEVo6QW/xlNiSWUFBZkdPAd73
+      m/vieOsB3NxyS4C5Ni9ma8si6QqCPl0q/FW9SEMCBwKBgQDyAcTB+e4tNrGH7HNu
+      xogXkB2tc4dsplm0EW7JrONU94Q1kxjx52sXR5WLnu93DyAx8Q+oZggL0UXJrzlE
+      XraVZjKyrdvDFwfBj2LzmEbdpS5DelvsO6HhyjG/YaVFrE+zWca5rPBGD4xU2Uop
+      C2ZkBeSHO36pxAoIFE6FNJAFlwKBgQDNiHrvyj7HZRxhiGNyW/lNGR37rzYwX+4J
+      vnH1WmDn4PbKG05kz2jgyPw+uo5TTM29sD1lyyULfIXF9y/lf2sTyS4ynwTvtpOW
+      hGgsReNgXqPhFtUZS+FohY1PFz9yikcUR4JZCTo5RNUoYl0IUhvK4kH/2ZZ1uMv/
+      qOZPtCIrcwKBgCj9G7Iu/qQxy0fWSIbOoWY8RoqGMr24PyE8gqMt4SMW+RGJ5IO0
+      SnMa8L1BIhXsPeu3hItlHJ/Dxiouv2hREmOjd5rDz6DvWaTzADN56ybHP1q2crNE
+      NlrjwCFGDJQMZ0NdRUdVfyyenYoRc3oYMDNovBgbf4yJY5mStungyTPpAoGAH3Y0
+      21/qHDuuDIAEOQ07LEIcBNrdQKpula9BYn1jOBuHq4hih6v4MfCSLEgCYV3wYIkJ
+      3PsrwIZfM96Sxl6q1WyGVdlhuBAKp4+9IonQNIBINbx5AlZLOuS2rNSyMaZZGxGX
+      MmnnL70JpBTqiMuI1ZWs5K06CusuzwPbvXelg2ECgYEAxY/rQLHsL1ZPztmBP6S8
+      smtOivubjRLI5Af+xxrIYN29EUtn7RdocZeAmIwpCEwQcBWRy/HZp33hVw+4uxVG
+      CaRklLZegZ+b+U4ZLBWl3hIIwE3eerxA5czlHcyNIIGvDHurOszxaksMAqxH/kyg
+      YkHnEQElGJB/d4moFxet1Z0=
+      -----END PRIVATE KEY-----
     proxyCertificateSecretName: "proxy-cert-secret"
     apiCertificateSecretName: "api-cert-secret"
     cmCertificateSecretName: "cm-cert-secret"

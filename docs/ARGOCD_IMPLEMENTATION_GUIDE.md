@@ -984,7 +984,25 @@ Follow [`docs/tls.md`](tls.md):
 
 ### 21.2 Create Kubernetes Secrets
 
-Create REC proxy cert secret in `redis-enterprise` namespace:
+Option A (recommended in this repo): store cert/key in [`clusters/redis-cluster-demo/cluster.yaml`](../clusters/redis-cluster-demo/cluster.yaml) and enable:
+
+```yaml
+redis:
+  certificates:
+    createSecrets: true
+    certificate: |
+      -----BEGIN CERTIFICATE-----
+      ...
+      -----END CERTIFICATE-----
+    key: |
+      -----BEGIN PRIVATE KEY-----
+      ...
+      -----END PRIVATE KEY-----
+```
+
+This automatically creates `proxy/api/cm/syncer/metrics_exporter` secrets via ArgoCD.
+
+Option B (manual): create REC proxy cert secret in `redis-enterprise` namespace:
 
 ```bash
 oc -n redis-enterprise create secret generic proxy-cert-secret \
@@ -1005,6 +1023,7 @@ For the bootstrap database (`team1-cache-dev`), this project can create the mTLS
 ### 21.3 Enable REC and REDB GitOps Settings
 
 1. In [`clusters/redis-cluster-demo/cluster.yaml`](../clusters/redis-cluster-demo/cluster.yaml), set:
+- `redis.certificates.createSecrets: true` with certificate/key content (optional, for full GitOps)
 - `redis.certificates.proxyCertificateSecretName: proxy-cert-secret`
 - `redis.servicesRiggerSpec.enabled: true`
 - `redis.servicesRiggerSpec.serviceNaming: bdb_name`

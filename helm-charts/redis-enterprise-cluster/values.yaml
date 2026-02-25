@@ -25,6 +25,11 @@ redis:
   # Each secret should contain: certificate, key, name
   # Supported names: proxy, api, cm, syncer, metrics_exporter
   certificates:
+    # When true, create REC certificate secrets from certificate/key values below.
+    # Useful for fully automated demo/lab clusters.
+    createSecrets: false
+    certificate: ""
+    key: ""
     proxyCertificateSecretName: ""
     apiCertificateSecretName: ""
     cmCertificateSecretName: ""
