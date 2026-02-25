@@ -35,6 +35,16 @@ redis:
   # Each secret must include key: cert
   clientAuthenticationCertificates: []
 
+# Optional GitOps-managed mTLS client-certificate secret.
+# Keep disabled by default; enable only for bootstrap/demo databases.
+mtls:
+  clientCertificateSecret:
+    create: false
+    # Secret name to create and reference from redis.clientAuthenticationCertificates
+    name: ""
+    # PEM certificate body stored as stringData.cert
+    cert: ""
+
 # Route configuration
 route:
   enabled: true

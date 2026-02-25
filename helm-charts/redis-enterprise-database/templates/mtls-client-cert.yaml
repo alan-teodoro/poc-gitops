@@ -1,0 +1,24 @@
+{{- if .Values.mtls.clientCertificateSecret.create }}
+apiVersion: v1
+kind: Secret
+metadata:
+  name: {{ .Values.mtls.clientCertificateSecret.name | required "mtls.clientCertificateSecret.name is required when mtls.clientCertificateSecret.create=true" }}
+  namespace: {{ .Values.namespace }}
+  annotations:
+    argocd.argoproj.io/sync-wave: "-1"
+  labels:
+    cluster: {{ .Values.cluster.name }}
+    team: {{ .Values.cluster.team }}
+    database: {{ .Values.database.name }}
+    env: {{ .Values.database.env }}
+    component: mtls
+    {{- range $key, $value := .Values.labels }}
+    {{- if and (ne $key "cluster") (ne $key "team") (ne $key "database") (ne $key "env") (ne $key "component") }}
+    {{ $key }}: {{ $value | quote }}
+    {{- end }}
+    {{- end }}
+type: Opaque
+stringData:
+  cert: |-
+{{- .Values.mtls.clientCertificateSecret.cert | required "mtls.clientCertificateSecret.cert is required when mtls.clientCertificateSecret.create=true" | nindent 4 }}
+{{- end }}

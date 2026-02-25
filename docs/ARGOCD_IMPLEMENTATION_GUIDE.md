@@ -993,12 +993,14 @@ oc -n redis-enterprise create secret generic proxy-cert-secret \
   --from-literal=name=proxy
 ```
 
-Create mTLS client trust secret in each database namespace that requires mTLS:
+Create mTLS client trust secret only for databases that are not using GitOps-managed secret creation:
 
 ```bash
 oc -n redis-team1-dev create secret generic team1-cache-client-ca \
   --from-file=cert=client.crt
 ```
+
+For the bootstrap database (`team1-cache-dev`), this project can create the mTLS secret automatically from values via Helm (`mtls.clientCertificateSecret.create: true`), so no manual `oc create secret` is required.
 
 ### 21.3 Enable REC and REDB GitOps Settings
 
@@ -1011,11 +1013,20 @@ oc -n redis-team1-dev create secret generic team1-cache-client-ca \
 - `route.host` to your custom domain
 - `route.serviceName` to the REDB service name when using `bdb_name` (for example `team1-cache-dev`)
 - `redis.clientAuthenticationCertificates` with the secret name(s), for example:
+- Optional for full GitOps bootstrap: `mtls.clientCertificateSecret.create`, `mtls.clientCertificateSecret.name`, and `mtls.clientCertificateSecret.cert`
 
 ```yaml
 redis:
   clientAuthenticationCertificates:
-    - team1-cache-client-ca
+    - client-cert-secret
+mtls:
+  clientCertificateSecret:
+    create: true
+    name: client-cert-secret
+    cert: |
+      -----BEGIN CERTIFICATE-----
+      ...
+      -----END CERTIFICATE-----
 route:
   host: team1-cache-dev.redis-demo.example.com
   serviceName: team1-cache-dev
@@ -1031,12 +1042,19 @@ argocd app sync redis-cluster-demo
 argocd app sync redb-team1-cache-dev
 ```
 
+If you changed an existing Route `spec.host`, OpenShift requires route recreation (field is immutable):
+
+```bash
+oc -n redis-team1-dev delete route team1-cache-dev
+argocd app sync redb-team1-cache-dev
+```
+
 ### 21.5 Simulate DNS in Lab
 
 Map your custom hostname to OpenShift ingress external IP in `/etc/hosts`:
 
 ```bash
-oc -n openshift-ingress get svc router-default
+oc -n openshift-ingress get svc router-internal-default
 sudo vi /etc/hosts
 # <ROUTER_EXTERNAL_IP> team1-cache-dev.redis-demo.example.com
 ```
