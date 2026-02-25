@@ -25,6 +25,9 @@ secrets/
 *.key
 *.crt
 *.pem
+!tls-demo/*.key
+!tls-demo/*.crt
+!tls-demo/*.pem
 
 # Local testing
 test-output/
