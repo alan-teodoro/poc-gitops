@@ -27,6 +27,9 @@ spec:
       server: 'https://kubernetes.default.svc'
     - namespace: 'redis-team1-prod'
       server: 'https://kubernetes.default.svc'
+    # Required for database Routes pointing directly to redis-<port> services
+    - namespace: 'redis-enterprise'
+      server: 'https://kubernetes.default.svc'
   
   # Cluster-scoped resources - NONE allowed for teams
   clusterResourceWhitelist: []
@@ -119,4 +122,3 @@ spec:
   # Orphaned resources monitoring
   orphanedResources:
     warn: true
-

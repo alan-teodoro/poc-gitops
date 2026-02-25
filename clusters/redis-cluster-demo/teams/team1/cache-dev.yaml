@@ -66,10 +66,13 @@ mtls:
 route:
   enabled: true
   tlsTermination: passthrough
+  # For services-rigger ExternalName services, create Route in redis-enterprise namespace
+  # and target the native redis-<port> service directly.
+  namespace: "redis-enterprise"
   # Optional custom Route host (for example: team1-cache-dev.redis-demo.example.com)
   host: "team1-cache-dev.redis-demo.example.com"
   # Optional backend service override. Keep empty unless REC serviceNaming=bdb_name is enabled.
-  serviceName: "team1-cache-dev"
+  serviceName: "redis-12000"
 
 labels:
   app: team1-app

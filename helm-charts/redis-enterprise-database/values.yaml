@@ -49,6 +49,9 @@ mtls:
 route:
   enabled: true
   tlsTermination: passthrough
+  # Optional namespace override for Route resource.
+  # Use redis-enterprise when DB Service in app namespace is ExternalName.
+  namespace: ""
   # Optional custom hostname for Route (for example: cache-dev.example.com)
   host: ""
   # Optional explicit backend service. If empty, defaults to redis-<databasePort>.

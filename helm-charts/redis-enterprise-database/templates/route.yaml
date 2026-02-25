@@ -3,7 +3,7 @@ apiVersion: route.openshift.io/v1
 kind: Route
 metadata:
   name: {{ .Values.database.name }}-{{ .Values.database.env }}
-  namespace: {{ .Values.namespace }}
+  namespace: {{ .Values.route.namespace | default .Values.namespace }}
   labels:
     cluster: {{ .Values.cluster.name }}
     team: {{ .Values.cluster.team }}

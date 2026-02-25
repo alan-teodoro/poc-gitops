@@ -1011,7 +1011,7 @@ For the bootstrap database (`team1-cache-dev`), this project can create the mTLS
 
 2. In each team database values file (for example [`clusters/redis-cluster-demo/teams/team1/cache-dev.yaml`](../clusters/redis-cluster-demo/teams/team1/cache-dev.yaml)), set:
 - `route.host` to your custom domain
-- `route.serviceName` to the REDB service name when using `bdb_name` (for example `team1-cache-dev`)
+- `route.namespace` to `redis-enterprise` and `route.serviceName` to `redis-<databasePort>` when services-rigger creates `ExternalName` services in team namespaces
 - `redis.clientAuthenticationCertificates` with the secret name(s), for example:
 - Optional for full GitOps bootstrap: `mtls.clientCertificateSecret.create`, `mtls.clientCertificateSecret.name`, and `mtls.clientCertificateSecret.cert`
 
@@ -1028,9 +1028,12 @@ mtls:
       ...
       -----END CERTIFICATE-----
 route:
+  namespace: redis-enterprise
   host: team1-cache-dev.redis-demo.example.com
-  serviceName: team1-cache-dev
+  serviceName: redis-12000
 ```
+
+Also ensure AppProject `app-team1` allows destination namespace `redis-enterprise` for Route creation.
 
 ### 21.4 Sync via Argo CD
 
