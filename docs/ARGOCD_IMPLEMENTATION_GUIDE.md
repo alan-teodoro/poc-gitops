@@ -1101,6 +1101,78 @@ redis-cli \
   --key client.key
 ```
 
+### 21.7 Validate mTLS From a Pod (Recommended)
+
+This test runs from inside `redis-team1-dev`, without relying on local `/etc/hosts`.
+
+```bash
+# 1) Create temporary secret with mTLS materials for test pod
+oc -n redis-team1-dev create secret generic team1-cache-dev-mtls-test \
+  --from-file=client.crt=tls-demo/client.crt \
+  --from-file=client.key=tls-demo/client.key \
+  --from-file=ca.crt=tls-demo/demo-ca.crt \
+  --dry-run=client -o yaml | oc apply -f -
+
+# 2) Create temporary redis-cli pod
+cat <<'YAML' | oc apply -f -
+apiVersion: v1
+kind: Pod
+metadata:
+  name: redis-mtls-debug
+  namespace: redis-team1-dev
+spec:
+  restartPolicy: Never
+  containers:
+    - name: redis-cli
+      image: redis:7.2-alpine
+      command: ["sleep", "3600"]
+      volumeMounts:
+        - name: mtls
+          mountPath: /tls
+          readOnly: true
+  volumes:
+    - name: mtls
+      secret:
+        secretName: team1-cache-dev-mtls-test
+YAML
+
+oc -n redis-team1-dev wait --for=condition=Ready pod/redis-mtls-debug --timeout=180s
+```
+
+```bash
+# 3) Positive test (with client cert) - expected: PONG
+PASS=$(oc -n redis-team1-dev get secret redb-team1-cache-dev -o jsonpath='{.data.password}' | base64 --decode)
+
+oc -n redis-team1-dev exec redis-mtls-debug -- redis-cli \
+  -h router-internal-default.openshift-ingress.svc \
+  -p 443 \
+  --tls \
+  --sni team1-cache-dev.redis-demo.example.com \
+  --cacert /tls/ca.crt \
+  --cert /tls/client.crt \
+  --key /tls/client.key \
+  -a "$PASS" \
+  PING
+```
+
+```bash
+# 4) Negative test (without client cert) - expected: connection error
+oc -n redis-team1-dev exec redis-mtls-debug -- redis-cli \
+  -h router-internal-default.openshift-ingress.svc \
+  -p 443 \
+  --tls \
+  --sni team1-cache-dev.redis-demo.example.com \
+  --cacert /tls/ca.crt \
+  -a "$PASS" \
+  PING
+```
+
+```bash
+# 5) Cleanup temporary resources
+oc -n redis-team1-dev delete pod redis-mtls-debug --ignore-not-found
+oc -n redis-team1-dev delete secret team1-cache-dev-mtls-test --ignore-not-found
+```
+
 ---
 
 ## Step 22: Validation
