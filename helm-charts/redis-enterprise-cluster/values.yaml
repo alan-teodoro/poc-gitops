@@ -78,6 +78,7 @@ routes:
   # Enable route for Redis Enterprise UI
   ui:
     enabled: true
+    host: ""
     # TLS termination (passthrough or edge)
     tlsTermination: passthrough
 

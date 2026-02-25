@@ -45,6 +45,8 @@ redis:
 routes:
   ui:
     enabled: true
+    # Must match certificate SAN. This cert includes *.redis-demo.example.com.
+    host: "ui.redis-demo.example.com"
     tlsTermination: passthrough
 
 monitoring:

@@ -16,6 +16,9 @@ metadata:
     {{- toYaml . | nindent 4 }}
   {{- end }}
 spec:
+  {{- if .Values.routes.ui.host }}
+  host: {{ .Values.routes.ui.host | quote }}
+  {{- end }}
   to:
     kind: Service
     name: {{ .Values.redis.clusterName }}-ui
@@ -25,4 +28,3 @@ spec:
     termination: {{ .Values.routes.ui.tlsTermination }}
     insecureEdgeTerminationPolicy: Redirect
 {{- end }}
-
