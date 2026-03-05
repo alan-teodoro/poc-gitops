@@ -1,5 +1,7 @@
 --- 
 ---
+--- 
+---
 ---
 apiVersion: v1
 kind: ConfigMap
@@ -498,38 +500,28 @@ data:
           {
             "name": "pod",
             "label": "Pod",
-            "type": "query",
-            "datasource": {
-              "type": "loki",
-              "uid": "${datasource}"
-            },
-            "query": "label_values({kubernetes_namespace_name=~\"$namespace\"}, kubernetes_pod_name)",
-            "includeAll": true,
-            "allValue": ".*",
-            "multi": true,
-            "refresh": 1,
+            "type": "custom",
+            "query": ".*",
+            "includeAll": false,
+            "multi": false,
+            "refresh": 0,
             "current": {
-              "selected": false,
-              "text": "All",
+              "selected": true,
+              "text": ".*",
               "value": ".*"
             }
           },
           {
             "name": "file",
             "label": "Log File",
-            "type": "query",
-            "datasource": {
-              "type": "loki",
-              "uid": "${datasource}"
-            },
-            "query": "label_values({kubernetes_namespace_name=~\"$namespace\"}, filename)",
-            "includeAll": true,
-            "allValue": ".*",
-            "multi": true,
-            "refresh": 1,
+            "type": "custom",
+            "query": ".*",
+            "includeAll": false,
+            "multi": false,
+            "refresh": 0,
             "current": {
-              "selected": false,
-              "text": "All",
+              "selected": true,
+              "text": ".*",
               "value": ".*"
             }
           },
@@ -569,6 +561,8 @@ data:
       "version": 2,
       "weekStart": ""
     }
+---
+--- 
 ---
 ---
 apiVersion: v1
@@ -993,38 +987,28 @@ data:
           {
             "name": "pod",
             "label": "Pod",
-            "type": "query",
-            "datasource": {
-              "type": "loki",
-              "uid": "${datasource}"
-            },
-            "query": "label_values({kubernetes_namespace_name=~\"$namespace\"}, kubernetes_pod_name)",
-            "includeAll": true,
-            "allValue": ".*",
-            "multi": true,
-            "refresh": 1,
+            "type": "custom",
+            "query": ".*",
+            "includeAll": false,
+            "multi": false,
+            "refresh": 0,
             "current": {
-              "selected": false,
-              "text": "All",
+              "selected": true,
+              "text": ".*",
               "value": ".*"
             }
           },
           {
             "name": "file",
             "label": "Log File",
-            "type": "query",
-            "datasource": {
-              "type": "loki",
-              "uid": "${datasource}"
-            },
-            "query": "label_values({kubernetes_namespace_name=~\"$namespace\"}, filename)",
-            "includeAll": true,
-            "allValue": ".*",
-            "multi": true,
-            "refresh": 1,
+            "type": "custom",
+            "query": ".*",
+            "includeAll": false,
+            "multi": false,
+            "refresh": 0,
             "current": {
-              "selected": false,
-              "text": "All",
+              "selected": true,
+              "text": ".*",
               "value": ".*"
             }
           },
@@ -1053,6 +1037,8 @@ data:
       "version": 2,
       "weekStart": ""
     }
+---
+--- 
 ---
 ---
 apiVersion: v1
@@ -1377,57 +1363,42 @@ data:
           {
             "name": "pod",
             "label": "Pod",
-            "type": "query",
-            "datasource": {
-              "type": "loki",
-              "uid": "${datasource}"
-            },
-            "query": "label_values({kubernetes_namespace_name=~\"$namespace\"}, kubernetes_pod_name)",
-            "includeAll": true,
-            "allValue": ".*",
-            "multi": true,
-            "refresh": 1,
+            "type": "custom",
+            "query": ".*",
+            "includeAll": false,
+            "multi": false,
+            "refresh": 0,
             "current": {
-              "selected": false,
-              "text": "All",
+              "selected": true,
+              "text": ".*",
               "value": ".*"
             }
           },
           {
             "name": "container",
             "label": "Container",
-            "type": "query",
-            "datasource": {
-              "type": "loki",
-              "uid": "${datasource}"
-            },
-            "query": "label_values({kubernetes_namespace_name=~\"$namespace\", kubernetes_pod_name=~\"$pod\"}, kubernetes_container_name)",
-            "includeAll": true,
-            "allValue": ".*",
-            "multi": true,
-            "refresh": 1,
+            "type": "custom",
+            "query": ".*",
+            "includeAll": false,
+            "multi": false,
+            "refresh": 0,
             "current": {
-              "selected": false,
-              "text": "All",
+              "selected": true,
+              "text": ".*",
               "value": ".*"
             }
           },
           {
             "name": "file",
             "label": "Log File",
-            "type": "query",
-            "datasource": {
-              "type": "loki",
-              "uid": "${datasource}"
-            },
-            "query": "label_values({kubernetes_namespace_name=~\"$namespace\"}, filename)",
-            "includeAll": true,
-            "allValue": ".*",
-            "multi": true,
-            "refresh": 1,
+            "type": "custom",
+            "query": ".*",
+            "includeAll": false,
+            "multi": false,
+            "refresh": 0,
             "current": {
-              "selected": false,
-              "text": "All",
+              "selected": true,
+              "text": ".*",
               "value": ".*"
             }
           },
