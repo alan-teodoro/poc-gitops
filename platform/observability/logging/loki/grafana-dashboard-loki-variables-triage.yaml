@@ -1,0 +1,420 @@
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: grafana-dashboard-redis-logs-debug-static
+  namespace: openshift-monitoring
+  labels:
+    grafana_dashboard: '1'
+  annotations:
+    description: Redis logs debug dashboard without variables
+data:
+  redis-logs-debug-static.json: |-
+    {
+      "annotations": {
+        "list": [
+          {
+            "builtIn": 1,
+            "datasource": {
+              "type": "grafana",
+              "uid": "-- Grafana --"
+            },
+            "enable": true,
+            "hide": true,
+            "iconColor": "rgba(0, 211, 255, 1)",
+            "name": "Annotations & Alerts",
+            "type": "dashboard"
+          }
+        ]
+      },
+      "editable": true,
+      "fiscalYearStartMonth": 0,
+      "graphTooltip": 0,
+      "id": null,
+      "links": [],
+      "liveNow": false,
+      "panels": [
+        {
+          "datasource": {
+            "type": "loki",
+            "uid": "${datasource}"
+          },
+          "gridPos": {
+            "h": 12,
+            "w": 24,
+            "x": 0,
+            "y": 0
+          },
+          "id": 1,
+          "options": {
+            "dedupStrategy": "none",
+            "enableLogDetails": true,
+            "prettifyLogMessage": false,
+            "showCommonLabels": false,
+            "showLabels": true,
+            "showTime": true,
+            "sortOrder": "Descending",
+            "wrapLogMessage": true
+          },
+          "targets": [
+            {
+              "datasource": {
+                "type": "loki",
+                "uid": "${datasource}"
+              },
+              "editorMode": "code",
+              "expr": "{kubernetes_namespace_name=\"redis-enterprise\"}",
+              "queryType": "range",
+              "refId": "A"
+            }
+          ],
+          "title": "Static Logs (redis-enterprise)",
+          "type": "logs"
+        },
+        {
+          "datasource": {
+            "type": "loki",
+            "uid": "${datasource}"
+          },
+          "fieldConfig": {
+            "defaults": {},
+            "overrides": []
+          },
+          "gridPos": {
+            "h": 8,
+            "w": 24,
+            "x": 0,
+            "y": 12
+          },
+          "id": 2,
+          "options": {
+            "cellHeight": "sm",
+            "footer": {
+              "countRows": false,
+              "fields": "",
+              "reducer": [
+                "sum"
+              ],
+              "show": false
+            },
+            "showHeader": true
+          },
+          "targets": [
+            {
+              "datasource": {
+                "type": "loki",
+                "uid": "${datasource}"
+              },
+              "editorMode": "code",
+              "expr": "sum by (kubernetes_pod_name) (count_over_time({kubernetes_namespace_name=\"redis-enterprise\"}[5m]))",
+              "instant": true,
+              "queryType": "instant",
+              "refId": "A"
+            }
+          ],
+          "title": "Pod Volume (5m)",
+          "type": "table"
+        }
+      ],
+      "refresh": "10s",
+      "schemaVersion": 39,
+      "style": "dark",
+      "tags": [
+        "redis",
+        "logs",
+        "debug",
+        "loki",
+        "static"
+      ],
+      "templating": {
+        "list": []
+      },
+      "time": {
+        "from": "now-30m",
+        "to": "now"
+      },
+      "timepicker": {},
+      "timezone": "",
+      "title": "Redis Logs - Debug Static (No Variables)",
+      "uid": "redis-logs-debug-static",
+      "version": 1,
+      "weekStart": ""
+    }
+
+---
+apiVersion: grafana.integreatly.org/v1beta1
+kind: GrafanaDashboard
+metadata:
+  name: redis-logs-debug-static
+  namespace: openshift-monitoring
+  labels:
+    app: grafana
+    component: dashboard
+    datasource: loki
+  annotations:
+    argocd.argoproj.io/sync-wave: "13"
+spec:
+  instanceSelector:
+    matchLabels:
+      dashboards: "grafana"
+  folder: "Redis Enterprise Logs"
+  datasources:
+    - inputName: "datasource"
+      datasourceName: "Loki (Redis Logs)"
+  configMapRef:
+    name: grafana-dashboard-redis-logs-debug-static
+    key: redis-logs-debug-static.json
+
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: grafana-dashboard-redis-logs-debug-query-object
+  namespace: openshift-monitoring
+  labels:
+    grafana_dashboard: '1'
+  annotations:
+    description: Redis logs debug dashboard using Loki query object variables
+data:
+  redis-logs-debug-query-object.json: |-
+    {
+      "annotations": {
+        "list": [
+          {
+            "builtIn": 1,
+            "datasource": {
+              "type": "grafana",
+              "uid": "-- Grafana --"
+            },
+            "enable": true,
+            "hide": true,
+            "iconColor": "rgba(0, 211, 255, 1)",
+            "name": "Annotations & Alerts",
+            "type": "dashboard"
+          }
+        ]
+      },
+      "editable": true,
+      "fiscalYearStartMonth": 0,
+      "graphTooltip": 0,
+      "id": null,
+      "links": [],
+      "liveNow": false,
+      "panels": [
+        {
+          "datasource": {
+            "type": "loki",
+            "uid": "${datasource}"
+          },
+          "gridPos": {
+            "h": 12,
+            "w": 24,
+            "x": 0,
+            "y": 0
+          },
+          "id": 1,
+          "options": {
+            "dedupStrategy": "none",
+            "enableLogDetails": true,
+            "prettifyLogMessage": false,
+            "showCommonLabels": false,
+            "showLabels": true,
+            "showTime": true,
+            "sortOrder": "Descending",
+            "wrapLogMessage": true
+          },
+          "targets": [
+            {
+              "datasource": {
+                "type": "loki",
+                "uid": "${datasource}"
+              },
+              "editorMode": "code",
+              "expr": "{kubernetes_namespace_name=~\"$namespace\", kubernetes_pod_name=~\"$pod\", kubernetes_container_name=~\"$container\"} |~ \"$search\"",
+              "queryType": "range",
+              "refId": "A"
+            }
+          ],
+          "title": "Logs Stream (query object)",
+          "type": "logs"
+        },
+        {
+          "datasource": {
+            "type": "loki",
+            "uid": "${datasource}"
+          },
+          "fieldConfig": {
+            "defaults": {},
+            "overrides": []
+          },
+          "gridPos": {
+            "h": 8,
+            "w": 24,
+            "x": 0,
+            "y": 12
+          },
+          "id": 2,
+          "options": {
+            "cellHeight": "sm",
+            "footer": {
+              "countRows": false,
+              "fields": "",
+              "reducer": [
+                "sum"
+              ],
+              "show": false
+            },
+            "showHeader": true
+          },
+          "targets": [
+            {
+              "datasource": {
+                "type": "loki",
+                "uid": "${datasource}"
+              },
+              "editorMode": "code",
+              "expr": "sum by (kubernetes_pod_name) (count_over_time({kubernetes_namespace_name=~\"$namespace\"}[5m]))",
+              "instant": true,
+              "queryType": "instant",
+              "refId": "A"
+            }
+          ],
+          "title": "Pod Volume (5m)",
+          "type": "table"
+        }
+      ],
+      "refresh": "10s",
+      "schemaVersion": 39,
+      "style": "dark",
+      "tags": [
+        "redis",
+        "logs",
+        "debug",
+        "loki",
+        "query_object"
+      ],
+      "templating": {
+        "list": [
+          {
+            "name": "namespace",
+            "label": "Namespace (query object)",
+            "type": "query",
+            "definition": "label_values({kubernetes_namespace_name=~\".+\"}, kubernetes_namespace_name)",
+            "query": {
+              "label": "kubernetes_namespace_name",
+              "refId": "LokiVariableQueryEditor-VariableQuery",
+              "stream": "{kubernetes_namespace_name=~\".+\"}",
+              "type": 1
+            },
+            "includeAll": true,
+            "allValue": ".*",
+            "multi": true,
+            "refresh": 1,
+            "current": {
+              "selected": false,
+              "text": "All",
+              "value": ".*"
+            },
+            "datasource": {
+              "type": "loki",
+              "uid": "${datasource}"
+            }
+          },
+          {
+            "name": "pod",
+            "label": "Pod (query object)",
+            "type": "query",
+            "definition": "label_values({kubernetes_namespace_name=~\"$namespace\"}, kubernetes_pod_name)",
+            "query": {
+              "label": "kubernetes_pod_name",
+              "refId": "LokiVariableQueryEditor-VariableQuery",
+              "stream": "{kubernetes_namespace_name=~\"$namespace\"}",
+              "type": 1
+            },
+            "includeAll": true,
+            "allValue": ".*",
+            "multi": true,
+            "refresh": 1,
+            "current": {
+              "selected": false,
+              "text": "All",
+              "value": ".*"
+            },
+            "datasource": {
+              "type": "loki",
+              "uid": "${datasource}"
+            }
+          },
+          {
+            "name": "container",
+            "label": "Container (query object)",
+            "type": "query",
+            "definition": "label_values({kubernetes_namespace_name=~\"$namespace\", kubernetes_pod_name=~\"$pod\"}, kubernetes_container_name)",
+            "query": {
+              "label": "kubernetes_container_name",
+              "refId": "LokiVariableQueryEditor-VariableQuery",
+              "stream": "{kubernetes_namespace_name=~\"$namespace\", kubernetes_pod_name=~\"$pod\"}",
+              "type": 1
+            },
+            "includeAll": true,
+            "allValue": ".*",
+            "multi": true,
+            "refresh": 1,
+            "current": {
+              "selected": false,
+              "text": "All",
+              "value": ".*"
+            },
+            "datasource": {
+              "type": "loki",
+              "uid": "${datasource}"
+            }
+          },
+          {
+            "name": "search",
+            "label": "Text Search",
+            "type": "textbox",
+            "query": ".*",
+            "current": {
+              "selected": true,
+              "text": ".*",
+              "value": ".*"
+            }
+          }
+        ]
+      },
+      "time": {
+        "from": "now-30m",
+        "to": "now"
+      },
+      "timepicker": {},
+      "timezone": "",
+      "title": "Redis Logs - Debug Variables (Query Object)",
+      "uid": "redis-logs-debug-query-object",
+      "version": 1,
+      "weekStart": ""
+    }
+
+---
+apiVersion: grafana.integreatly.org/v1beta1
+kind: GrafanaDashboard
+metadata:
+  name: redis-logs-debug-query-object
+  namespace: openshift-monitoring
+  labels:
+    app: grafana
+    component: dashboard
+    datasource: loki
+  annotations:
+    argocd.argoproj.io/sync-wave: "13"
+spec:
+  instanceSelector:
+    matchLabels:
+      dashboards: "grafana"
+  folder: "Redis Enterprise Logs"
+  datasources:
+    - inputName: "datasource"
+      datasourceName: "Loki (Redis Logs)"
+  configMapRef:
+    name: grafana-dashboard-redis-logs-debug-query-object
+    key: redis-logs-debug-query-object.json
