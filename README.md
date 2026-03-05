@@ -37,10 +37,10 @@ git clone https://github.com/alan-teodoro/poc-gitops.git
 cd poc-gitops
 
 # Follow step-by-step guide
-cat docs/IMPLEMENTATION_ORDER.md
+cat docs/ARGOCD_IMPLEMENTATION_GUIDE.md
 ```
 
-**📚 Complete implementation guide**: [`docs/IMPLEMENTATION_ORDER.md`](docs/IMPLEMENTATION_ORDER.md)
+**📚 Complete implementation guide**: [`docs/ARGOCD_IMPLEMENTATION_GUIDE.md`](docs/ARGOCD_IMPLEMENTATION_GUIDE.md)
 
 ---
 
@@ -83,7 +83,7 @@ cat docs/IMPLEMENTATION_ORDER.md
 .
 ├── README.md                           # This file
 ├── docs/                               # Documentation
-│   ├── IMPLEMENTATION_ORDER.md         # 🎯 START HERE - Step-by-step guide
+│   ├── ARGOCD_IMPLEMENTATION_GUIDE.md         # 🎯 START HERE - Step-by-step guide
 │   ├── TROUBLESHOOTING.md              # Common issues and solutions
 │   ├── HELM_ARCHITECTURE.md            # Helm charts explanation
 │   ├── MULTI_NAMESPACE.md              # Multi-namespace architecture
@@ -130,7 +130,7 @@ cat docs/IMPLEMENTATION_ORDER.md
 
 | Document | Description |
 |----------|-------------|
-| **[IMPLEMENTATION_ORDER.md](docs/IMPLEMENTATION_ORDER.md)** | 🎯 **START HERE** - Complete step-by-step implementation guide |
+| **[ARGOCD_IMPLEMENTATION_GUIDE.md](docs/ARGOCD_IMPLEMENTATION_GUIDE.md)** | 🎯 **START HERE** - Complete step-by-step implementation guide |
 | **[OBSERVABILITY.md](docs/OBSERVABILITY.md)** | 📊 Monitoring with Prometheus and Grafana |
 | **[TROUBLESHOOTING.md](docs/TROUBLESHOOTING.md)** | Common production issues and solutions |
 | **[HELM_ARCHITECTURE.md](docs/HELM_ARCHITECTURE.md)** | Helm charts architecture and usage |
@@ -273,9 +273,8 @@ oc apply -f clusters/orders/databases/analytics/argocd-dev.yaml
 
 **📖 Documentation**:
 - [OBSERVABILITY.md](docs/OBSERVABILITY.md) - Complete observability guide
-- [OBSERVABILITY_PRODUCTION_UPGRADE.md](docs/OBSERVABILITY_PRODUCTION_UPGRADE.md) - Production upgrade details
-- [GRAFANA_DASHBOARDS.md](docs/GRAFANA_DASHBOARDS.md) - Official dashboard guide
-- [AUTOMATED_DASHBOARDS.md](docs/AUTOMATED_DASHBOARDS.md) - Automated dashboard deployment
+- [ARGOCD_IMPLEMENTATION_GUIDE.md](docs/ARGOCD_IMPLEMENTATION_GUIDE.md) - Canonical deployment flow (including observability/logging)
+- [DEPLOYMENT_VALIDATION_CHECKLIST.md](docs/DEPLOYMENT_VALIDATION_CHECKLIST.md) - Validation checks after deployment
 
 ---
 
@@ -315,4 +314,3 @@ This project is provided as-is for educational and reference purposes.
 ---
 
 **Built with ❤️ for Enterprise Redis deployments on OpenShift**
-

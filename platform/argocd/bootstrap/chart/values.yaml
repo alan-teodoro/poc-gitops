@@ -1,0 +1,180 @@
+global:
+  repoURL: https://github.com/alan-teodoro/poc-gitops.git
+  targetRevision: main
+  argocdNamespace: openshift-gitops
+  destinationServer: https://kubernetes.default.svc
+
+components:
+  - id: appprojects
+    name: argocd-appprojects
+    enabled: true
+    project: default
+    syncWave: "-2"
+    path: platform/argocd/projects
+    destinationNamespace: openshift-gitops
+
+  - id: platform-rbac
+    name: argocd-platform-rbac
+    enabled: true
+    project: default
+    syncWave: "-1"
+    path: platform/argocd/rbac
+    destinationNamespace: openshift-gitops
+
+  - id: gatekeeper-instance
+    name: gatekeeper-instance
+    enabled: true
+    project: platform-team
+    syncWave: "0"
+    path: platform/gatekeeper
+    destinationNamespace: openshift-gatekeeper-system
+
+  - id: redis-namespaces
+    name: redis-namespaces
+    enabled: true
+    project: platform-team
+    syncWave: "1"
+    path: clusters/redis-cluster-demo/namespaces
+    destinationNamespace: openshift-gitops
+
+  - id: gatekeeper-templates
+    name: gatekeeper-templates
+    enabled: true
+    project: platform-team
+    syncWave: "2"
+    path: platform/policies/templates
+    destinationNamespace: openshift-gatekeeper-system
+
+  - id: quotas-limitranges
+    name: quotas-limitranges
+    enabled: true
+    project: platform-team
+    syncWave: "2"
+    path: platform/quotas
+    destinationNamespace: openshift-gitops
+
+  - id: redis-network-policies
+    name: redis-network-policies
+    enabled: true
+    project: platform-team
+    syncWave: "2"
+    path: platform/security/network-policies
+    destinationNamespace: redis-enterprise
+
+  - id: gatekeeper-constraints
+    name: gatekeeper-constraints
+    enabled: true
+    project: platform-team
+    syncWave: "3"
+    path: platform/policies/constraints
+    destinationNamespace: openshift-gatekeeper-system
+
+  - id: redis-observability-prometheus
+    name: redis-observability-prometheus
+    enabled: true
+    project: platform-team
+    syncWave: "5"
+    path: platform/observability/prometheus
+    destinationNamespace: openshift-monitoring
+
+  - id: redis-observability-grafana
+    name: redis-observability-grafana
+    enabled: true
+    project: platform-team
+    syncWave: "5"
+    path: platform/observability/grafana
+    destinationNamespace: openshift-monitoring
+
+  - id: redis-logging
+    name: redis-logging
+    enabled: true
+    project: platform-team
+    syncWave: "6"
+    path: platform/observability/logging
+    destinationNamespace: openshift-logging
+
+  - id: redis-rbac-demo
+    name: redis-rbac-demo
+    enabled: true
+    project: platform-team
+    syncWave: "6"
+    path: helm-charts/redis-multi-namespace-rbac
+    destinationNamespace: redis-enterprise
+    helm:
+      valueFiles:
+        - ../../clusters/redis-cluster-demo/rbac.yaml
+
+  - id: redis-cluster-demo
+    name: redis-cluster-demo
+    enabled: true
+    project: platform-team
+    syncWave: "7"
+    path: helm-charts/redis-enterprise-cluster
+    destinationNamespace: redis-enterprise
+    syncOptions:
+      - PrunePropagationPolicy=foreground
+      - PruneLast=true
+    helm:
+      valueFiles:
+        - ../../clusters/redis-cluster-demo/cluster.yaml
+    ignoreDifferences:
+      - group: apps
+        kind: StatefulSet
+        jsonPointers:
+          - /spec/volumeClaimTemplates
+
+  - id: redb-team1-cache-dev
+    name: redb-team1-cache-dev
+    enabled: true
+    project: app-team1
+    syncWave: "8"
+    path: helm-charts/redis-enterprise-database
+    destinationNamespace: redis-team1-dev
+    helm:
+      valueFiles:
+        - values-cache.yaml
+        - ../../clusters/redis-cluster-demo/teams/team1/cache-dev.yaml
+
+  - id: redb-team1-cache-prod
+    name: redb-team1-cache-prod
+    enabled: true
+    project: app-team1
+    syncWave: "8"
+    path: helm-charts/redis-enterprise-database
+    destinationNamespace: redis-team1-prod
+    helm:
+      valueFiles:
+        - values-persistent.yaml
+        - ../../clusters/redis-cluster-demo/teams/team1/cache-prod.yaml
+
+  - id: redb-team2-session-dev
+    name: redb-team2-session-dev
+    enabled: true
+    project: app-team2
+    syncWave: "8"
+    path: helm-charts/redis-enterprise-database
+    destinationNamespace: redis-team2-dev
+    helm:
+      valueFiles:
+        - values-session.yaml
+        - ../../clusters/redis-cluster-demo/teams/team2/session-dev.yaml
+
+  - id: redb-team2-session-prod
+    name: redb-team2-session-prod
+    enabled: true
+    project: app-team2
+    syncWave: "8"
+    path: helm-charts/redis-enterprise-database
+    destinationNamespace: redis-team2-prod
+    helm:
+      valueFiles:
+        - values-persistent.yaml
+        - ../../clusters/redis-cluster-demo/teams/team2/session-prod.yaml
+
+  - id: redis-high-availability
+    name: redis-high-availability
+    enabled: true
+    project: platform-team
+    syncWave: "9"
+    path: platform/high-availability/pdb
+    destinationNamespace: redis-enterprise

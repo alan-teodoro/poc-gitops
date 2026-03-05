@@ -70,7 +70,7 @@ route:
   # and target the native redis-<port> service directly.
   namespace: "redis-enterprise"
   # Optional custom Route host (for example: team1-cache-dev.redis-demo.example.com)
-  host: "team1-cache-dev.redis-demo.example.com"
+  host: ""
   # Route points directly to native redis-<port> service in redis-enterprise namespace.
   serviceName: "redis-12000"
 

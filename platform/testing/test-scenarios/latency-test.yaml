@@ -9,11 +9,11 @@ apiVersion: batch/v1
 kind: Job
 metadata:
   name: memtier-latency
-  namespace: redis-orders-dev
+  namespace: redis-team1-dev
   labels:
     app: memtier-benchmark
     test-type: latency
-    team: orders
+    team: team1
     environment: dev
 spec:
   backoffLimit: 0
@@ -36,8 +36,8 @@ spec:
           echo "=========================================="
           echo "Redis Enterprise Latency Test"
           echo "=========================================="
-          echo "Target: orders-cache-dev"
-          echo "Namespace: redis-orders-dev"
+          echo "Target: team1-cache-dev"
+          echo "Namespace: redis-team1-dev"
           echo "Test Type: Latency Measurement"
           echo "Duration: ~10 minutes"
           echo "Note: No pipelining for accurate latency"
@@ -46,7 +46,7 @@ spec:
           
           # Run memtier_benchmark without pipelining for accurate latency
           memtier_benchmark \
-            --server=orders-cache-dev \
+            --server=team1-cache-dev \
             --port=12000 \
             --protocol=redis \
             --clients=100 \
@@ -85,16 +85,16 @@ spec:
 #    oc apply -f platform/testing/test-scenarios/latency-test.yaml
 #
 # 2. Monitor Job:
-#    oc get jobs -n redis-orders-dev -w
+#    oc get jobs -n redis-team1-dev -w
 #
 # 3. View logs (while running):
-#    oc logs -f job/memtier-latency -n redis-orders-dev
+#    oc logs -f job/memtier-latency -n redis-team1-dev
 #
 # 4. Wait for completion (~10 minutes):
-#    oc wait --for=condition=complete job/memtier-latency -n redis-orders-dev --timeout=15m
+#    oc wait --for=condition=complete job/memtier-latency -n redis-team1-dev --timeout=15m
 #
 # 5. Save results:
-#    oc logs job/memtier-latency -n redis-orders-dev > results/latency-$(date +%Y%m%d-%H%M%S).txt
+#    oc logs job/memtier-latency -n redis-team1-dev > results/latency-$(date +%Y%m%d-%H%M%S).txt
 #
 # 6. Monitor in Grafana:
 #    - Open "Database Status Dashboard"
@@ -102,7 +102,7 @@ spec:
 #    - Observe latency distribution over time
 #
 # 7. Cleanup:
-#    oc delete job memtier-latency -n redis-orders-dev
+#    oc delete job memtier-latency -n redis-team1-dev
 #
 # Expected Results (Typical for Redis Enterprise):
 # - Latency P50:    < 0.5ms  (sub-millisecond)

@@ -28,6 +28,9 @@ secrets/
 !tls-demo/*.key
 !tls-demo/*.crt
 !tls-demo/*.pem
+!customer-demos/certificates-manual/certs/*.key
+!customer-demos/certificates-manual/certs/*.crt
+!customer-demos/certificates-manual/certs/*.pem
 
 # Local testing
 test-output/
@@ -44,5 +47,8 @@ test-output/
 Thumbs.db
 
 docs/*
+!docs/ARGOCD_APP_OF_APPS_PRODUCT_PLAN.md
 
 demo-gitops-argocd*/**/*
+learning/*
+customer-demos/*

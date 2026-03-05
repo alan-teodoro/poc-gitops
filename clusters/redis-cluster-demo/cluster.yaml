@@ -12,7 +12,7 @@ namespace: redis-enterprise
 redis:
   clusterName: demo-redis-cluster
   nodes: 3
-  version: "8.0.10-76"
+  version: "8.0.10-81"
   certificates:
     # Optional: custom REC certificate secrets.
     # Each secret must exist in redis-enterprise namespace with keys: certificate, key, and name
@@ -112,8 +112,8 @@ redis:
 routes:
   ui:
     enabled: true
-    # Must match certificate SAN. This cert includes *.redis-demo.example.com.
-    host: "ui.redis-demo.example.com"
+    # Optional custom UI host. Leave empty to let OpenShift generate host automatically.
+    host: ""
     tlsTermination: passthrough
 
 monitoring:

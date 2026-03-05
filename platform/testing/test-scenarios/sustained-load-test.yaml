@@ -9,11 +9,11 @@ apiVersion: batch/v1
 kind: Job
 metadata:
   name: memtier-sustained-load
-  namespace: redis-orders-dev
+  namespace: redis-team1-dev
   labels:
     app: memtier-benchmark
     test-type: sustained-load
-    team: orders
+    team: team1
     environment: dev
 spec:
   backoffLimit: 0
@@ -36,8 +36,8 @@ spec:
           echo "=========================================="
           echo "Redis Enterprise Sustained Load Test"
           echo "=========================================="
-          echo "Target: orders-cache-dev"
-          echo "Namespace: redis-orders-dev"
+          echo "Target: team1-cache-dev"
+          echo "Namespace: redis-team1-dev"
           echo "Test Type: Sustained Load (Endurance)"
           echo "Duration: 30 minutes"
           echo "⚠️  This is a long-running test!"
@@ -46,7 +46,7 @@ spec:
           
           # Run memtier_benchmark with moderate sustained load
           memtier_benchmark \
-            --server=orders-cache-dev \
+            --server=team1-cache-dev \
             --port=12000 \
             --protocol=redis \
             --clients=100 \
@@ -88,16 +88,16 @@ spec:
 #    oc apply -f platform/testing/test-scenarios/sustained-load-test.yaml
 #
 # 2. Monitor Job:
-#    oc get jobs -n redis-orders-dev -w
+#    oc get jobs -n redis-team1-dev -w
 #
 # 3. View logs (periodically):
-#    oc logs job/memtier-sustained-load -n redis-orders-dev
+#    oc logs job/memtier-sustained-load -n redis-team1-dev
 #
 # 4. Wait for completion (30+ minutes):
-#    oc wait --for=condition=complete job/memtier-sustained-load -n redis-orders-dev --timeout=40m
+#    oc wait --for=condition=complete job/memtier-sustained-load -n redis-team1-dev --timeout=40m
 #
 # 5. Save results:
-#    oc logs job/memtier-sustained-load -n redis-orders-dev > results/sustained-load-$(date +%Y%m%d-%H%M%S).txt
+#    oc logs job/memtier-sustained-load -n redis-team1-dev > results/sustained-load-$(date +%Y%m%d-%H%M%S).txt
 #
 # 6. Monitor in Grafana (IMPORTANT - watch trends over time):
 #    - Open "Database Status Dashboard"
@@ -112,7 +112,7 @@ spec:
 #      * Memory fragmentation (should not increase significantly)
 #
 # 7. Cleanup:
-#    oc delete job memtier-sustained-load -n redis-orders-dev
+#    oc delete job memtier-sustained-load -n redis-team1-dev
 #
 # Expected Results:
 # - Throughput: Consistent throughout 30 minutes (±5%)

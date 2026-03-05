@@ -9,11 +9,11 @@ apiVersion: batch/v1
 kind: Job
 metadata:
   name: memtier-high-throughput
-  namespace: redis-orders-dev
+  namespace: redis-team1-dev
   labels:
     app: memtier-benchmark
     test-type: high-throughput
-    team: orders
+    team: team1
     environment: dev
 spec:
   backoffLimit: 0
@@ -36,8 +36,8 @@ spec:
           echo "=========================================="
           echo "Redis Enterprise High Throughput Test"
           echo "=========================================="
-          echo "Target: orders-cache-dev"
-          echo "Namespace: redis-orders-dev"
+          echo "Target: team1-cache-dev"
+          echo "Namespace: redis-team1-dev"
           echo "Test Type: High Throughput (Heavy Load)"
           echo "Duration: ~5 minutes"
           echo "⚠️  WARNING: This test generates heavy load!"
@@ -46,7 +46,7 @@ spec:
           
           # Run memtier_benchmark with high concurrency and pipelining
           memtier_benchmark \
-            --server=orders-cache-dev \
+            --server=team1-cache-dev \
             --port=12000 \
             --protocol=redis \
             --clients=200 \
@@ -88,16 +88,16 @@ spec:
 #    oc apply -f platform/testing/test-scenarios/high-throughput-test.yaml
 #
 # 2. Monitor Job:
-#    oc get jobs -n redis-orders-dev -w
+#    oc get jobs -n redis-team1-dev -w
 #
 # 3. View logs (while running):
-#    oc logs -f job/memtier-high-throughput -n redis-orders-dev
+#    oc logs -f job/memtier-high-throughput -n redis-team1-dev
 #
 # 4. Wait for completion (~5 minutes):
-#    oc wait --for=condition=complete job/memtier-high-throughput -n redis-orders-dev --timeout=10m
+#    oc wait --for=condition=complete job/memtier-high-throughput -n redis-team1-dev --timeout=10m
 #
 # 5. Save results:
-#    oc logs job/memtier-high-throughput -n redis-orders-dev > results/high-throughput-$(date +%Y%m%d-%H%M%S).txt
+#    oc logs job/memtier-high-throughput -n redis-team1-dev > results/high-throughput-$(date +%Y%m%d-%H%M%S).txt
 #
 # 6. Monitor in Grafana:
 #    - Open "Database Status Dashboard" for throughput metrics
@@ -105,7 +105,7 @@ spec:
 #    - Open "Shard Dashboard" for shard-level metrics
 #
 # 7. Cleanup:
-#    oc delete job memtier-high-throughput -n redis-orders-dev
+#    oc delete job memtier-high-throughput -n redis-team1-dev
 #
 # Expected Results:
 # - Throughput: > 500,000 ops/sec (with pipelining)

@@ -90,10 +90,10 @@ oc apply -f platform/observability/grafana-datasource-prometheus.yaml
 oc apply -f platform/observability/grafana-dashboards-configmaps.yaml
 ```
 
-**📖 See**: [`docs/AUTOMATED_DASHBOARDS.md`](../../docs/AUTOMATED_DASHBOARDS.md) for complete guide.
+**📖 See**: [`docs/OBSERVABILITY.md`](../../docs/OBSERVABILITY.md) for complete guide.
 
 #### **Official Redis Dashboards** (Included)
-See [`docs/GRAFANA_DASHBOARDS.md`](../../docs/GRAFANA_DASHBOARDS.md) for details.
+See [`docs/OBSERVABILITY.md`](../../docs/OBSERVABILITY.md) for details.
 
 **Available Dashboards**:
 
@@ -146,7 +146,7 @@ Redis Enterprise exposes Prometheus metrics at:
 
 ### Step 1: Enable Monitoring in Cluster
 
-Edit `clusters/orders/cluster.yaml`:
+Edit `clusters/redis-cluster-demo/cluster.yaml`:
 
 ```yaml
 monitoring:
@@ -158,17 +158,17 @@ monitoring:
 ### Step 2: Apply Prometheus Rules
 
 ```bash
-oc apply -f platform/observability/prometheus-rules-redis.yaml
+oc apply -f platform/observability/prometheus/prometheus-rules-redis.yaml
 ```
 
 ### Step 3: Sync Argo CD Application
 
 ```bash
 # Sync cluster application (will create ServiceMonitor and Service)
-argocd app sync redis-cluster-orders
+argocd app sync redis-cluster-demo
 
 # Or via oc
-oc patch application redis-cluster-orders -n openshift-gitops \
+oc patch application redis-cluster-demo -n openshift-gitops \
   --type merge \
   -p '{"metadata":{"annotations":{"argocd.argoproj.io/refresh":"hard"}}}'
 ```
@@ -192,7 +192,7 @@ oc exec -n openshift-monitoring prometheus-k8s-0 -- \
 
 ```bash
 # Get Grafana route
-oc get route grafana -n openshift-monitoring
+oc get route grafana-redis-monitoring -n openshift-monitoring
 
 # Import dashboard from ConfigMap
 # 1. Access Grafana UI
@@ -273,7 +273,7 @@ curl "http://localhost:9090/api/v1/query?query=up{job='redis-enterprise-metrics'
 
 ## 🚨 Alerts (40+ Production-Grade Alerts)
 
-See [`docs/OBSERVABILITY_PRODUCTION_UPGRADE.md`](../../docs/OBSERVABILITY_PRODUCTION_UPGRADE.md) for complete details.
+See [`docs/ARGOCD_IMPLEMENTATION_GUIDE.md`](../../docs/ARGOCD_IMPLEMENTATION_GUIDE.md) for complete details.
 
 ### Alert Categories
 
@@ -339,15 +339,15 @@ See [`docs/OBSERVABILITY_PRODUCTION_UPGRADE.md`](../../docs/OBSERVABILITY_PRODUC
 ```bash
 # 1. Check if monitoring is enabled
 oc get cm -n redis | grep cluster
-oc describe rec orders-redis-cluster -n redis
+oc describe rec demo-redis-cluster -n redis
 
 # 2. Check ServiceMonitor
 oc get servicemonitor -n redis
-oc describe servicemonitor orders-redis-cluster-metrics -n redis
+oc describe servicemonitor demo-redis-cluster-metrics -n redis
 
 # 3. Check Service
 oc get svc -n redis | grep metrics
-oc describe svc orders-redis-cluster-metrics -n redis
+oc describe svc demo-redis-cluster-metrics -n redis
 
 # 4. Check Prometheus targets
 oc exec -n openshift-monitoring prometheus-k8s-0 -- \
@@ -386,9 +386,6 @@ oc exec -n openshift-monitoring prometheus-k8s-0 -- \
 - [Grafana Dashboards](https://grafana.com/docs/grafana/latest/dashboards/)
 
 ### Project Documentation
-- [`docs/GRAFANA_DASHBOARDS.md`](../../docs/GRAFANA_DASHBOARDS.md) - Official dashboard guide
-- [`docs/AUTOMATED_DASHBOARDS.md`](../../docs/AUTOMATED_DASHBOARDS.md) - Automated dashboard deployment
-- [`docs/OBSERVABILITY_PRODUCTION_UPGRADE.md`](../../docs/OBSERVABILITY_PRODUCTION_UPGRADE.md) - Production upgrade summary
 - [`docs/OBSERVABILITY.md`](../../docs/OBSERVABILITY.md) - Complete observability guide
-- [`docs/OBSERVABILITY_IMPLEMENTATION.md`](../../docs/OBSERVABILITY_IMPLEMENTATION.md) - Implementation steps
-
+- [`docs/ARGOCD_IMPLEMENTATION_GUIDE.md`](../../docs/ARGOCD_IMPLEMENTATION_GUIDE.md) - Canonical implementation steps
+- [`docs/DEPLOYMENT_VALIDATION_CHECKLIST.md`](../../docs/DEPLOYMENT_VALIDATION_CHECKLIST.md) - Validation checklist

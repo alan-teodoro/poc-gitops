@@ -114,6 +114,20 @@ rules:
       - patch
       - delete
 
+  # PodDisruptionBudgets (policy API group)
+  - apiGroups:
+      - policy
+    resources:
+      - poddisruptionbudgets
+    verbs:
+      - get
+      - list
+      - watch
+      - create
+      - update
+      - patch
+      - delete
+
   # Services (core API group)
   - apiGroups:
       - ""

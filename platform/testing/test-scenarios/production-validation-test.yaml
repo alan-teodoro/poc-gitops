@@ -9,11 +9,11 @@ apiVersion: batch/v1
 kind: Job
 metadata:
   name: memtier-production-validation
-  namespace: redis-orders-prod
+  namespace: redis-team1-prod
   labels:
     app: memtier-benchmark
     test-type: production-validation
-    team: orders
+    team: team1
     environment: prod
 spec:
   backoffLimit: 0
@@ -36,8 +36,8 @@ spec:
           echo "=========================================="
           echo "Redis Enterprise Production Validation"
           echo "=========================================="
-          echo "Target: orders-cache-prod"
-          echo "Namespace: redis-orders-prod"
+          echo "Target: team1-cache-prod"
+          echo "Namespace: redis-team1-prod"
           echo "Test Type: Production Validation (Safe)"
           echo "Duration: ~5 minutes"
           echo "⚠️  PRODUCTION ENVIRONMENT - Conservative load"
@@ -46,8 +46,8 @@ spec:
           
           # Run conservative test suitable for production
           memtier_benchmark \
-            --server=orders-cache-prod \
-            --port=12000 \
+            --server=team1-cache-prod \
+            --port=12002 \
             --protocol=redis \
             --clients=20 \
             --threads=2 \
@@ -92,10 +92,10 @@ spec:
 #    oc apply -f platform/testing/test-scenarios/production-validation-test.yaml
 #
 # 2. Monitor Job closely:
-#    oc get jobs -n redis-orders-prod -w
+#    oc get jobs -n redis-team1-prod -w
 #
 # 3. View logs in real-time:
-#    oc logs -f job/memtier-production-validation -n redis-orders-prod
+#    oc logs -f job/memtier-production-validation -n redis-team1-prod
 #
 # 4. Monitor Grafana dashboards:
 #    - Keep Grafana open during entire test
@@ -103,13 +103,13 @@ spec:
 #    - Monitor application metrics if available
 #
 # 5. Wait for completion:
-#    oc wait --for=condition=complete job/memtier-production-validation -n redis-orders-prod --timeout=10m
+#    oc wait --for=condition=complete job/memtier-production-validation -n redis-team1-prod --timeout=10m
 #
 # 6. Save results:
-#    oc logs job/memtier-production-validation -n redis-orders-prod > results/prod-validation-$(date +%Y%m%d-%H%M%S).txt
+#    oc logs job/memtier-production-validation -n redis-team1-prod > results/prod-validation-$(date +%Y%m%d-%H%M%S).txt
 #
 # 7. Cleanup:
-#    oc delete job memtier-production-validation -n redis-orders-prod
+#    oc delete job memtier-production-validation -n redis-team1-prod
 #
 # Expected Results (Production):
 # - Latency P50: < 0.5ms
@@ -135,4 +135,3 @@ spec:
 # - Smaller data size (512 bytes vs 1KB)
 # - Moderate pipelining (3 vs 10)
 # - Conservative resource limits
-

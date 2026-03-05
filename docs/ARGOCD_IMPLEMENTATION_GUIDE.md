@@ -19,16 +19,27 @@
 
 ---
 
+## 📌 Canonical Scope
+
+This is the **single canonical Argo CD guide** for this repository.
+
+It covers both:
+1. Execution order (`what to apply first`)
+2. Productization direction (`app-of-apps + feature toggles + ApplicationSet for database onboarding`)
+
+---
+
 ## 📊 Deployment Order Summary
 
-### Phase 1: Operators (Manual - Steps 1-7)
+### Phase 1: Operators & Core Access (Steps 1-9)
 1. **OpenShift GitOps Operator** - ArgoCD installation
 2. **Redis Enterprise Operator** - Redis cluster management
 3. **Gatekeeper Operator** - Policy enforcement
-4. **Grafana Operator** - Observability (optional)
-5. **Loki & Logging Operators** - Log aggregation (optional)
+4. **AppProjects + Gatekeeper bootstrap** - governance and policy CRD readiness
+5. **Grafana Operator** - observability prerequisite (optional)
+6. **Loki & Logging Operators** - logging prerequisite (optional)
 
-### Phase 2: GitOps Setup (Steps 8-11)
+### Phase 2: GitOps Platform Setup (Steps 10-14)
 **Sync Wave 0**: Gatekeeper Instance
 - Grant ArgoCD permissions for Gatekeeper
 - Deploy Gatekeeper instance (creates CRDs)
@@ -40,17 +51,18 @@
 - Deploy Gatekeeper ConstraintTemplates (creates policy CRDs)
 - Apply ResourceQuotas & LimitRanges
 
-**Sync Wave 3**: Constraints & Redis Cluster
+**Sync Wave 3**: Constraints + NetworkPolicies
 - Deploy Gatekeeper Constraints (enforces policies)
-- Deploy Redis Enterprise Cluster in redis-enterprise namespace
+- Optionally deploy NetworkPolicies
 
-### Phase 3: Redis Deployment (Steps 12-14)
+### Phase 3: Redis Deployment (Steps 15-17)
 
 **Sync Wave 4**: RBAC & Databases
+- Deploy Redis Enterprise Cluster in `redis-enterprise`
 - Configure multi-namespace RBAC
 - Deploy Redis databases (team1: cache, team2: session)
 
-### Phase 4: Observability & HA (Steps 15-17) - Optional
+### Phase 4: Observability, Logging & HA (Steps 18-20) - Optional
 **Sync Wave 5**: Observability
 - Grafana instance, ServiceMonitor, PrometheusRules, Dashboards
 
@@ -64,6 +76,9 @@
 - Custom Redis proxy certificate (REC)
 - Custom Route hostnames (non-default OpenShift domain)
 - Mutual TLS (mTLS) for database clients
+
+### Phase 6: Validation (Step 22)
+- Validate Applications, REC, REDBs, dashboards, and routes
 
 ---
 
@@ -336,7 +351,7 @@ oc get csv -A | grep loki
 
 **If not installed**:
 
-### 7.1: Install Loki Operator
+### 9.1: Install Loki Operator
 1. Open OpenShift Console → **Operators** → **OperatorHub**
 2. Search for: **Loki Operator**
 3. Click **Install**
@@ -347,7 +362,7 @@ oc get csv -A | grep loki
    - **Update approval**: `Automatic`
 5. Click **Install**
 
-### 7.2: Install Red Hat OpenShift Logging Operator
+### 9.2: Install Red Hat OpenShift Logging Operator
 1. Search for: **Red Hat OpenShift Logging**
 2. Click **Install**
 3. Settings:
@@ -928,7 +943,7 @@ oc adm policy who-can use scc grafana-alloy-scc
 ```
 
 **📖 See**:
-- [`docs/LOKI_QUICK_START.md`](LOKI_QUICK_START.md) - Complete Loki setup guide
+- [`platform/observability/logging/loki/README.md`](../platform/observability/logging/loki/README.md) - Complete Loki setup guide
 - [`platform/observability/logging/alloy/README.md`](../platform/observability/logging/alloy/README.md) - Grafana Alloy details
 
 **⏭️ Next**: Continue to Step 20

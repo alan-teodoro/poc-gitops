@@ -9,11 +9,11 @@ apiVersion: batch/v1
 kind: Job
 metadata:
   name: memtier-baseline
-  namespace: redis-orders-dev
+  namespace: redis-team1-dev
   labels:
     app: memtier-benchmark
     test-type: baseline
-    team: orders
+    team: team1
     environment: dev
 spec:
   backoffLimit: 0  # Don't retry on failure
@@ -36,8 +36,8 @@ spec:
           echo "=========================================="
           echo "Redis Enterprise Baseline Performance Test"
           echo "=========================================="
-          echo "Target: orders-cache-dev"
-          echo "Namespace: redis-orders-dev"
+          echo "Target: team1-cache-dev"
+          echo "Namespace: redis-team1-dev"
           echo "Test Type: Baseline (Light Load)"
           echo "Duration: ~2 minutes"
           echo "=========================================="
@@ -45,7 +45,7 @@ spec:
           
           # Run memtier_benchmark
           memtier_benchmark \
-            --server=orders-cache-dev \
+            --server=team1-cache-dev \
             --port=12000 \
             --protocol=redis \
             --clients=50 \
@@ -83,24 +83,24 @@ spec:
 #    oc apply -f platform/testing/test-scenarios/baseline-test.yaml
 #
 # 2. Monitor Job:
-#    oc get jobs -n redis-orders-dev -w
+#    oc get jobs -n redis-team1-dev -w
 #
 # 3. View logs (while running):
-#    oc logs -f job/memtier-baseline -n redis-orders-dev
+#    oc logs -f job/memtier-baseline -n redis-team1-dev
 #
 # 4. Wait for completion:
-#    oc wait --for=condition=complete job/memtier-baseline -n redis-orders-dev --timeout=5m
+#    oc wait --for=condition=complete job/memtier-baseline -n redis-team1-dev --timeout=5m
 #
 # 5. Save results:
-#    oc logs job/memtier-baseline -n redis-orders-dev > results/baseline-$(date +%Y%m%d-%H%M%S).txt
+#    oc logs job/memtier-baseline -n redis-team1-dev > results/baseline-$(date +%Y%m%d-%H%M%S).txt
 #
 # 6. Monitor in Grafana:
 #    - Open "Database Status Dashboard"
-#    - Select cluster=orders, database=orders-cache-dev
+#    - Select cluster=demo, database=team1-cache-dev
 #    - Observe: Latency, Throughput, Connections, CPU, Memory
 #
 # 7. Cleanup:
-#    oc delete job memtier-baseline -n redis-orders-dev
+#    oc delete job memtier-baseline -n redis-team1-dev
 #
 # Expected Results:
 # - Latency P50: < 1ms

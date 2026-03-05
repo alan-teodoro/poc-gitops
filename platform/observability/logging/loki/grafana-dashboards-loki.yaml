@@ -87,12 +87,12 @@ data:
                 "uid": "${datasource}"
               },
               "editorMode": "code",
-              "expr": "sum by (filename) (count_over_time({job=\"redis-enterprise\", kubernetes_namespace_name=~\"$namespace\", filename=~\"$file\"} |~ \"$severity\" |~ \"$search\" [$__interval]))",
+              "expr": "sum by (kubernetes_container_name) (count_over_time({kubernetes_namespace_name=~\"$namespace\"} |~ \"$severity\" |~ \"$search\" [$__interval]))",
               "queryType": "range",
               "refId": "A"
             }
           ],
-          "title": "Log Volume by File",
+          "title": "Log Volume by Container",
           "type": "timeseries"
         },
         {
@@ -144,7 +144,7 @@ data:
                 "uid": "${datasource}"
               },
               "editorMode": "code",
-              "expr": "sum by (kubernetes_pod_name) (count_over_time({job=\"redis-enterprise\", kubernetes_namespace_name=~\"$namespace\", filename=~\"$file\"} |~ \"$severity\" |~ \"$search\" [$__interval]))",
+              "expr": "sum by (kubernetes_pod_name) (count_over_time({kubernetes_namespace_name=~\"$namespace\"} |~ \"$severity\" |~ \"$search\" [$__interval]))",
               "queryType": "range",
               "refId": "A"
             }
@@ -209,7 +209,7 @@ data:
                 "uid": "${datasource}"
               },
               "editorMode": "code",
-              "expr": "sum(count_over_time({job=\"redis-enterprise\", kubernetes_namespace_name=~\"$namespace\", filename=~\"$file\"} |~ \"(?i)(error|fatal|panic|critical)\" [5m]))",
+              "expr": "sum(count_over_time({kubernetes_namespace_name=~\"$namespace\"} |~ \"(?i)(error|fatal|panic|critical)\" [5m]))",
               "instant": true,
               "queryType": "instant",
               "refId": "A"
@@ -275,7 +275,7 @@ data:
                 "uid": "${datasource}"
               },
               "editorMode": "code",
-              "expr": "sum(count_over_time({job=\"redis-enterprise\", kubernetes_namespace_name=~\"$namespace\", filename=~\"$file\"} |~ \"(?i)(warn|warning)\" [5m]))",
+              "expr": "sum(count_over_time({kubernetes_namespace_name=~\"$namespace\"} |~ \"(?i)(warn|warning)\" [5m]))",
               "instant": true,
               "queryType": "instant",
               "refId": "A"
@@ -333,13 +333,13 @@ data:
                 "uid": "${datasource}"
               },
               "editorMode": "code",
-              "expr": "count(sum by (filename) (count_over_time({job=\"redis-enterprise\", kubernetes_namespace_name=~\"$namespace\"} [5m])))",
+              "expr": "count(sum by (kubernetes_container_name) (count_over_time({kubernetes_namespace_name=~\"$namespace\"} [5m])))",
               "instant": true,
               "queryType": "instant",
               "refId": "A"
             }
           ],
-          "title": "Active Log Files (5m)",
+          "title": "Active Containers (5m)",
           "type": "stat"
         },
         {
@@ -401,13 +401,13 @@ data:
                 "uid": "${datasource}"
               },
               "editorMode": "code",
-              "expr": "topk(10, sum by (filename) (count_over_time({job=\"redis-enterprise\", kubernetes_namespace_name=~\"$namespace\"}[$__range])))",
+              "expr": "topk(10, sum by (kubernetes_container_name) (count_over_time({kubernetes_namespace_name=~\"$namespace\"}[$__range])))",
               "instant": true,
               "queryType": "instant",
               "refId": "A"
             }
           ],
-          "title": "Top Files by Volume",
+          "title": "Top Containers by Volume",
           "type": "table"
         },
         {
@@ -439,7 +439,7 @@ data:
                 "uid": "${datasource}"
               },
               "editorMode": "code",
-              "expr": "{job=\"redis-enterprise\", kubernetes_namespace_name=~\"$namespace\", kubernetes_pod_name=~\"$pod\", filename=~\"$file\"} |~ \"$severity\" |~ \"$search\"",
+              "expr": "{kubernetes_namespace_name=~\"$namespace\", kubernetes_pod_name=~\"$pod\"} |~ \"$severity\" |~ \"$search\"",
               "queryType": "range",
               "refId": "A"
             }
@@ -468,9 +468,9 @@ data:
               "type": "loki",
               "uid": "${datasource}"
             },
-            "query": "label_values({job=\"redis-enterprise\"}, kubernetes_namespace_name)",
+            "query": "label_values({kubernetes_namespace_name=~\"redis.*\"}, kubernetes_namespace_name)",
             "includeAll": true,
-            "allValue": ".*",
+            "allValue": "redis.*",
             "multi": true,
             "refresh": 2,
             "current": {
@@ -487,7 +487,7 @@ data:
               "type": "loki",
               "uid": "${datasource}"
             },
-            "query": "label_values({job=\"redis-enterprise\", kubernetes_namespace_name=~\"$namespace\"}, kubernetes_pod_name)",
+            "query": "label_values({kubernetes_namespace_name=~\"$namespace\"}, kubernetes_pod_name)",
             "includeAll": true,
             "allValue": ".*",
             "multi": true,
@@ -506,7 +506,7 @@ data:
               "type": "loki",
               "uid": "${datasource}"
             },
-            "query": "label_values({job=\"redis-enterprise\", kubernetes_namespace_name=~\"$namespace\"}, filename)",
+            "query": "label_values({kubernetes_namespace_name=~\"$namespace\"}, filename)",
             "includeAll": true,
             "allValue": ".*",
             "multi": true,
@@ -637,12 +637,12 @@ data:
                 "uid": "${datasource}"
               },
               "editorMode": "code",
-              "expr": "sum by (filename) (count_over_time({job=\"redis-enterprise\", kubernetes_namespace_name=~\"$namespace\", filename=~\"$file\"} |~ \"(?i)(error|fatal|panic|critical|fail|exception|timeout|denied|oom|unhealthy)\" [$__interval]))",
+              "expr": "sum by (kubernetes_container_name) (count_over_time({kubernetes_namespace_name=~\"$namespace\"} |~ \"(?i)(error|fatal|panic|critical|fail|exception|timeout|denied|oom|unhealthy)\" [$__interval]))",
               "queryType": "range",
               "refId": "A"
             }
           ],
-          "title": "Critical/Error Patterns by File",
+          "title": "Critical/Error Patterns by Container",
           "type": "timeseries"
         },
         {
@@ -694,7 +694,7 @@ data:
                 "uid": "${datasource}"
               },
               "editorMode": "code",
-              "expr": "sum by (kubernetes_pod_name) (count_over_time({job=\"redis-enterprise\", kubernetes_namespace_name=~\"$namespace\", filename=~\"$file\"} |~ \"(?i)(error|fatal|panic|critical|fail|exception|timeout|denied|oom|unhealthy)\" [$__interval]))",
+              "expr": "sum by (kubernetes_pod_name) (count_over_time({kubernetes_namespace_name=~\"$namespace\"} |~ \"(?i)(error|fatal|panic|critical|fail|exception|timeout|denied|oom|unhealthy)\" [$__interval]))",
               "queryType": "range",
               "refId": "A"
             }
@@ -759,7 +759,7 @@ data:
                 "uid": "${datasource}"
               },
               "editorMode": "code",
-              "expr": "sum(count_over_time({job=\"redis-enterprise\", kubernetes_namespace_name=~\"$namespace\", filename=~\"$file\"} |~ \"(?i)(error|fatal|panic|critical|fail|exception|timeout|denied|oom|unhealthy)\" [5m]))",
+              "expr": "sum(count_over_time({kubernetes_namespace_name=~\"$namespace\"} |~ \"(?i)(error|fatal|panic|critical|fail|exception|timeout|denied|oom|unhealthy)\" [5m]))",
               "instant": true,
               "queryType": "instant",
               "refId": "A"
@@ -825,7 +825,7 @@ data:
                 "uid": "${datasource}"
               },
               "editorMode": "code",
-              "expr": "sum(count_over_time({job=\"redis-enterprise\", kubernetes_namespace_name=~\"$namespace\", filename=~\"$file\"} |~ \"(?i)(warn|warning)\" [5m]))",
+              "expr": "sum(count_over_time({kubernetes_namespace_name=~\"$namespace\"} |~ \"(?i)(warn|warning)\" [5m]))",
               "instant": true,
               "queryType": "instant",
               "refId": "A"
@@ -882,7 +882,7 @@ data:
                 "uid": "${datasource}"
               },
               "editorMode": "code",
-              "expr": "topk(10, sum by (filename) (count_over_time({job=\"redis-enterprise\", kubernetes_namespace_name=~\"$namespace\"} |~ \"(?i)(error|fatal|panic|critical|fail|exception|timeout|denied|oom|unhealthy)\"[$__range])))",
+              "expr": "topk(10, sum by (kubernetes_container_name) (count_over_time({kubernetes_namespace_name=~\"$namespace\"} |~ \"(?i)(error|fatal|panic|critical|fail|exception|timeout|denied|oom|unhealthy)\"[$__range])))",
               "instant": true,
               "queryType": "instant",
               "refId": "A"
@@ -920,7 +920,7 @@ data:
                 "uid": "${datasource}"
               },
               "editorMode": "code",
-              "expr": "{job=\"redis-enterprise\", kubernetes_namespace_name=~\"$namespace\", kubernetes_pod_name=~\"$pod\", filename=~\"$file\"} |~ \"(?i)(error|fatal|panic|critical|fail|exception|timeout|denied|oom|unhealthy|warn|warning)\" |~ \"$search\"",
+              "expr": "{kubernetes_namespace_name=~\"$namespace\", kubernetes_pod_name=~\"$pod\"} |~ \"(?i)(error|fatal|panic|critical|fail|exception|timeout|denied|oom|unhealthy|warn|warning)\" |~ \"$search\"",
               "queryType": "range",
               "refId": "A"
             }
@@ -949,9 +949,9 @@ data:
               "type": "loki",
               "uid": "${datasource}"
             },
-            "query": "label_values({job=\"redis-enterprise\"}, kubernetes_namespace_name)",
+            "query": "label_values({kubernetes_namespace_name=~\"redis.*\"}, kubernetes_namespace_name)",
             "includeAll": true,
-            "allValue": ".*",
+            "allValue": "redis.*",
             "multi": true,
             "refresh": 2,
             "current": {
@@ -968,7 +968,7 @@ data:
               "type": "loki",
               "uid": "${datasource}"
             },
-            "query": "label_values({job=\"redis-enterprise\", kubernetes_namespace_name=~\"$namespace\"}, kubernetes_pod_name)",
+            "query": "label_values({kubernetes_namespace_name=~\"$namespace\"}, kubernetes_pod_name)",
             "includeAll": true,
             "allValue": ".*",
             "multi": true,
@@ -987,7 +987,7 @@ data:
               "type": "loki",
               "uid": "${datasource}"
             },
-            "query": "label_values({job=\"redis-enterprise\", kubernetes_namespace_name=~\"$namespace\"}, filename)",
+            "query": "label_values({kubernetes_namespace_name=~\"$namespace\"}, filename)",
             "includeAll": true,
             "allValue": ".*",
             "multi": true,
@@ -1113,7 +1113,7 @@ data:
                 "uid": "${datasource}"
               },
               "editorMode": "code",
-              "expr": "sum(count_over_time({job=\"redis-enterprise\", kubernetes_namespace_name=~\"$namespace\", filename=~\"$file\"} |~ \"(?i)($severity)\" [5m]))",
+              "expr": "sum(count_over_time({kubernetes_namespace_name=~\"$namespace\"} |~ \"(?i)($severity)\" [5m]))",
               "instant": true,
               "queryType": "instant",
               "refId": "A"
@@ -1261,7 +1261,7 @@ data:
                 "uid": "${datasource}"
               },
               "editorMode": "code",
-              "expr": "{job=\"redis-enterprise\", kubernetes_namespace_name=~\"$namespace\", filename=~\"$file\"} |~ \"(?i)($severity)\" |~ \"$search\"",
+              "expr": "{kubernetes_namespace_name=~\"$namespace\"} |~ \"(?i)($severity)\" |~ \"$search\"",
               "queryType": "range",
               "refId": "A"
             }
@@ -1327,9 +1327,9 @@ data:
               "type": "loki",
               "uid": "${datasource}"
             },
-            "query": "label_values({kubernetes_namespace_name=~\".+\"}, kubernetes_namespace_name)",
+            "query": "label_values({kubernetes_namespace_name=~\"redis.*\"}, kubernetes_namespace_name)",
             "includeAll": true,
-            "allValue": ".*",
+            "allValue": "redis.*",
             "multi": true,
             "refresh": 2,
             "current": {
@@ -1384,7 +1384,7 @@ data:
               "type": "loki",
               "uid": "${datasource}"
             },
-            "query": "label_values({job=\"redis-enterprise\", kubernetes_namespace_name=~\"$namespace\"}, filename)",
+            "query": "label_values({kubernetes_namespace_name=~\"$namespace\"}, filename)",
             "includeAll": true,
             "allValue": ".*",
             "multi": true,

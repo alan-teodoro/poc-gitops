@@ -7,11 +7,11 @@ apiVersion: policy/v1
 kind: PodDisruptionBudget
 metadata:
   name: redis-database-pdb
-  namespace: redis-orders-prod
+  namespace: redis-team1-prod
   labels:
     app: redis-enterprise-database
-    cluster: orders
-    database: orders-cache
+    cluster: demo
+    database: team1-cache
     env: prod
     component: high-availability
     managed-by: argocd
@@ -27,7 +27,7 @@ spec:
   selector:
     matchLabels:
       app: redis-enterprise-database
-      redis.io/database: orders-cache-prod
+      redis.io/database: team1-cache-prod
 
 # ========================================
 # How This Works
@@ -128,4 +128,3 @@ spec:
 #
 # Or manually:
 #   oc apply -f platform/high-availability/pdb/redb-pdb-template.yaml
-

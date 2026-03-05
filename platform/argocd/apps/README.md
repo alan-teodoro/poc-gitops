@@ -1,105 +1,72 @@
-# ArgoCD Applications
+# Argo CD Applications (Platform)
 
-This directory contains ArgoCD Application manifests for GitOps deployment.
+This directory contains platform-level Argo CD `Application` manifests used by the canonical implementation flow.
 
-## 📁 Structure
+Reference order: `docs/ARGOCD_IMPLEMENTATION_GUIDE.md`
 
-```
-platform/argocd/apps/
-├── gatekeeper-instance.yaml     # Wave 0: Create Gatekeeper instance
-├── namespaces.yaml              # Wave 1: Create namespaces
-├── gatekeeper-templates.yaml    # Wave 2: Deploy ConstraintTemplates (creates CRDs)
-├── quotas-limitranges.yaml      # Wave 2: Apply quotas and limitranges
-├── gatekeeper-constraints.yaml  # Wave 3: Deploy Constraints (uses CRDs)
-├── observability.yaml           # Wave 5: Grafana, Prometheus monitoring
-├── logging.yaml                 # Wave 6: Loki logging stack
-└── high-availability.yaml       # Wave 7: PodDisruptionBudgets
-```
+## Files and Waves
 
-## 🌊 Sync Waves
+| Wave | File | Application Name | Scope |
+|---|---|---|---|
+| 0 | `gatekeeper-instance.yaml` | `gatekeeper-instance` | Gatekeeper instance bootstrap |
+| 1 | `namespaces.yaml` | `redis-namespaces` | Create Redis namespaces |
+| 2 | `gatekeeper-templates.yaml` | `gatekeeper-templates` | ConstraintTemplates (CRDs) |
+| 2 | `quotas-limitranges.yaml` | `quotas-limitranges` | ResourceQuota + LimitRange |
+| 2 | `network-policies.yaml` | `redis-network-policies` | Optional network policies |
+| 3 | `gatekeeper-constraints.yaml` | `gatekeeper-constraints` | Policy constraints enforcement |
+| 5 | `observability-prometheus.yaml` | `redis-observability-prometheus` | Prometheus rules |
+| 5 | `observability-grafana.yaml` | `redis-observability-grafana` | Grafana instance + datasource + dashboards |
+| 6 | `logging.yaml` | `redis-logging` | Optional Loki logging stack |
+| 7 | `high-availability.yaml` | `redis-high-availability` | Optional PDBs |
 
-Applications are deployed in order using sync waves:
+Notes:
+- Redis cluster/RBAC/REDB applications are in `clusters/redis-cluster-demo/`.
+- Optional modules can be skipped based on your feature toggle strategy.
 
-| Wave | Application | Purpose |
-|------|-------------|---------|
-| 0 | `gatekeeper-instance` | Create Gatekeeper instance (installs CRDs) |
-| 1 | `namespaces` | Create all required namespaces |
-| 2 | `gatekeeper-templates` | Deploy ConstraintTemplates (creates policy CRDs) |
-| 2 | `quotas-limitranges` | Apply resource quotas and limits |
-| 3 | `gatekeeper-constraints` | Deploy Constraints (enforces policies) |
-| 3 | `redis-cluster` | Deploy Redis Enterprise Cluster (in clusters/) |
-| 4 | `redis-rbac` | Deploy multi-namespace RBAC (in clusters/) |
-| 4 | `redis-databases` | Deploy Redis databases (in clusters/) |
-| 5 | `observability` | Deploy Grafana, ServiceMonitor, PrometheusRules |
-| 6 | `logging` | Deploy LokiStack and log forwarding |
-| 7 | `high-availability` | Deploy PodDisruptionBudgets |
-
-## 🚀 Deployment
-
-### Option 1: Deploy Individual Applications
+## Apply Sequence
 
 ```bash
-# Deploy Gatekeeper instance
 oc apply -f platform/argocd/apps/gatekeeper-instance.yaml
-
-# Deploy namespaces
 oc apply -f platform/argocd/apps/namespaces.yaml
-
-# Deploy Gatekeeper templates (creates CRDs)
 oc apply -f platform/argocd/apps/gatekeeper-templates.yaml
-
-# Deploy quotas
 oc apply -f platform/argocd/apps/quotas-limitranges.yaml
-
-# Deploy Gatekeeper constraints (enforces policies)
+# Optional: security hardening
+oc apply -f platform/argocd/apps/network-policies.yaml
 oc apply -f platform/argocd/apps/gatekeeper-constraints.yaml
 
-# Deploy observability (optional)
-oc apply -f platform/argocd/apps/observability.yaml
+# Optional observability stack
+oc apply -f platform/argocd/apps/observability-prometheus.yaml
+oc apply -f platform/argocd/apps/observability-grafana.yaml
 
-# Deploy logging (optional)
+# Optional logging and HA
 oc apply -f platform/argocd/apps/logging.yaml
-
-# Deploy HA (optional)
 oc apply -f platform/argocd/apps/high-availability.yaml
 ```
 
-### Option 2: Deploy All at Once
+## Quick Validation
 
 ```bash
-# Deploy all platform applications
-oc apply -f platform/argocd/apps/
-
-# Watch sync status
-oc get applications -n openshift-gitops -w
+oc get application -n openshift-gitops
+oc get application gatekeeper-instance -n openshift-gitops
+oc get application redis-namespaces -n openshift-gitops
+oc get application quotas-limitranges -n openshift-gitops
+oc get application gatekeeper-constraints -n openshift-gitops
 ```
 
-## 🔍 Monitoring
+Expected for active modules: `SYNC STATUS=Synced` and `HEALTH STATUS=Healthy`.
+
+## Test Day Tip
+
+Use `platform/testing/TEST_RUNBOOK.md` for end-to-end validation commands after sync.
+
+## Single Apply Option (Recommended)
+
+If you want one root apply with `enabled: true/false` toggles per component, use:
 
 ```bash
-# Check application status
-oc get applications -n openshift-gitops
-
-# Check specific application
-oc describe application redis-namespaces -n openshift-gitops
-
-# View sync status
-argocd app list
-argocd app get redis-namespaces
+oc apply -f platform/argocd/bootstrap/root-application.yaml
 ```
 
-## 🎯 AppProjects
+Then toggle components in:
 
-Applications are assigned to AppProjects for RBAC:
-
-- **platform-team**: Infrastructure applications (namespaces, policies, observability, HA)
-- **app-team1**: Team 1 applications (cache databases)
-- **app-team2**: Team 2 applications (session databases)
-
-## 📝 Notes
-
-- All applications use **automated sync** with **prune** and **selfHeal** enabled
-- Sync waves ensure proper deployment order
-- Applications reference the main branch of the Git repository
-- Namespace creation is handled by the `namespaces` application
-
+- `platform/argocd/bootstrap/chart/values.yaml`
