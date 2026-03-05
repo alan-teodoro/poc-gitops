@@ -2,6 +2,10 @@
 ---
 --- 
 ---
+--- 
+---
+--- 
+---
 ---
 apiVersion: v1
 kind: ConfigMap
@@ -558,9 +562,13 @@ data:
       "timezone": "",
       "title": "Redis Enterprise Logs - Operations Overview",
       "uid": "redis-logs-overview",
-      "version": 2,
+      "version": 20,
       "weekStart": ""
     }
+---
+--- 
+---
+--- 
 ---
 --- 
 ---
@@ -1034,9 +1042,13 @@ data:
       "timezone": "",
       "title": "Redis Enterprise Logs - Errors & Triage",
       "uid": "redis-logs-errors",
-      "version": 2,
+      "version": 20,
       "weekStart": ""
     }
+---
+--- 
+---
+--- 
 ---
 --- 
 ---
@@ -1435,6 +1447,6 @@ data:
       "timezone": "",
       "title": "Redis Enterprise - Logs Cockpit",
       "uid": "redis-internal-logs",
-      "version": 4,
+      "version": 20,
       "weekStart": ""
     }
