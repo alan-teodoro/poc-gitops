@@ -1,7 +1,5 @@
+--- 
 ---
-# Grafana Dashboards for Loki Logs
-# Purpose: Dashboards to visualize Redis Enterprise logs from Loki
-# Label: grafana_dashboard=1 enables automatic import in OpenShift Grafana
 ---
 apiVersion: v1
 kind: ConfigMap
@@ -13,7 +11,7 @@ metadata:
   annotations:
     description: Redis Enterprise Logs Overview Dashboard
 data:
-  redis-logs-overview.json: |
+  redis-logs-overview.json: |-
     {
       "annotations": {
         "list": [
@@ -35,7 +33,9 @@ data:
       "fiscalYearStartMonth": 0,
       "graphTooltip": 0,
       "id": null,
-      "links": [],
+      "links": [
+
+      ],
       "liveNow": false,
       "panels": [
         {
@@ -60,7 +60,9 @@ data:
               },
               "unit": "short"
             },
-            "overrides": []
+            "overrides": [
+
+            ]
           },
           "gridPos": {
             "h": 8,
@@ -117,7 +119,9 @@ data:
               },
               "unit": "short"
             },
-            "overrides": []
+            "overrides": [
+
+            ]
           },
           "gridPos": {
             "h": 8,
@@ -159,7 +163,9 @@ data:
           },
           "fieldConfig": {
             "defaults": {
-              "mappings": [],
+              "mappings": [
+
+              ],
               "thresholds": {
                 "mode": "absolute",
                 "steps": [
@@ -179,7 +185,9 @@ data:
               },
               "unit": "short"
             },
-            "overrides": []
+            "overrides": [
+
+            ]
           },
           "gridPos": {
             "h": 6,
@@ -225,7 +233,9 @@ data:
           },
           "fieldConfig": {
             "defaults": {
-              "mappings": [],
+              "mappings": [
+
+              ],
               "thresholds": {
                 "mode": "absolute",
                 "steps": [
@@ -245,7 +255,9 @@ data:
               },
               "unit": "short"
             },
-            "overrides": []
+            "overrides": [
+
+            ]
           },
           "gridPos": {
             "h": 6,
@@ -291,7 +303,9 @@ data:
           },
           "fieldConfig": {
             "defaults": {
-              "mappings": [],
+              "mappings": [
+
+              ],
               "thresholds": {
                 "mode": "absolute",
                 "steps": [
@@ -303,7 +317,9 @@ data:
               },
               "unit": "short"
             },
-            "overrides": []
+            "overrides": [
+
+            ]
           },
           "gridPos": {
             "h": 6,
@@ -356,7 +372,9 @@ data:
                 },
                 "inspect": false
               },
-              "mappings": [],
+              "mappings": [
+
+              ],
               "thresholds": {
                 "mode": "absolute",
                 "steps": [
@@ -367,7 +385,9 @@ data:
                 ]
               }
             },
-            "overrides": []
+            "overrides": [
+
+            ]
           },
           "gridPos": {
             "h": 6,
@@ -463,16 +483,12 @@ data:
           {
             "name": "namespace",
             "label": "Namespace",
-            "type": "query",
-            "datasource": {
-              "type": "loki",
-              "uid": "${datasource}"
-            },
-            "query": "label_values({kubernetes_namespace_name=~\"redis.*\"}, kubernetes_namespace_name)",
+            "type": "custom",
+            "query": "redis-enterprise,redis-team1-dev,redis-team1-prod,redis-team2-dev,redis-team2-prod",
             "includeAll": true,
-            "allValue": "redis.*",
+            "allValue": ".*",
             "multi": true,
-            "refresh": 2,
+            "refresh": 0,
             "current": {
               "selected": false,
               "text": "All",
@@ -491,7 +507,7 @@ data:
             "includeAll": true,
             "allValue": ".*",
             "multi": true,
-            "refresh": 2,
+            "refresh": 1,
             "current": {
               "selected": false,
               "text": "All",
@@ -510,7 +526,7 @@ data:
             "includeAll": true,
             "allValue": ".*",
             "multi": true,
-            "refresh": 2,
+            "refresh": 1,
             "current": {
               "selected": false,
               "text": "All",
@@ -545,13 +561,15 @@ data:
         "from": "now-1h",
         "to": "now"
       },
-      "timepicker": {},
+      "timepicker": {
+      },
       "timezone": "",
       "title": "Redis Enterprise Logs - Operations Overview",
       "uid": "redis-logs-overview",
       "version": 2,
       "weekStart": ""
     }
+---
 ---
 apiVersion: v1
 kind: ConfigMap
@@ -563,7 +581,7 @@ metadata:
   annotations:
     description: Redis Enterprise Error Logs Dashboard
 data:
-  redis-logs-errors.json: |
+  redis-logs-errors.json: |-
     {
       "annotations": {
         "list": [
@@ -585,7 +603,9 @@ data:
       "fiscalYearStartMonth": 0,
       "graphTooltip": 0,
       "id": null,
-      "links": [],
+      "links": [
+
+      ],
       "liveNow": false,
       "panels": [
         {
@@ -610,7 +630,9 @@ data:
               },
               "unit": "short"
             },
-            "overrides": []
+            "overrides": [
+
+            ]
           },
           "gridPos": {
             "h": 8,
@@ -667,7 +689,9 @@ data:
               },
               "unit": "short"
             },
-            "overrides": []
+            "overrides": [
+
+            ]
           },
           "gridPos": {
             "h": 8,
@@ -709,7 +733,9 @@ data:
           },
           "fieldConfig": {
             "defaults": {
-              "mappings": [],
+              "mappings": [
+
+              ],
               "thresholds": {
                 "mode": "absolute",
                 "steps": [
@@ -729,7 +755,9 @@ data:
               },
               "unit": "short"
             },
-            "overrides": []
+            "overrides": [
+
+            ]
           },
           "gridPos": {
             "h": 6,
@@ -775,7 +803,9 @@ data:
           },
           "fieldConfig": {
             "defaults": {
-              "mappings": [],
+              "mappings": [
+
+              ],
               "thresholds": {
                 "mode": "absolute",
                 "steps": [
@@ -795,7 +825,9 @@ data:
               },
               "unit": "short"
             },
-            "overrides": []
+            "overrides": [
+
+            ]
           },
           "gridPos": {
             "h": 6,
@@ -848,7 +880,9 @@ data:
                 }
               }
             },
-            "overrides": []
+            "overrides": [
+
+            ]
           },
           "gridPos": {
             "h": 6,
@@ -944,16 +978,12 @@ data:
           {
             "name": "namespace",
             "label": "Namespace",
-            "type": "query",
-            "datasource": {
-              "type": "loki",
-              "uid": "${datasource}"
-            },
-            "query": "label_values({kubernetes_namespace_name=~\"redis.*\"}, kubernetes_namespace_name)",
+            "type": "custom",
+            "query": "redis-enterprise,redis-team1-dev,redis-team1-prod,redis-team2-dev,redis-team2-prod",
             "includeAll": true,
-            "allValue": "redis.*",
+            "allValue": ".*",
             "multi": true,
-            "refresh": 2,
+            "refresh": 0,
             "current": {
               "selected": false,
               "text": "All",
@@ -972,7 +1002,7 @@ data:
             "includeAll": true,
             "allValue": ".*",
             "multi": true,
-            "refresh": 2,
+            "refresh": 1,
             "current": {
               "selected": false,
               "text": "All",
@@ -991,7 +1021,7 @@ data:
             "includeAll": true,
             "allValue": ".*",
             "multi": true,
-            "refresh": 2,
+            "refresh": 1,
             "current": {
               "selected": false,
               "text": "All",
@@ -1015,13 +1045,15 @@ data:
         "from": "now-6h",
         "to": "now"
       },
-      "timepicker": {},
+      "timepicker": {
+      },
       "timezone": "",
       "title": "Redis Enterprise Logs - Errors & Triage",
       "uid": "redis-logs-errors",
       "version": 2,
       "weekStart": ""
     }
+---
 ---
 apiVersion: v1
 kind: ConfigMap
@@ -1033,7 +1065,7 @@ metadata:
   annotations:
     description: Redis Enterprise Internal Logs Dashboard
 data:
-  redis-internal-logs.json: |
+  redis-internal-logs.json: |-
     {
       "annotations": {
         "list": [
@@ -1055,7 +1087,9 @@ data:
       "fiscalYearStartMonth": 0,
       "graphTooltip": 0,
       "id": null,
-      "links": [],
+      "links": [
+
+      ],
       "liveNow": false,
       "panels": [
         {
@@ -1083,7 +1117,9 @@ data:
                 ]
               }
             },
-            "overrides": []
+            "overrides": [
+
+            ]
           },
           "gridPos": {
             "h": 5,
@@ -1147,7 +1183,9 @@ data:
                 ]
               }
             },
-            "overrides": []
+            "overrides": [
+
+            ]
           },
           "gridPos": {
             "h": 5,
@@ -1195,7 +1233,9 @@ data:
             "defaults": {
               "unit": "short"
             },
-            "overrides": []
+            "overrides": [
+
+            ]
           },
           "gridPos": {
             "h": 5,
@@ -1322,16 +1362,12 @@ data:
           {
             "name": "namespace",
             "label": "Namespace",
-            "type": "query",
-            "datasource": {
-              "type": "loki",
-              "uid": "${datasource}"
-            },
-            "query": "label_values({kubernetes_namespace_name=~\"redis.*\"}, kubernetes_namespace_name)",
+            "type": "custom",
+            "query": "redis-enterprise,redis-team1-dev,redis-team1-prod,redis-team2-dev,redis-team2-prod",
             "includeAll": true,
-            "allValue": "redis.*",
+            "allValue": ".*",
             "multi": true,
-            "refresh": 2,
+            "refresh": 0,
             "current": {
               "selected": false,
               "text": "All",
@@ -1350,7 +1386,7 @@ data:
             "includeAll": true,
             "allValue": ".*",
             "multi": true,
-            "refresh": 2,
+            "refresh": 1,
             "current": {
               "selected": false,
               "text": "All",
@@ -1369,7 +1405,7 @@ data:
             "includeAll": true,
             "allValue": ".*",
             "multi": true,
-            "refresh": 2,
+            "refresh": 1,
             "current": {
               "selected": false,
               "text": "All",
@@ -1388,7 +1424,7 @@ data:
             "includeAll": true,
             "allValue": ".*",
             "multi": true,
-            "refresh": 2,
+            "refresh": 1,
             "current": {
               "selected": false,
               "text": "All",
@@ -1423,7 +1459,8 @@ data:
         "from": "now-1h",
         "to": "now"
       },
-      "timepicker": {},
+      "timepicker": {
+      },
       "timezone": "",
       "title": "Redis Enterprise - Logs Cockpit",
       "uid": "redis-internal-logs",
