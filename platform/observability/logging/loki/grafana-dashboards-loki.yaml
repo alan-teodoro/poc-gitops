@@ -514,7 +514,11 @@ data:
             "name": "namespace",
             "label": "Namespace",
             "type": "query",
-            "query": "label_values({kubernetes_namespace_name=~\".+\"}, kubernetes_namespace_name)",
+            "query": {
+              "query": "label_values(kube_pod_info,namespace)",
+              "refId": "Redis-Logs-namespace-Variable-Query"
+            },
+            "definition": "label_values(kube_pod_info,namespace)",
             "includeAll": true,
             "allValue": ".*",
             "multi": true,
@@ -525,15 +529,19 @@ data:
               "value": ".*"
             },
             "datasource": {
-              "type": "loki",
-              "uid": "${datasource}"
+              "type": "prometheus",
+              "uid": "${prometheus}"
             }
           },
           {
             "name": "pod",
             "label": "Pod",
             "type": "query",
-            "query": "label_values({kubernetes_namespace_name=~\"$namespace\"}, kubernetes_pod_name)",
+            "query": {
+              "query": "label_values(kube_pod_info{namespace=~\"$namespace\"},pod)",
+              "refId": "Redis-Logs-pod-Variable-Query"
+            },
+            "definition": "label_values(kube_pod_info{namespace=~\"$namespace\"},pod)",
             "includeAll": true,
             "multi": true,
             "refresh": 1,
@@ -543,8 +551,8 @@ data:
               "value": ".*"
             },
             "datasource": {
-              "type": "loki",
-              "uid": "${datasource}"
+              "type": "prometheus",
+              "uid": "${prometheus}"
             },
             "allValue": ".*"
           },
@@ -552,7 +560,11 @@ data:
             "name": "container",
             "label": "Container",
             "type": "query",
-            "query": "label_values({kubernetes_namespace_name=~\"$namespace\", kubernetes_pod_name=~\"$pod\"}, kubernetes_container_name)",
+            "query": {
+              "query": "label_values(kube_pod_container_info{namespace=~\"$namespace\",pod=~\"$pod\"},container)",
+              "refId": "Redis-Logs-container-Variable-Query"
+            },
+            "definition": "label_values(kube_pod_container_info{namespace=~\"$namespace\",pod=~\"$pod\"},container)",
             "includeAll": true,
             "multi": true,
             "refresh": 1,
@@ -562,8 +574,8 @@ data:
               "value": ".*"
             },
             "datasource": {
-              "type": "loki",
-              "uid": "${datasource}"
+              "type": "prometheus",
+              "uid": "${prometheus}"
             },
             "allValue": ".*"
           },
@@ -600,7 +612,7 @@ data:
       "timezone": "",
       "title": "Redis Enterprise Logs - Operations Overview",
       "uid": "redis-logs-overview",
-      "version": 22,
+      "version": 23,
       "weekStart": ""
     }
 ---
@@ -1043,7 +1055,11 @@ data:
             "name": "namespace",
             "label": "Namespace",
             "type": "query",
-            "query": "label_values({kubernetes_namespace_name=~\".+\"}, kubernetes_namespace_name)",
+            "query": {
+              "query": "label_values(kube_pod_info,namespace)",
+              "refId": "Redis-Logs-namespace-Variable-Query"
+            },
+            "definition": "label_values(kube_pod_info,namespace)",
             "includeAll": true,
             "allValue": ".*",
             "multi": true,
@@ -1054,15 +1070,19 @@ data:
               "value": ".*"
             },
             "datasource": {
-              "type": "loki",
-              "uid": "${datasource}"
+              "type": "prometheus",
+              "uid": "${prometheus}"
             }
           },
           {
             "name": "pod",
             "label": "Pod",
             "type": "query",
-            "query": "label_values({kubernetes_namespace_name=~\"$namespace\"}, kubernetes_pod_name)",
+            "query": {
+              "query": "label_values(kube_pod_info{namespace=~\"$namespace\"},pod)",
+              "refId": "Redis-Logs-pod-Variable-Query"
+            },
+            "definition": "label_values(kube_pod_info{namespace=~\"$namespace\"},pod)",
             "includeAll": true,
             "multi": true,
             "refresh": 1,
@@ -1072,8 +1092,8 @@ data:
               "value": ".*"
             },
             "datasource": {
-              "type": "loki",
-              "uid": "${datasource}"
+              "type": "prometheus",
+              "uid": "${prometheus}"
             },
             "allValue": ".*"
           },
@@ -1081,7 +1101,11 @@ data:
             "name": "container",
             "label": "Container",
             "type": "query",
-            "query": "label_values({kubernetes_namespace_name=~\"$namespace\", kubernetes_pod_name=~\"$pod\"}, kubernetes_container_name)",
+            "query": {
+              "query": "label_values(kube_pod_container_info{namespace=~\"$namespace\",pod=~\"$pod\"},container)",
+              "refId": "Redis-Logs-container-Variable-Query"
+            },
+            "definition": "label_values(kube_pod_container_info{namespace=~\"$namespace\",pod=~\"$pod\"},container)",
             "includeAll": true,
             "multi": true,
             "refresh": 1,
@@ -1091,8 +1115,8 @@ data:
               "value": ".*"
             },
             "datasource": {
-              "type": "loki",
-              "uid": "${datasource}"
+              "type": "prometheus",
+              "uid": "${prometheus}"
             },
             "allValue": ".*"
           },
@@ -1118,7 +1142,7 @@ data:
       "timezone": "",
       "title": "Redis Enterprise Logs - Errors & Triage",
       "uid": "redis-logs-errors",
-      "version": 22,
+      "version": 23,
       "weekStart": ""
     }
 ---
@@ -1461,7 +1485,11 @@ data:
             "name": "namespace",
             "label": "Namespace",
             "type": "query",
-            "query": "label_values({kubernetes_namespace_name=~\".+\"}, kubernetes_namespace_name)",
+            "query": {
+              "query": "label_values(kube_pod_info,namespace)",
+              "refId": "Redis-Logs-namespace-Variable-Query"
+            },
+            "definition": "label_values(kube_pod_info,namespace)",
             "includeAll": true,
             "allValue": ".*",
             "multi": true,
@@ -1472,15 +1500,19 @@ data:
               "value": ".*"
             },
             "datasource": {
-              "type": "loki",
-              "uid": "${datasource}"
+              "type": "prometheus",
+              "uid": "${prometheus}"
             }
           },
           {
             "name": "pod",
             "label": "Pod",
             "type": "query",
-            "query": "label_values({kubernetes_namespace_name=~\"$namespace\"}, kubernetes_pod_name)",
+            "query": {
+              "query": "label_values(kube_pod_info{namespace=~\"$namespace\"},pod)",
+              "refId": "Redis-Logs-pod-Variable-Query"
+            },
+            "definition": "label_values(kube_pod_info{namespace=~\"$namespace\"},pod)",
             "includeAll": true,
             "multi": true,
             "refresh": 1,
@@ -1490,8 +1522,8 @@ data:
               "value": ".*"
             },
             "datasource": {
-              "type": "loki",
-              "uid": "${datasource}"
+              "type": "prometheus",
+              "uid": "${prometheus}"
             },
             "allValue": ".*"
           },
@@ -1499,7 +1531,11 @@ data:
             "name": "container",
             "label": "Container",
             "type": "query",
-            "query": "label_values({kubernetes_namespace_name=~\"$namespace\", kubernetes_pod_name=~\"$pod\"}, kubernetes_container_name)",
+            "query": {
+              "query": "label_values(kube_pod_container_info{namespace=~\"$namespace\",pod=~\"$pod\"},container)",
+              "refId": "Redis-Logs-container-Variable-Query"
+            },
+            "definition": "label_values(kube_pod_container_info{namespace=~\"$namespace\",pod=~\"$pod\"},container)",
             "includeAll": true,
             "multi": true,
             "refresh": 1,
@@ -1509,8 +1545,8 @@ data:
               "value": ".*"
             },
             "datasource": {
-              "type": "loki",
-              "uid": "${datasource}"
+              "type": "prometheus",
+              "uid": "${prometheus}"
             },
             "allValue": ".*"
           },
@@ -1547,6 +1583,6 @@ data:
       "timezone": "",
       "title": "Redis Enterprise - Logs Cockpit",
       "uid": "redis-internal-logs",
-      "version": 22,
+      "version": 23,
       "weekStart": ""
     }
