@@ -489,7 +489,7 @@ data:
                 "uid": "${datasource}"
               },
               "editorMode": "code",
-              "expr": "{kubernetes_namespace_name=~\"$namespace\", kubernetes_pod_name=~\"$pod\"} |~ \"$severity\" |~ \"$search\"",
+              "expr": "{kubernetes_namespace_name=~\"$namespace\", kubernetes_pod_name=~\"$pod\", kubernetes_container_name=~\"$container\"} |~ \"$severity\" |~ \"$search\"",
               "queryType": "range",
               "refId": "A"
             }
@@ -513,23 +513,27 @@ data:
           {
             "name": "namespace",
             "label": "Namespace",
-            "type": "custom",
-            "query": "redis-enterprise,redis-team1-dev,redis-team1-prod,redis-team2-dev,redis-team2-prod",
+            "type": "query",
+            "query": "label_values({kubernetes_namespace_name=~\".+\"}, kubernetes_namespace_name)",
             "includeAll": true,
             "allValue": ".*",
             "multi": true,
-            "refresh": 0,
+            "refresh": 1,
             "current": {
               "selected": false,
               "text": "All",
               "value": ".*"
+            },
+            "datasource": {
+              "type": "loki",
+              "uid": "${datasource}"
             }
           },
           {
             "name": "pod",
             "label": "Pod",
             "type": "query",
-            "query": "query_result(sum by (kubernetes_pod_name) (count_over_time({kubernetes_namespace_name=~\"$namespace\"}[1h])))",
+            "query": "label_values({kubernetes_namespace_name=~\"$namespace\"}, kubernetes_pod_name)",
             "includeAll": true,
             "multi": true,
             "refresh": 1,
@@ -542,14 +546,13 @@ data:
               "type": "loki",
               "uid": "${datasource}"
             },
-            "regex": "/kubernetes_pod_name=\"([^\"]+)\"/",
             "allValue": ".*"
           },
           {
-            "name": "file",
-            "label": "Log File",
+            "name": "container",
+            "label": "Container",
             "type": "query",
-            "query": "query_result(sum by (kubernetes_container_name) (count_over_time({kubernetes_namespace_name=~\"$namespace\", kubernetes_pod_name=~\"$pod\"}[1h])))",
+            "query": "label_values({kubernetes_namespace_name=~\"$namespace\", kubernetes_pod_name=~\"$pod\"}, kubernetes_container_name)",
             "includeAll": true,
             "multi": true,
             "refresh": 1,
@@ -562,7 +565,6 @@ data:
               "type": "loki",
               "uid": "${datasource}"
             },
-            "regex": "/kubernetes_container_name=\"([^\"]+)\"/",
             "allValue": ".*"
           },
           {
@@ -598,7 +600,7 @@ data:
       "timezone": "",
       "title": "Redis Enterprise Logs - Operations Overview",
       "uid": "redis-logs-overview",
-      "version": 21,
+      "version": 22,
       "weekStart": ""
     }
 ---
@@ -1016,7 +1018,7 @@ data:
                 "uid": "${datasource}"
               },
               "editorMode": "code",
-              "expr": "{kubernetes_namespace_name=~\"$namespace\", kubernetes_pod_name=~\"$pod\"} |~ \"(?i)(error|fatal|panic|critical|fail|exception|timeout|denied|oom|unhealthy|warn|warning)\" |~ \"$search\"",
+              "expr": "{kubernetes_namespace_name=~\"$namespace\", kubernetes_pod_name=~\"$pod\", kubernetes_container_name=~\"$container\"} |~ \"(?i)(error|fatal|panic|critical|fail|exception|timeout|denied|oom|unhealthy|warn|warning)\" |~ \"$search\"",
               "queryType": "range",
               "refId": "A"
             }
@@ -1040,23 +1042,27 @@ data:
           {
             "name": "namespace",
             "label": "Namespace",
-            "type": "custom",
-            "query": "redis-enterprise,redis-team1-dev,redis-team1-prod,redis-team2-dev,redis-team2-prod",
+            "type": "query",
+            "query": "label_values({kubernetes_namespace_name=~\".+\"}, kubernetes_namespace_name)",
             "includeAll": true,
             "allValue": ".*",
             "multi": true,
-            "refresh": 0,
+            "refresh": 1,
             "current": {
               "selected": false,
               "text": "All",
               "value": ".*"
+            },
+            "datasource": {
+              "type": "loki",
+              "uid": "${datasource}"
             }
           },
           {
             "name": "pod",
             "label": "Pod",
             "type": "query",
-            "query": "query_result(sum by (kubernetes_pod_name) (count_over_time({kubernetes_namespace_name=~\"$namespace\"}[1h])))",
+            "query": "label_values({kubernetes_namespace_name=~\"$namespace\"}, kubernetes_pod_name)",
             "includeAll": true,
             "multi": true,
             "refresh": 1,
@@ -1069,14 +1075,13 @@ data:
               "type": "loki",
               "uid": "${datasource}"
             },
-            "regex": "/kubernetes_pod_name=\"([^\"]+)\"/",
             "allValue": ".*"
           },
           {
-            "name": "file",
-            "label": "Log File",
+            "name": "container",
+            "label": "Container",
             "type": "query",
-            "query": "query_result(sum by (kubernetes_container_name) (count_over_time({kubernetes_namespace_name=~\"$namespace\", kubernetes_pod_name=~\"$pod\"}[1h])))",
+            "query": "label_values({kubernetes_namespace_name=~\"$namespace\", kubernetes_pod_name=~\"$pod\"}, kubernetes_container_name)",
             "includeAll": true,
             "multi": true,
             "refresh": 1,
@@ -1089,7 +1094,6 @@ data:
               "type": "loki",
               "uid": "${datasource}"
             },
-            "regex": "/kubernetes_container_name=\"([^\"]+)\"/",
             "allValue": ".*"
           },
           {
@@ -1114,7 +1118,7 @@ data:
       "timezone": "",
       "title": "Redis Enterprise Logs - Errors & Triage",
       "uid": "redis-logs-errors",
-      "version": 21,
+      "version": 22,
       "weekStart": ""
     }
 ---
@@ -1456,23 +1460,27 @@ data:
           {
             "name": "namespace",
             "label": "Namespace",
-            "type": "custom",
-            "query": "redis-enterprise,redis-team1-dev,redis-team1-prod,redis-team2-dev,redis-team2-prod",
+            "type": "query",
+            "query": "label_values({kubernetes_namespace_name=~\".+\"}, kubernetes_namespace_name)",
             "includeAll": true,
             "allValue": ".*",
             "multi": true,
-            "refresh": 0,
+            "refresh": 1,
             "current": {
               "selected": false,
               "text": "All",
               "value": ".*"
+            },
+            "datasource": {
+              "type": "loki",
+              "uid": "${datasource}"
             }
           },
           {
             "name": "pod",
             "label": "Pod",
             "type": "query",
-            "query": "query_result(sum by (kubernetes_pod_name) (count_over_time({kubernetes_namespace_name=~\"$namespace\"}[1h])))",
+            "query": "label_values({kubernetes_namespace_name=~\"$namespace\"}, kubernetes_pod_name)",
             "includeAll": true,
             "multi": true,
             "refresh": 1,
@@ -1485,14 +1493,13 @@ data:
               "type": "loki",
               "uid": "${datasource}"
             },
-            "regex": "/kubernetes_pod_name=\"([^\"]+)\"/",
             "allValue": ".*"
           },
           {
             "name": "container",
             "label": "Container",
             "type": "query",
-            "query": "query_result(sum by (kubernetes_container_name) (count_over_time({kubernetes_namespace_name=~\"$namespace\", kubernetes_pod_name=~\"$pod\"}[1h])))",
+            "query": "label_values({kubernetes_namespace_name=~\"$namespace\", kubernetes_pod_name=~\"$pod\"}, kubernetes_container_name)",
             "includeAll": true,
             "multi": true,
             "refresh": 1,
@@ -1505,27 +1512,6 @@ data:
               "type": "loki",
               "uid": "${datasource}"
             },
-            "regex": "/kubernetes_container_name=\"([^\"]+)\"/",
-            "allValue": ".*"
-          },
-          {
-            "name": "file",
-            "label": "Log File",
-            "type": "query",
-            "query": "query_result(sum by (filename) (count_over_time({kubernetes_namespace_name=~\"$namespace\", kubernetes_pod_name=~\"$pod\"}[1h])))",
-            "includeAll": true,
-            "multi": true,
-            "refresh": 1,
-            "current": {
-              "selected": false,
-              "text": "All",
-              "value": ".*"
-            },
-            "datasource": {
-              "type": "loki",
-              "uid": "${datasource}"
-            },
-            "regex": "/filename=\"([^\"]+)\"/",
             "allValue": ".*"
           },
           {
@@ -1561,6 +1547,6 @@ data:
       "timezone": "",
       "title": "Redis Enterprise - Logs Cockpit",
       "uid": "redis-internal-logs",
-      "version": 21,
+      "version": 22,
       "weekStart": ""
     }
