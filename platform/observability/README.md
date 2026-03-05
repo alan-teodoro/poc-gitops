@@ -22,7 +22,8 @@ platform/observability/
 │   ├── redis-node-dashboard.json
 │   ├── redis-shard-dashboard.json
 │   ├── redis-logs-overview.json
-│   └── redis-logs-errors.json
+│   ├── redis-logs-errors.json
+│   └── redis-internal-logs.json
 └── logging/                 # Logging stack (Wave 6 - optional)
     └── loki/
         ├── lokistack-instance.yaml

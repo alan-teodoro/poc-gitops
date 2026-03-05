@@ -19,9 +19,7 @@
   "fiscalYearStartMonth": 0,
   "graphTooltip": 0,
   "id": null,
-  "links": [
-
-  ],
+  "links": [],
   "liveNow": false,
   "panels": [
     {
@@ -46,9 +44,7 @@
           },
           "unit": "short"
         },
-        "overrides": [
-
-        ]
+        "overrides": []
       },
       "gridPos": {
         "h": 8,
@@ -75,7 +71,7 @@
             "uid": "${datasource}"
           },
           "editorMode": "code",
-          "expr": "sum by (file_name) (count_over_time({kubernetes_namespace_name=~\"$namespace\"} |~ \"(?i)(error|fatal|panic|critical|fail|exception|timeout|denied|oom|unhealthy)\" [$__interval]))",
+          "expr": "sum by (job) (count_over_time({kubernetes_namespace_name=~\"$namespace\"} |~ \"(?i)(error|fatal|panic|critical|fail|exception|timeout|denied|oom|unhealthy)\" [$__interval]))",
           "queryType": "range",
           "refId": "A"
         }
@@ -105,9 +101,7 @@
           },
           "unit": "short"
         },
-        "overrides": [
-
-        ]
+        "overrides": []
       },
       "gridPos": {
         "h": 8,
@@ -149,9 +143,7 @@
       },
       "fieldConfig": {
         "defaults": {
-          "mappings": [
-
-          ],
+          "mappings": [],
           "thresholds": {
             "mode": "absolute",
             "steps": [
@@ -171,9 +163,7 @@
           },
           "unit": "short"
         },
-        "overrides": [
-
-        ]
+        "overrides": []
       },
       "gridPos": {
         "h": 6,
@@ -219,9 +209,7 @@
       },
       "fieldConfig": {
         "defaults": {
-          "mappings": [
-
-          ],
+          "mappings": [],
           "thresholds": {
             "mode": "absolute",
             "steps": [
@@ -241,9 +229,7 @@
           },
           "unit": "short"
         },
-        "overrides": [
-
-        ]
+        "overrides": []
       },
       "gridPos": {
         "h": 6,
@@ -296,9 +282,7 @@
             }
           }
         },
-        "overrides": [
-
-        ]
+        "overrides": []
       },
       "gridPos": {
         "h": 6,
@@ -332,7 +316,7 @@
             "uid": "${datasource}"
           },
           "editorMode": "code",
-          "expr": "topk(10, sum by (file_name) (count_over_time({kubernetes_namespace_name=~\"$namespace\"} |~ \"(?i)(error|fatal|panic|critical|fail|exception|timeout|denied|oom|unhealthy)\"[$__range])))",
+          "expr": "topk(10, sum by (job) (count_over_time({kubernetes_namespace_name=~\"$namespace\"} |~ \"(?i)(error|fatal|panic|critical|fail|exception|timeout|denied|oom|unhealthy)\"[$__range])))",
           "instant": true,
           "queryType": "instant",
           "refId": "A"
@@ -370,7 +354,7 @@
             "uid": "${datasource}"
           },
           "editorMode": "code",
-          "expr": "{kubernetes_namespace_name=~\"$namespace\", job=~\"$job\", file_name=~\"$file_name\"} |~ \"(?i)(error|fatal|panic|critical|fail|exception|timeout|denied|oom|unhealthy|warn|warning)\" |~ \"$search\"",
+          "expr": "{kubernetes_namespace_name=~\"$namespace\", job=~\"$job\"} |~ \"(?i)(error|fatal|panic|critical|fail|exception|timeout|denied|oom|unhealthy|warn|warning)\" |~ \"$search\"",
           "queryType": "range",
           "refId": "A"
         }
@@ -442,31 +426,6 @@
         }
       },
       {
-        "name": "file_name",
-        "label": "File Name",
-        "type": "query",
-        "query": {
-          "label": "file_name",
-          "refId": "LokiVariableQueryEditor-VariableQuery",
-          "stream": "{kubernetes_namespace_name=~\"$namespace\", job=~\"$job\"}",
-          "type": 1
-        },
-        "definition": "label_values({kubernetes_namespace_name=~\"$namespace\", job=~\"$job\"}, file_name)",
-        "includeAll": true,
-        "allValue": ".+",
-        "multi": true,
-        "refresh": 1,
-        "current": {
-          "selected": true,
-          "text": "All",
-          "value": ".+"
-        },
-        "datasource": {
-          "type": "loki",
-          "uid": "${datasource}"
-        }
-      },
-      {
         "name": "search",
         "label": "Text Search",
         "type": "textbox",
@@ -483,8 +442,7 @@
     "from": "now-6h",
     "to": "now"
   },
-  "timepicker": {
-  },
+  "timepicker": {},
   "timezone": "",
   "title": "Redis Enterprise Logs - Errors & Triage",
   "uid": "redis-logs-errors",

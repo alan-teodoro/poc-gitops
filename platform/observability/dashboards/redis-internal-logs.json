@@ -29,121 +29,6 @@
       },
       "fieldConfig": {
         "defaults": {
-          "color": {
-            "mode": "palette-classic"
-          },
-          "custom": {
-            "drawStyle": "line",
-            "lineWidth": 2,
-            "fillOpacity": 15,
-            "showPoints": "never",
-            "stacking": {
-              "mode": "normal",
-              "group": "A"
-            }
-          },
-          "unit": "short"
-        },
-        "overrides": []
-      },
-      "gridPos": {
-        "h": 8,
-        "w": 12,
-        "x": 0,
-        "y": 0
-      },
-      "id": 1,
-      "options": {
-        "legend": {
-          "displayMode": "table",
-          "placement": "bottom",
-          "showLegend": true
-        },
-        "tooltip": {
-          "mode": "single",
-          "sort": "none"
-        }
-      },
-      "targets": [
-        {
-          "datasource": {
-            "type": "loki",
-            "uid": "${datasource}"
-          },
-          "editorMode": "code",
-          "expr": "sum by (job) (count_over_time({kubernetes_namespace_name=~\"$namespace\"} |~ \"$severity\" |~ \"$search\" [$__interval]))",
-          "queryType": "range",
-          "refId": "A"
-        }
-      ],
-      "title": "Log Volume by Container",
-      "type": "timeseries"
-    },
-    {
-      "datasource": {
-        "type": "loki",
-        "uid": "${datasource}"
-      },
-      "fieldConfig": {
-        "defaults": {
-          "color": {
-            "mode": "palette-classic"
-          },
-          "custom": {
-            "drawStyle": "line",
-            "lineWidth": 2,
-            "fillOpacity": 15,
-            "showPoints": "never",
-            "stacking": {
-              "mode": "none",
-              "group": "A"
-            }
-          },
-          "unit": "short"
-        },
-        "overrides": []
-      },
-      "gridPos": {
-        "h": 8,
-        "w": 12,
-        "x": 12,
-        "y": 0
-      },
-      "id": 2,
-      "options": {
-        "legend": {
-          "displayMode": "table",
-          "placement": "bottom",
-          "showLegend": true
-        },
-        "tooltip": {
-          "mode": "single",
-          "sort": "none"
-        }
-      },
-      "targets": [
-        {
-          "datasource": {
-            "type": "loki",
-            "uid": "${datasource}"
-          },
-          "editorMode": "code",
-          "expr": "sum by (job) (count_over_time({kubernetes_namespace_name=~\"$namespace\"} |~ \"$severity\" |~ \"$search\" [$__interval]))",
-          "queryType": "range",
-          "refId": "A"
-        }
-      ],
-      "title": "Log Volume by Pod",
-      "type": "timeseries"
-    },
-    {
-      "datasource": {
-        "type": "loki",
-        "uid": "${datasource}"
-      },
-      "fieldConfig": {
-        "defaults": {
-          "mappings": [],
           "thresholds": {
             "mode": "absolute",
             "steps": [
@@ -153,200 +38,11 @@
               },
               {
                 "color": "orange",
-                "value": 50
+                "value": 20
               },
               {
                 "color": "red",
-                "value": 150
-              }
-            ]
-          },
-          "unit": "short"
-        },
-        "overrides": []
-      },
-      "gridPos": {
-        "h": 6,
-        "w": 6,
-        "x": 0,
-        "y": 8
-      },
-      "id": 3,
-      "options": {
-        "colorMode": "value",
-        "graphMode": "area",
-        "justifyMode": "auto",
-        "orientation": "auto",
-        "reduceOptions": {
-          "calcs": [
-            "lastNotNull"
-          ],
-          "fields": "",
-          "values": false
-        },
-        "textMode": "auto"
-      },
-      "targets": [
-        {
-          "datasource": {
-            "type": "loki",
-            "uid": "${datasource}"
-          },
-          "editorMode": "code",
-          "expr": "sum(count_over_time({kubernetes_namespace_name=~\"$namespace\"} |~ \"(?i)(error|fatal|panic|critical)\" [5m]))",
-          "instant": true,
-          "queryType": "instant",
-          "refId": "A"
-        }
-      ],
-      "title": "Errors in Last 5m",
-      "type": "stat"
-    },
-    {
-      "datasource": {
-        "type": "loki",
-        "uid": "${datasource}"
-      },
-      "fieldConfig": {
-        "defaults": {
-          "mappings": [],
-          "thresholds": {
-            "mode": "absolute",
-            "steps": [
-              {
-                "color": "green",
-                "value": null
-              },
-              {
-                "color": "orange",
                 "value": 50
-              },
-              {
-                "color": "red",
-                "value": 150
-              }
-            ]
-          },
-          "unit": "short"
-        },
-        "overrides": []
-      },
-      "gridPos": {
-        "h": 6,
-        "w": 6,
-        "x": 6,
-        "y": 8
-      },
-      "id": 4,
-      "options": {
-        "colorMode": "value",
-        "graphMode": "area",
-        "justifyMode": "auto",
-        "orientation": "auto",
-        "reduceOptions": {
-          "calcs": [
-            "lastNotNull"
-          ],
-          "fields": "",
-          "values": false
-        },
-        "textMode": "auto"
-      },
-      "targets": [
-        {
-          "datasource": {
-            "type": "loki",
-            "uid": "${datasource}"
-          },
-          "editorMode": "code",
-          "expr": "sum(count_over_time({kubernetes_namespace_name=~\"$namespace\"} |~ \"(?i)(warn|warning)\" [5m]))",
-          "instant": true,
-          "queryType": "instant",
-          "refId": "A"
-        }
-      ],
-      "title": "Warnings in Last 5m",
-      "type": "stat"
-    },
-    {
-      "datasource": {
-        "type": "loki",
-        "uid": "${datasource}"
-      },
-      "fieldConfig": {
-        "defaults": {
-          "mappings": [],
-          "thresholds": {
-            "mode": "absolute",
-            "steps": [
-              {
-                "color": "green",
-                "value": null
-              }
-            ]
-          },
-          "unit": "short"
-        },
-        "overrides": []
-      },
-      "gridPos": {
-        "h": 6,
-        "w": 6,
-        "x": 12,
-        "y": 8
-      },
-      "id": 5,
-      "options": {
-        "colorMode": "value",
-        "graphMode": "none",
-        "justifyMode": "auto",
-        "orientation": "auto",
-        "reduceOptions": {
-          "calcs": [
-            "lastNotNull"
-          ],
-          "fields": "",
-          "values": false
-        },
-        "textMode": "auto"
-      },
-      "targets": [
-        {
-          "datasource": {
-            "type": "loki",
-            "uid": "${datasource}"
-          },
-          "editorMode": "code",
-          "expr": "count(sum by (job) (count_over_time({kubernetes_namespace_name=~\"$namespace\"} [5m])))",
-          "instant": true,
-          "queryType": "instant",
-          "refId": "A"
-        }
-      ],
-      "title": "Active Containers (5m)",
-      "type": "stat"
-    },
-    {
-      "datasource": {
-        "type": "loki",
-        "uid": "${datasource}"
-      },
-      "fieldConfig": {
-        "defaults": {
-          "custom": {
-            "align": "auto",
-            "cellOptions": {
-              "type": "auto"
-            },
-            "inspect": false
-          },
-          "mappings": [],
-          "thresholds": {
-            "mode": "absolute",
-            "steps": [
-              {
-                "color": "green",
-                "value": null
               }
             ]
           }
@@ -354,12 +50,124 @@
         "overrides": []
       },
       "gridPos": {
-        "h": 6,
-        "w": 6,
-        "x": 18,
-        "y": 8
+        "h": 5,
+        "w": 8,
+        "x": 0,
+        "y": 0
       },
-      "id": 6,
+      "id": 1,
+      "options": {
+        "colorMode": "value",
+        "graphMode": "area",
+        "justifyMode": "auto",
+        "orientation": "auto",
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "textMode": "auto"
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "loki",
+            "uid": "${datasource}"
+          },
+          "editorMode": "code",
+          "expr": "sum(count_over_time({kubernetes_namespace_name=~\"$namespace\"} |~ \"(?i)($severity)\" [5m]))",
+          "instant": true,
+          "queryType": "instant",
+          "refId": "A"
+        }
+      ],
+      "title": "Internal Errors (5m)",
+      "type": "stat"
+    },
+    {
+      "datasource": {
+        "type": "loki",
+        "uid": "${datasource}"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              },
+              {
+                "color": "orange",
+                "value": 20
+              },
+              {
+                "color": "red",
+                "value": 50
+              }
+            ]
+          }
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 5,
+        "w": 8,
+        "x": 8,
+        "y": 0
+      },
+      "id": 2,
+      "options": {
+        "colorMode": "value",
+        "graphMode": "area",
+        "justifyMode": "auto",
+        "orientation": "auto",
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "textMode": "auto"
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "loki",
+            "uid": "${datasource}"
+          },
+          "editorMode": "code",
+          "expr": "sum(count_over_time({kubernetes_namespace_name=~\"$namespace\", job=~\"$job\"} |~ \"(?i)($severity)\" [5m]))",
+          "instant": true,
+          "queryType": "instant",
+          "refId": "A"
+        }
+      ],
+      "title": "Pod Errors (5m)",
+      "type": "stat"
+    },
+    {
+      "datasource": {
+        "type": "loki",
+        "uid": "${datasource}"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "short"
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 5,
+        "w": 8,
+        "x": 16,
+        "y": 0
+      },
+      "id": 3,
       "options": {
         "cellHeight": "sm",
         "footer": {
@@ -370,13 +178,7 @@
           ],
           "show": false
         },
-        "showHeader": true,
-        "sortBy": [
-          {
-            "desc": true,
-            "displayName": "Value"
-          }
-        ]
+        "showHeader": true
       },
       "targets": [
         {
@@ -385,13 +187,13 @@
             "uid": "${datasource}"
           },
           "editorMode": "code",
-          "expr": "topk(10, sum by (job) (count_over_time({kubernetes_namespace_name=~\"$namespace\"}[$__range])))",
+          "expr": "topk(10, sum by (job) (count_over_time({kubernetes_namespace_name=~\"$namespace\", job=~\"$job\"} |~ \"(?i)($severity)\"[$__range])))",
           "instant": true,
           "queryType": "instant",
           "refId": "A"
         }
       ],
-      "title": "Top Containers by Volume",
+      "title": "Top Noisy Pods",
       "type": "table"
     },
     {
@@ -403,9 +205,9 @@
         "h": 12,
         "w": 24,
         "x": 0,
-        "y": 14
+        "y": 5
       },
-      "id": 7,
+      "id": 4,
       "options": {
         "dedupStrategy": "none",
         "enableLogDetails": true,
@@ -423,12 +225,49 @@
             "uid": "${datasource}"
           },
           "editorMode": "code",
-          "expr": "{kubernetes_namespace_name=~\"$namespace\", job=~\"$job\"} |~ \"$severity\" |~ \"$search\"",
+          "expr": "{kubernetes_namespace_name=~\"$namespace\"} |~ \"(?i)($severity)\" |~ \"$search\"",
           "queryType": "range",
           "refId": "A"
         }
       ],
-      "title": "Redis Enterprise Internal Logs",
+      "title": "Redis Internal Logs",
+      "type": "logs"
+    },
+    {
+      "datasource": {
+        "type": "loki",
+        "uid": "${datasource}"
+      },
+      "gridPos": {
+        "h": 12,
+        "w": 24,
+        "x": 0,
+        "y": 17
+      },
+      "id": 5,
+      "options": {
+        "dedupStrategy": "none",
+        "enableLogDetails": true,
+        "prettifyLogMessage": false,
+        "showCommonLabels": false,
+        "showLabels": true,
+        "showTime": true,
+        "sortOrder": "Descending",
+        "wrapLogMessage": true
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "loki",
+            "uid": "${datasource}"
+          },
+          "editorMode": "code",
+          "expr": "{kubernetes_namespace_name=~\"$namespace\", job=~\"$job\"} |~ \"(?i)($severity)\" |~ \"$search\"",
+          "queryType": "range",
+          "refId": "A"
+        }
+      ],
+      "title": "Redis Pod / Workload Logs",
       "type": "logs"
     }
   ],
@@ -437,10 +276,10 @@
   "style": "dark",
   "tags": [
     "redis",
-    "redis-enterprise",
     "logs",
-    "loki",
-    "operations"
+    "internal",
+    "workloads",
+    "loki"
   ],
   "templating": {
     "list": [
@@ -496,13 +335,13 @@
       },
       {
         "name": "severity",
-        "label": "Severity Filter",
+        "label": "Severity",
         "type": "custom",
-        "query": ".*,(?i)(error|fatal|panic|critical),(?i)(warn|warning),(?i)(error|fatal|panic|critical|warn|warning)",
+        "query": "error|fatal|panic|critical|fail|exception|timeout|denied|oom|unhealthy,warn|warning,error|fatal|panic|critical|fail|exception|timeout|denied|oom|unhealthy|warn|warning,.*",
         "current": {
           "selected": true,
-          "text": "All",
-          "value": ".*"
+          "text": "error|fatal|panic|critical|fail|exception|timeout|denied|oom|unhealthy|warn|warning",
+          "value": "error|fatal|panic|critical|fail|exception|timeout|denied|oom|unhealthy|warn|warning"
         }
       },
       {
@@ -524,8 +363,8 @@
   },
   "timepicker": {},
   "timezone": "",
-  "title": "Redis Enterprise Logs - Operations Overview",
-  "uid": "redis-logs-overview",
+  "title": "Redis Enterprise - Logs Cockpit",
+  "uid": "redis-internal-logs",
   "version": 100,
   "weekStart": ""
 }
