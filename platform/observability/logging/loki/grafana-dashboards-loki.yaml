@@ -119,7 +119,7 @@ data:
                 "uid": "${datasource}"
               },
               "editorMode": "code",
-              "expr": "sum by (kubernetes_container_name) (count_over_time({kubernetes_namespace_name=~\"$namespace\"} |~ \"$severity\" |~ \"$search\" [$__interval]))",
+              "expr": "sum by (file_name) (count_over_time({namespace=~\"$namespace\"} |~ \"$severity\" |~ \"$search\" [$__interval]))",
               "queryType": "range",
               "refId": "A"
             }
@@ -178,7 +178,7 @@ data:
                 "uid": "${datasource}"
               },
               "editorMode": "code",
-              "expr": "sum by (kubernetes_pod_name) (count_over_time({kubernetes_namespace_name=~\"$namespace\"} |~ \"$severity\" |~ \"$search\" [$__interval]))",
+              "expr": "sum by (job) (count_over_time({namespace=~\"$namespace\"} |~ \"$severity\" |~ \"$search\" [$__interval]))",
               "queryType": "range",
               "refId": "A"
             }
@@ -247,7 +247,7 @@ data:
                 "uid": "${datasource}"
               },
               "editorMode": "code",
-              "expr": "sum(count_over_time({kubernetes_namespace_name=~\"$namespace\"} |~ \"(?i)(error|fatal|panic|critical)\" [5m]))",
+              "expr": "sum(count_over_time({namespace=~\"$namespace\"} |~ \"(?i)(error|fatal|panic|critical)\" [5m]))",
               "instant": true,
               "queryType": "instant",
               "refId": "A"
@@ -317,7 +317,7 @@ data:
                 "uid": "${datasource}"
               },
               "editorMode": "code",
-              "expr": "sum(count_over_time({kubernetes_namespace_name=~\"$namespace\"} |~ \"(?i)(warn|warning)\" [5m]))",
+              "expr": "sum(count_over_time({namespace=~\"$namespace\"} |~ \"(?i)(warn|warning)\" [5m]))",
               "instant": true,
               "queryType": "instant",
               "refId": "A"
@@ -379,7 +379,7 @@ data:
                 "uid": "${datasource}"
               },
               "editorMode": "code",
-              "expr": "count(sum by (kubernetes_container_name) (count_over_time({kubernetes_namespace_name=~\"$namespace\"} [5m])))",
+              "expr": "count(sum by (file_name) (count_over_time({namespace=~\"$namespace\"} [5m])))",
               "instant": true,
               "queryType": "instant",
               "refId": "A"
@@ -451,7 +451,7 @@ data:
                 "uid": "${datasource}"
               },
               "editorMode": "code",
-              "expr": "topk(10, sum by (kubernetes_container_name) (count_over_time({kubernetes_namespace_name=~\"$namespace\"}[$__range])))",
+              "expr": "topk(10, sum by (file_name) (count_over_time({namespace=~\"$namespace\"}[$__range])))",
               "instant": true,
               "queryType": "instant",
               "refId": "A"
@@ -489,7 +489,7 @@ data:
                 "uid": "${datasource}"
               },
               "editorMode": "code",
-              "expr": "{kubernetes_namespace_name=~\"$namespace\", kubernetes_pod_name=~\"$pod\", kubernetes_container_name=~\"$container\"} |~ \"$severity\" |~ \"$search\"",
+              "expr": "{namespace=~\"$namespace\", job=~\"$job\", file_name=~\"$file_name\"} |~ \"$severity\" |~ \"$search\"",
               "queryType": "range",
               "refId": "A"
             }
@@ -513,34 +513,76 @@ data:
           {
             "name": "namespace",
             "label": "Namespace",
-            "type": "textbox",
-            "query": ".*",
+            "type": "query",
+            "query": {
+              "label": "namespace",
+              "refId": "LokiVariableQueryEditor-VariableQuery",
+              "stream": "{namespace=~\".+\"}",
+              "type": 1
+            },
+            "definition": "label_values({namespace=~\".+\"}, namespace)",
+            "includeAll": true,
+            "allValue": ".+",
+            "multi": true,
+            "refresh": 1,
             "current": {
               "selected": true,
-              "text": ".*",
-              "value": ".*"
+              "text": "All",
+              "value": ".+"
+            },
+            "datasource": {
+              "type": "loki",
+              "uid": "${datasource}"
             }
           },
           {
-            "name": "pod",
-            "label": "Pod Regex",
-            "type": "textbox",
-            "query": ".*",
+            "name": "job",
+            "label": "Job",
+            "type": "query",
+            "query": {
+              "label": "job",
+              "refId": "LokiVariableQueryEditor-VariableQuery",
+              "stream": "{namespace=~\"$namespace\"}",
+              "type": 1
+            },
+            "definition": "label_values({namespace=~\"$namespace\"}, job)",
+            "includeAll": true,
+            "allValue": ".+",
+            "multi": true,
+            "refresh": 1,
             "current": {
               "selected": true,
-              "text": ".*",
-              "value": ".*"
+              "text": "All",
+              "value": ".+"
+            },
+            "datasource": {
+              "type": "loki",
+              "uid": "${datasource}"
             }
           },
           {
-            "name": "container",
-            "label": "Container Regex",
-            "type": "textbox",
-            "query": ".*",
+            "name": "file_name",
+            "label": "File Name",
+            "type": "query",
+            "query": {
+              "label": "file_name",
+              "refId": "LokiVariableQueryEditor-VariableQuery",
+              "stream": "{namespace=~\"$namespace\", job=~\"$job\"}",
+              "type": 1
+            },
+            "definition": "label_values({namespace=~\"$namespace\", job=~\"$job\"}, file_name)",
+            "includeAll": true,
+            "allValue": ".+",
+            "multi": true,
+            "refresh": 1,
             "current": {
               "selected": true,
-              "text": ".*",
-              "value": ".*"
+              "text": "All",
+              "value": ".+"
+            },
+            "datasource": {
+              "type": "loki",
+              "uid": "${datasource}"
             }
           },
           {
@@ -576,7 +618,7 @@ data:
       "timezone": "",
       "title": "Redis Enterprise Logs - Operations Overview",
       "uid": "redis-logs-overview",
-      "version": 25,
+      "version": 26,
       "weekStart": ""
     }
 ---
@@ -699,7 +741,7 @@ data:
                 "uid": "${datasource}"
               },
               "editorMode": "code",
-              "expr": "sum by (kubernetes_container_name) (count_over_time({kubernetes_namespace_name=~\"$namespace\"} |~ \"(?i)(error|fatal|panic|critical|fail|exception|timeout|denied|oom|unhealthy)\" [$__interval]))",
+              "expr": "sum by (file_name) (count_over_time({namespace=~\"$namespace\"} |~ \"(?i)(error|fatal|panic|critical|fail|exception|timeout|denied|oom|unhealthy)\" [$__interval]))",
               "queryType": "range",
               "refId": "A"
             }
@@ -758,7 +800,7 @@ data:
                 "uid": "${datasource}"
               },
               "editorMode": "code",
-              "expr": "sum by (kubernetes_pod_name) (count_over_time({kubernetes_namespace_name=~\"$namespace\"} |~ \"(?i)(error|fatal|panic|critical|fail|exception|timeout|denied|oom|unhealthy)\" [$__interval]))",
+              "expr": "sum by (job) (count_over_time({namespace=~\"$namespace\"} |~ \"(?i)(error|fatal|panic|critical|fail|exception|timeout|denied|oom|unhealthy)\" [$__interval]))",
               "queryType": "range",
               "refId": "A"
             }
@@ -827,7 +869,7 @@ data:
                 "uid": "${datasource}"
               },
               "editorMode": "code",
-              "expr": "sum(count_over_time({kubernetes_namespace_name=~\"$namespace\"} |~ \"(?i)(error|fatal|panic|critical|fail|exception|timeout|denied|oom|unhealthy)\" [5m]))",
+              "expr": "sum(count_over_time({namespace=~\"$namespace\"} |~ \"(?i)(error|fatal|panic|critical|fail|exception|timeout|denied|oom|unhealthy)\" [5m]))",
               "instant": true,
               "queryType": "instant",
               "refId": "A"
@@ -897,7 +939,7 @@ data:
                 "uid": "${datasource}"
               },
               "editorMode": "code",
-              "expr": "sum(count_over_time({kubernetes_namespace_name=~\"$namespace\"} |~ \"(?i)(warn|warning)\" [5m]))",
+              "expr": "sum(count_over_time({namespace=~\"$namespace\"} |~ \"(?i)(warn|warning)\" [5m]))",
               "instant": true,
               "queryType": "instant",
               "refId": "A"
@@ -956,7 +998,7 @@ data:
                 "uid": "${datasource}"
               },
               "editorMode": "code",
-              "expr": "topk(10, sum by (kubernetes_container_name) (count_over_time({kubernetes_namespace_name=~\"$namespace\"} |~ \"(?i)(error|fatal|panic|critical|fail|exception|timeout|denied|oom|unhealthy)\"[$__range])))",
+              "expr": "topk(10, sum by (file_name) (count_over_time({namespace=~\"$namespace\"} |~ \"(?i)(error|fatal|panic|critical|fail|exception|timeout|denied|oom|unhealthy)\"[$__range])))",
               "instant": true,
               "queryType": "instant",
               "refId": "A"
@@ -994,7 +1036,7 @@ data:
                 "uid": "${datasource}"
               },
               "editorMode": "code",
-              "expr": "{kubernetes_namespace_name=~\"$namespace\", kubernetes_pod_name=~\"$pod\", kubernetes_container_name=~\"$container\"} |~ \"(?i)(error|fatal|panic|critical|fail|exception|timeout|denied|oom|unhealthy|warn|warning)\" |~ \"$search\"",
+              "expr": "{namespace=~\"$namespace\", job=~\"$job\", file_name=~\"$file_name\"} |~ \"(?i)(error|fatal|panic|critical|fail|exception|timeout|denied|oom|unhealthy|warn|warning)\" |~ \"$search\"",
               "queryType": "range",
               "refId": "A"
             }
@@ -1018,34 +1060,76 @@ data:
           {
             "name": "namespace",
             "label": "Namespace",
-            "type": "textbox",
-            "query": ".*",
+            "type": "query",
+            "query": {
+              "label": "namespace",
+              "refId": "LokiVariableQueryEditor-VariableQuery",
+              "stream": "{namespace=~\".+\"}",
+              "type": 1
+            },
+            "definition": "label_values({namespace=~\".+\"}, namespace)",
+            "includeAll": true,
+            "allValue": ".+",
+            "multi": true,
+            "refresh": 1,
             "current": {
               "selected": true,
-              "text": ".*",
-              "value": ".*"
+              "text": "All",
+              "value": ".+"
+            },
+            "datasource": {
+              "type": "loki",
+              "uid": "${datasource}"
             }
           },
           {
-            "name": "pod",
-            "label": "Pod Regex",
-            "type": "textbox",
-            "query": ".*",
+            "name": "job",
+            "label": "Job",
+            "type": "query",
+            "query": {
+              "label": "job",
+              "refId": "LokiVariableQueryEditor-VariableQuery",
+              "stream": "{namespace=~\"$namespace\"}",
+              "type": 1
+            },
+            "definition": "label_values({namespace=~\"$namespace\"}, job)",
+            "includeAll": true,
+            "allValue": ".+",
+            "multi": true,
+            "refresh": 1,
             "current": {
               "selected": true,
-              "text": ".*",
-              "value": ".*"
+              "text": "All",
+              "value": ".+"
+            },
+            "datasource": {
+              "type": "loki",
+              "uid": "${datasource}"
             }
           },
           {
-            "name": "container",
-            "label": "Container Regex",
-            "type": "textbox",
-            "query": ".*",
+            "name": "file_name",
+            "label": "File Name",
+            "type": "query",
+            "query": {
+              "label": "file_name",
+              "refId": "LokiVariableQueryEditor-VariableQuery",
+              "stream": "{namespace=~\"$namespace\", job=~\"$job\"}",
+              "type": 1
+            },
+            "definition": "label_values({namespace=~\"$namespace\", job=~\"$job\"}, file_name)",
+            "includeAll": true,
+            "allValue": ".+",
+            "multi": true,
+            "refresh": 1,
             "current": {
               "selected": true,
-              "text": ".*",
-              "value": ".*"
+              "text": "All",
+              "value": ".+"
+            },
+            "datasource": {
+              "type": "loki",
+              "uid": "${datasource}"
             }
           },
           {
@@ -1070,7 +1154,7 @@ data:
       "timezone": "",
       "title": "Redis Enterprise Logs - Errors & Triage",
       "uid": "redis-logs-errors",
-      "version": 25,
+      "version": 26,
       "weekStart": ""
     }
 ---
@@ -1199,7 +1283,7 @@ data:
                 "uid": "${datasource}"
               },
               "editorMode": "code",
-              "expr": "sum(count_over_time({kubernetes_namespace_name=~\"$namespace\"} |~ \"(?i)($severity)\" [5m]))",
+              "expr": "sum(count_over_time({namespace=~\"$namespace\"} |~ \"(?i)($severity)\" [5m]))",
               "instant": true,
               "queryType": "instant",
               "refId": "A"
@@ -1265,7 +1349,7 @@ data:
                 "uid": "${datasource}"
               },
               "editorMode": "code",
-              "expr": "sum(count_over_time({kubernetes_namespace_name=~\"$namespace\", kubernetes_pod_name=~\"$pod\", kubernetes_container_name=~\"$container\"} |~ \"(?i)($severity)\" [5m]))",
+              "expr": "sum(count_over_time({namespace=~\"$namespace\", job=~\"$job\", file_name=~\"$file_name\"} |~ \"(?i)($severity)\" [5m]))",
               "instant": true,
               "queryType": "instant",
               "refId": "A"
@@ -1313,7 +1397,7 @@ data:
                 "uid": "${datasource}"
               },
               "editorMode": "code",
-              "expr": "topk(10, sum by (kubernetes_pod_name) (count_over_time({kubernetes_namespace_name=~\"$namespace\", kubernetes_pod_name=~\"$pod\", kubernetes_container_name=~\"$container\"} |~ \"(?i)($severity)\"[$__range])))",
+              "expr": "topk(10, sum by (job) (count_over_time({namespace=~\"$namespace\", job=~\"$job\", file_name=~\"$file_name\"} |~ \"(?i)($severity)\"[$__range])))",
               "instant": true,
               "queryType": "instant",
               "refId": "A"
@@ -1351,7 +1435,7 @@ data:
                 "uid": "${datasource}"
               },
               "editorMode": "code",
-              "expr": "{kubernetes_namespace_name=~\"$namespace\"} |~ \"(?i)($severity)\" |~ \"$search\"",
+              "expr": "{namespace=~\"$namespace\"} |~ \"(?i)($severity)\" |~ \"$search\"",
               "queryType": "range",
               "refId": "A"
             }
@@ -1388,7 +1472,7 @@ data:
                 "uid": "${datasource}"
               },
               "editorMode": "code",
-              "expr": "{kubernetes_namespace_name=~\"$namespace\", kubernetes_pod_name=~\"$pod\", kubernetes_container_name=~\"$container\"} |~ \"(?i)($severity)\" |~ \"$search\"",
+              "expr": "{namespace=~\"$namespace\", job=~\"$job\", file_name=~\"$file_name\"} |~ \"(?i)($severity)\" |~ \"$search\"",
               "queryType": "range",
               "refId": "A"
             }
@@ -1412,34 +1496,76 @@ data:
           {
             "name": "namespace",
             "label": "Namespace",
-            "type": "textbox",
-            "query": ".*",
+            "type": "query",
+            "query": {
+              "label": "namespace",
+              "refId": "LokiVariableQueryEditor-VariableQuery",
+              "stream": "{namespace=~\".+\"}",
+              "type": 1
+            },
+            "definition": "label_values({namespace=~\".+\"}, namespace)",
+            "includeAll": true,
+            "allValue": ".+",
+            "multi": true,
+            "refresh": 1,
             "current": {
               "selected": true,
-              "text": ".*",
-              "value": ".*"
+              "text": "All",
+              "value": ".+"
+            },
+            "datasource": {
+              "type": "loki",
+              "uid": "${datasource}"
             }
           },
           {
-            "name": "pod",
-            "label": "Pod Regex",
-            "type": "textbox",
-            "query": ".*",
+            "name": "job",
+            "label": "Job",
+            "type": "query",
+            "query": {
+              "label": "job",
+              "refId": "LokiVariableQueryEditor-VariableQuery",
+              "stream": "{namespace=~\"$namespace\"}",
+              "type": 1
+            },
+            "definition": "label_values({namespace=~\"$namespace\"}, job)",
+            "includeAll": true,
+            "allValue": ".+",
+            "multi": true,
+            "refresh": 1,
             "current": {
               "selected": true,
-              "text": ".*",
-              "value": ".*"
+              "text": "All",
+              "value": ".+"
+            },
+            "datasource": {
+              "type": "loki",
+              "uid": "${datasource}"
             }
           },
           {
-            "name": "container",
-            "label": "Container Regex",
-            "type": "textbox",
-            "query": ".*",
+            "name": "file_name",
+            "label": "File Name",
+            "type": "query",
+            "query": {
+              "label": "file_name",
+              "refId": "LokiVariableQueryEditor-VariableQuery",
+              "stream": "{namespace=~\"$namespace\", job=~\"$job\"}",
+              "type": 1
+            },
+            "definition": "label_values({namespace=~\"$namespace\", job=~\"$job\"}, file_name)",
+            "includeAll": true,
+            "allValue": ".+",
+            "multi": true,
+            "refresh": 1,
             "current": {
               "selected": true,
-              "text": ".*",
-              "value": ".*"
+              "text": "All",
+              "value": ".+"
+            },
+            "datasource": {
+              "type": "loki",
+              "uid": "${datasource}"
             }
           },
           {
@@ -1475,6 +1601,6 @@ data:
       "timezone": "",
       "title": "Redis Enterprise - Logs Cockpit",
       "uid": "redis-internal-logs",
-      "version": 25,
+      "version": 26,
       "weekStart": ""
     }
