@@ -20,6 +20,10 @@ spec:
     repoURL: {{ $.Values.global.repoURL }}
     targetRevision: {{ $.Values.global.targetRevision }}
     path: {{ .path }}
+    {{- with .directory }}
+    directory:
+{{ toYaml . | nindent 6 }}
+    {{- end }}
     {{- with .helm }}
     helm:
       {{- with .valueFiles }}

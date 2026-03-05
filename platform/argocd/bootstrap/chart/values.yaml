@@ -92,6 +92,9 @@ components:
     syncWave: "6"
     path: platform/observability/logging
     destinationNamespace: openshift-logging
+    directory:
+      recurse: true
+      exclude: '{splunk/**,**/README.md}'
 
   - id: redis-rbac-demo
     name: redis-rbac-demo
