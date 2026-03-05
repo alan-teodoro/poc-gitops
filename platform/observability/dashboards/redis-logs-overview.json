@@ -574,6 +574,6 @@
   "timezone": "",
   "title": "Redis Enterprise Logs - Operations Overview",
   "uid": "redis-logs-overview",
-  "version": 27,
+  "version": 100,
   "weekStart": ""
 }

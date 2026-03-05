@@ -488,6 +488,6 @@
   "timezone": "",
   "title": "Redis Enterprise Logs - Errors & Triage",
   "uid": "redis-logs-errors",
-  "version": 27,
+  "version": 100,
   "weekStart": ""
 }

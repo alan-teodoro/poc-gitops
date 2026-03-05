@@ -618,7 +618,7 @@ data:
       "timezone": "",
       "title": "Redis Enterprise Logs - Operations Overview",
       "uid": "redis-logs-overview",
-      "version": 27,
+      "version": 100,
       "weekStart": ""
     }
 ---
@@ -1154,7 +1154,7 @@ data:
       "timezone": "",
       "title": "Redis Enterprise Logs - Errors & Triage",
       "uid": "redis-logs-errors",
-      "version": 27,
+      "version": 100,
       "weekStart": ""
     }
 ---
@@ -1601,6 +1601,6 @@ data:
       "timezone": "",
       "title": "Redis Enterprise - Logs Cockpit",
       "uid": "redis-internal-logs",
-      "version": 27,
+      "version": 100,
       "weekStart": ""
     }
