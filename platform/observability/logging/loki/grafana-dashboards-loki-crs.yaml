@@ -25,8 +25,6 @@ spec:
   datasources:
     - inputName: "datasource"
       datasourceName: "Loki (Redis Logs)"
-    - inputName: "prometheus"
-      datasourceName: "Prometheus (Redis Enterprise)"
   configMapRef:
     name: grafana-dashboard-redis-logs-overview
     key: redis-logs-overview.json
@@ -52,8 +50,6 @@ spec:
   datasources:
     - inputName: "datasource"
       datasourceName: "Loki (Redis Logs)"
-    - inputName: "prometheus"
-      datasourceName: "Prometheus (Redis Enterprise)"
   configMapRef:
     name: grafana-dashboard-redis-logs-errors
     key: redis-logs-errors.json
@@ -79,8 +75,6 @@ spec:
   datasources:
     - inputName: "datasource"
       datasourceName: "Loki (Redis Logs)"
-    - inputName: "prometheus"
-      datasourceName: "Prometheus (Redis Enterprise)"
   configMapRef:
     name: grafana-dashboard-redis-internal-logs
     key: redis-internal-logs.json
